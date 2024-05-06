@@ -1,9 +1,10 @@
-import json
+import os,json
+import joblib
 import config
 from sklearn.model_selection import StratifiedKFold
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.feature_selection import SelectKBest, mutual_info_regression, RFE, RFECV
-from sklearn.base import BaseEstimator, TransformerMixin
 import pandas as pd
 from sklearn.base import TransformerMixin, BaseEstimator
 from config import config
@@ -66,7 +67,7 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
                     'std': rolling_windows.std()
                 }
             # Optionally, store params for later use in LIVE mode
-            # self._store_params()
+            self._store_params()
         return self
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -86,13 +87,12 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
             self.param_dict[column] = {'mean': self.params[column]['mean'].iloc[-1],
                                        'std': self.params[column]['std'].iloc[-1]}
 
-        with open('normalization_params.json', 'w') as f:
-            json.dump(self.params, f)
+        joblib.dump(self.param_dict, os.path.join(
+            config.MODEL_PARAM_FILE, 'shortterm_normalization_params.joblib'))
 
     def _load_params(self):
-        # TODO think of way to store and load parameters
-        with open('normalization_params.json', 'r') as f:
-            self.params = json.load(f)
+        self.params = joblib.load(os.path.join(
+            config.MODEL_PARAM_FILE, 'shortterm_normalization_params.joblib'))
 
     def get_params(self) -> dict:
         """Return the stored parameters for external use"""
@@ -113,6 +113,9 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         self.ss.fit(X)
         self.mean_ = pd.Series(self.ss.mean_, index=X.columns)
         self.scale_ = pd.Series(self.ss.scale_, index=X.columns)
+        
+        # Optionally, store params for later use in LIVE mode
+        self._store_params()
         return self
 
     def transform(self, X):
@@ -124,6 +127,11 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
             Xss = self.ss.transform(X)
             Xscaled = pd.DataFrame(Xss, index=X.index, columns=X.columns)
         return Xscaled
+    
+    def _store_params(self):
+        joblib.dump({'mean': self.mean_, 'std': self.scale_},
+                    'longterm_normalization_params.joblib')
+    
 
     def get_params(self) -> dict:
         """Return the stored parameters for external use"""
@@ -132,10 +140,9 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
 
     def _load_params(self):
         # TODO think of way to store and load parameters
-        with open('normalization_params.json', 'r') as f:
-            self.mean_ = json.load(f)['mean']
-            self.scale_ = json.load(f)['std']
-
+        parameters = joblib.load('longterm_normalization_params.joblib')
+        self.mean_ = parameters['mean']
+        self.scale_ = parameters['std']
 
 class DFRecursiveFeatureSelector(BaseEstimator, TransformerMixin):
 
@@ -172,3 +179,20 @@ class DF_RFECV_FeatureSelection(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         return X.drop(X.columns[np.where(self.rfevc.support_ == False)[0]], axis=1, inplace=True)
+
+
+class CategoricalPreprocessor(BaseEstimator, TransformerMixin):
+    def __init__(self, columns):
+        self.columns = columns
+        self.encoder = OneHotEncoder(sparse=False, drop='if_binary')
+    
+    def fit(self, data: pd.DataFrame):
+        self.encoder.fit(data)
+        return self
+    
+    def transform(self, data: pd.DataFrame) -> pd.DataFrame:
+        encoded_data = self.encoder.transform(data[self.columns])
+        # Convert to DataFrame and ensure we have the right column names
+        col_names = self.encoder.get_feature_names_out(input_features=self.columns)
+        transformed_data = pd.DataFrame(encoded_data, columns=col_names, index=data.index)
+        return transformed_data

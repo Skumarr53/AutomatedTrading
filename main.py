@@ -4,11 +4,13 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from auth.fyers_auth import AuthCodeGenerator
 from data.data_fetcher import DataHandler
+from utils.utils import load_symbols
 from typing import Callable
 # from feature_engineering.technical_indicators import TechnicalIndicators
 from financial_analysis.trading_strategies import TradingStrategies
 from feature_engineering.feature_aggregator import DataAggregator
 from data.order_book_handler import OrderBookHandler
+from pipelines.custom_pipelines import CustomModelPipeline
 from config import log_config, config
 
 # Setup logging
@@ -30,6 +32,7 @@ class MarketAnalysisApp:
         self.setup_based_on_mode()
     
     def setup_based_on_mode(self):
+        self.symbols = load_symbols(config.SYMBOLS_PATH)
         self.generator = AuthCodeGenerator()
         self._setup_authorization()
         self.scheduler = BackgroundScheduler() if self.trading_mode == 'LIVE' else None 
@@ -40,6 +43,7 @@ class MarketAnalysisApp:
         self.data_aggregator = DataAggregator()
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
+        self.custom_model = CustomModelPipeline(model_id = 'COMB')
         self.timezone = pytz.timezone(config.TIMEZONE)
 
     def _schedule_job(self, func: Callable, interval: int, job_id: str, max_instances: int=1) -> None:
@@ -65,11 +69,6 @@ class MarketAnalysisApp:
         self._schedule_job(self.start_live_trading, config.TRADE_RUN_INTERVAL_MIN, "start_live_trading")
         self.scheduler.start()
 
-
-    # def register_callback(self):
-    #     self.ticker_data_handler.register_callback(self.order_data_handler.fetch_order_book_data)
-
-
     def data_collection(self):
         self.order_data_handler.fetch_order_book_data()
         time.sleep(5)
@@ -80,36 +79,23 @@ class MarketAnalysisApp:
         time.sleep(10)
         ## TODO Turn assert on 
         # assert (datetime.now() - self.last_data_collection_time).seconds < 60, 'Data Collection and Trading Excecution not in sync'
-        data_agg = self.data_aggregator.aggregate_features(
-            self.ticker_data_handler.data, self.order_data_handler.data)
+        for symbol in self.symbols:
+            data_agg = self.data_aggregator.aggregate_features(
+                self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
         pass
 
     def start_backtesting(self):
         ## TODO fill backtest logic
-        data_agg = self.data_aggregator.aggregate_features(
-            self.ticker_data_handler.data, self.order_data_handler.data)
+        for symbol in self.symbols:
+            data_agg = self.data_aggregator.aggregate_features(
+                self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
+            
+            ## Run Custom pipeline
+            self.custom_model.run()
+            
+            
+            
         pass
-
-
-    # def register_callback(self, callback):
-    #     ## TODO add fearure Engineering
-    #     self.ticker_data_handler.register_callback(self.indicators.get_stock_indicators)
-    
-
-    # def _setup_data_handling(self):
-    #     """
-    #     Setup data handling and callbacks for processing the data.
-        # """
-    #     try:
-    #         self.ticker_data_handler = DataHandler(
-    #             self.fyers_instance, self.scheduler)
-    #         self.ticker_data_handler.register_callback(
-    #             self.indicators.get_stock_indicators)
-    #         self.indicators.register_callback(self.execute_strategies)
-    #     except Exception as e:
-    #         logging.exception("Data handling setup failed")
-    #         raise
-
     
     def _setup_authorization(self):
         """

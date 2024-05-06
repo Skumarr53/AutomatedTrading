@@ -2,6 +2,7 @@ import talib, sys
 import pandas as pd
 from typing import Dict, List
 from config import config
+from config.config import MODEL_CONFIG
 
 
 def rolling_pipe(dataframe, window, fctn):
@@ -11,7 +12,7 @@ def rolling_pipe(dataframe, window, fctn):
 
 def get_param(func_name: str) -> List[Dict[str, int]]:
     function_params = {key[len(func_name)+2:]: value for key,
-                       value in config.TECHNICAL_INDICATORS_PARAMS.items() if key.startswith(func_name)}
+                       value in MODEL_CONFIG['TECHNICAL_INDICATORS_PARAMS'].items() if key.startswith(func_name)}
     return [{key: values[i] for key, values in function_params.items()}
             for i in range(3)]
 

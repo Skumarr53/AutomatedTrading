@@ -7,20 +7,16 @@ class OrderBookDataTransformer:
     def __init__(self):
         pass
 
-    def transform(self, data_dict: dict) -> pd.DataFrame:
+    def transform(self, data: dict) -> pd.DataFrame:
         """
         Orchestrates the transformation of raw order book data for a given symbol and returns only new features.
         """
-        order_features_derived = {}
-        for symbol, data in data_dict.items():
+        # basic_info_df = self.extract_basic_info(data)
+        condensed_info_df = self.add_condensed_order_book_info(data)
+        derived_variables_df = self.add_derived_variables(
+            data)
 
-            # basic_info_df = self.extract_basic_info(data)
-            condensed_info_df = self.add_condensed_order_book_info(data)
-            derived_variables_df = self.add_derived_variables(
-                data)
-            order_features_derived[symbol] = pd.concat([condensed_info_df, derived_variables_df], axis=1)
-
-        return order_features_derived
+        return pd.concat([condensed_info_df, derived_variables_df], axis=1)
 
     def add_condensed_order_book_info(self, data: dict) -> pd.DataFrame:
         """

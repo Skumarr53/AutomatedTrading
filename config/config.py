@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv  # Correct import statement
-from utils.utils import determine_mode
+from utils.utils import determine_mode, load_config
 
 # Load environment variables from .env file in the project root
 load_dotenv()
@@ -10,7 +10,7 @@ load_dotenv()
 REDIRECT_URL = "https://www.google.com/"
 RESPONSE_TYPE = "code"
 GRANT_TYPE = "authorization_code"
-MANUAL_SET_TRADE_MODE = 'BACKTEST' #'LIVE' 'None'
+MANUAL_SET_TRADE_MODE = 'BACKTEST'  # 'LIVE' 'None' 'BACKTEST'
 
 # Environment variables
 CLIENT_ID = os.environ.get('FYERS_CLIENT_ID')
@@ -21,17 +21,6 @@ USER_NAME = os.environ.get('USER_NAME', 'dummy-user')  # default if not set
 ENV = os.environ.get('ENVIRONMENT', 'uat')
 
 
-TRADE_MODE = MANUAL_SET_TRADE_MODE if MANUAL_SET_TRADE_MODE is not None else determine_mode()
-
-# Data API payload
-BASE_PAYLOAD = {
-    "symbol": "{symbol}",
-    "resolution": "{interval}",
-    "date_format": "0",
-    "range_from": "{start_epoch_time}",
-    "range_to": "{end_epoch_time}",
-    "cont_flag": "1"
-}
 
 ## Scheduler configuration
 BACKUP_INTERVAL_HOURS = 1  # Backup job interval in hours
@@ -51,34 +40,24 @@ TECH_INDS_MAX_LENGTH = 234  # tech indicators compute window size
 CS_PATTERNS_MAX_LENGTH = 96
 FIB_LEVELS = [0.236, 0.382, 0.5, 0.618, 0.786]
 
+## Custom model 
+CUSTOM_MODEL_WINDOWS = [5, 15, 30, 60, 180]
+
 # File paths
 ORDERBOOK_FILENAME = 'backups/OderBookData'
 TICKER_FILENAME = 'backups/TickerData'
 SYMBOLS_PATH = 'config/stock_symbols.txt'
 ORDERBOOK_FILE_SUFF = 'orderbook_data'
 TICKER_FILE_SUFF = 'ticker_data'
+MODEL_CONFIG_FILENAME = 'config/model_config.yaml'
+MODEL_PARAM_FILE = 'model_artifacts'
+CUSTOM_MODEL_BEST_PARAM_PATH = '{}_CustiomModelPipeline.joblib'
 
 
+TRADE_MODE = MANUAL_SET_TRADE_MODE if MANUAL_SET_TRADE_MODE is not None else determine_mode()
+MODEL_CONFIG = load_config(MODEL_CONFIG_FILENAME)
 
 
-TECHNICAL_INDICATORS_PARAMS = {
-    'bollinger_bands__timeperiod': [10, 12, 15],  # Shortened for quicker adaptability
-    'rsi__timeperiod': [5, 7, 9],  # Decreased to increase sensitivity
-    'macd__fastperiod': [3, 5, 8],  # Lowered for faster reaction to price changes
-    'macd__slowperiod': [16, 19, 22],  # Reduced to better match short-term trends
-    'macd__signalperiod': [3, 5, 7],  # Adjusted for quicker signal line crossovers
-    'stochastic_oscillator__fastk_period': [5, 7, 9],  # More responsive to price movements
-    'adx__timeperiod': [7, 10, 12],  # Shortened to detect trends quicker
-    'ema__short_period': [5, 7, 9],  # More sensitive to recent price action
-    'ema__long_period': [12, 15, 18],  # Adjusted for the short-term focus
-    'atr__timeperiod': [5, 7, 10],  # Tailored for closer volatility estimation
-    'cci__timeperiod': [5, 10, 12],  # More responsive to price deviation from moving average
-    'ichimoku_cloud__conversion_line_period': [6, 7, 9],  # Faster to react
-    'ichimoku_cloud__base_line_periods': [16, 19, 22],  # Shortened for short-term relevance
-    'ichimoku_cloud__lagging_span2_periods': [22, 30, 44],  
-    'ichimoku_cloud__displacement': [16, 19, 22],
-    'fibonacci_retracements__window': [78, 156, 234]
-}
 
 
 

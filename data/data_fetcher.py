@@ -10,6 +10,7 @@ from datetime import datetime, time as _time
 import os
 import pandas as pd
 from utils.utils import load_symbols, get_NSE_symbol
+from config.config import MODEL_CONFIG
 from config import config, log_config, columns_def
 log_config.setup_logging()
 
@@ -105,7 +106,7 @@ class DataHandler:
                                             start_epoch_time=int(
                                                 start_epoch_time),
                                             end_epoch_time=int(chunk_end_time))
-                                            for key, value in config.BASE_PAYLOAD.items()}
+                           for key, value in MODEL_CONFIG.BASE_PAYLOAD.items()}
             
             ## API call to fetch data
             while attempt < config.MAX_API_CALL_ATTEMPT:
@@ -113,12 +114,6 @@ class DataHandler:
                     cs_data = self.fyres.history(inp_payload)
                     df = pd.DataFrame(
                         cs_data['candles'], columns=columns_def.TICKER_COLS[:6])
-                    df[date_col] = pd.to_datetime(
-                        df[columns_def.TICKER_COLS[0]], unit='s')
-                    df[date_col] = df[date_col].dt.tz_localize(
-                        'UTC').dt.tz_convert(config.TIMEZONE)
-                    df[date_col] = df[date_col].dt.tz_localize(
-                        None).dt.floor('T')
                     total_data = pd.concat([total_data, df])
                     logging.info(
                         f"time diff in  seconds symbol {symbol}: {now - df[columns_def.TICKER_COLS[0]].max()}")
@@ -134,7 +129,10 @@ class DataHandler:
                         f"Error fetching data for {symbol}: {e}")
                         break
             start_epoch_time = chunk_end_time
-
+            
+            total_data[date_col] = pd.to_datetime(total_data[config.TICKER_COLS[0]], unit='s')
+            total_data[date_col] = total_data[date_col].dt.tz_localize('UTC').dt.tz_convert(config.TIMEZONE)
+            total_data[date_col] = total_data[date_col].dt.tz_localize(None).dt.round('5min')
         return total_data
 
     def schedule_data_updates(self):

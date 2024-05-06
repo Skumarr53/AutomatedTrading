@@ -78,16 +78,16 @@ class DataAggregator:
         """
         Aggregate features from various components and combine them with the original data.
         """
+        ticker_data.set_index('date', inplace = True)
+        order_book_data.set_index('last_traded_time', inplace=True)
         # Aggregate features based on ticker data
         combined_ticker_data = self._aggregate_ticker_data(ticker_data)
-
         # Aggregate features based on order book data
         combined_order_book_data = self._aggregate_order_book_data(
             order_book_data)
 
         # Merge ticker and order book data features
-        combined_data = self._merge_ticker_and_order_book_data(
-            combined_ticker_data, combined_order_book_data)
+        combined_data = pd.concat([*combined_ticker_data, *combined_order_book_data], axis=1,join='outer')
 
         return combined_data
 
@@ -101,14 +101,12 @@ class DataAggregator:
         
         ticker_features = self.feature_extractor.generate_features(
             ticker_data)
-        indicator_features = self.indicator_generator.get_stock_indicators(
+        indicator_features = self.indicator_generator.compute_indicators(
             ticker_data)
-        indicator_features = self.cs_pattern_recognizer.recognize_patterns(
+        cs_pattern_features = self.cs_pattern_recognizer.recognize_patterns(
             ticker_data)
-
-        combined_ticker_data = self._combine_features(ticker_data,
-            ticker_features, indicator_features)
-        return combined_ticker_data
+        
+        return ticker_data, ticker_features, indicator_features, cs_pattern_features
     
     def aggregate_order_book_data_to_run_min(self, order_book_data_dict):
         # Convert index back to a column for resampling
@@ -152,8 +150,7 @@ class DataAggregator:
 
         return order_features_derived
 
-
-    def _aggregate_order_book_data(self, order_book_data) -> Dict[str, pd.DataFrame]:
+    def _aggregate_order_book_data(self, order_book_data) -> pd.DataFrame:
         """
         Generate and combine features based on order book data.
         """
@@ -168,10 +165,8 @@ class DataAggregator:
         order_book_features = self.order_book_transformer.transform(
             order_book_data)
         
-
-        combined_order_data = self._combine_features(order_book_data,
-                                                     order_book_features)
-        return combined_order_data
+        order_book_data = order_book_data.drop(columns=['asks', 'bids'], errors='ignore')
+        return order_book_data, order_book_features
 
     def _merge_ticker_and_order_book_data(self, ticker_data: Dict[str, pd.DataFrame], order_book_data: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
         """
@@ -190,25 +185,3 @@ class DataAggregator:
         return combined_data
 
 
-    def _combine_features(self, *args: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
-        """
-        Helper method to combine multiple feature DataFrames more efficiently.
-        """
-        combined_data = {}
-        # Collect all DataFrames for each symbol before concatenating
-        for data_dict in args:
-            for symbol, df in data_dict.items():
-                if 'asks' in df.columns:       
-                    df = df.drop(
-                        columns=['asks', 'bids'], errors='ignore')
-                if symbol not in combined_data:
-
-                    combined_data[symbol] = [df]
-                else:
-                    combined_data[symbol].append(df)
-
-        # Concatenate all collected DataFrames for each symbol at once
-        for symbol in combined_data:
-            combined_data[symbol] = pd.concat(combined_data[symbol], axis=1)
-
-        return combined_data

@@ -65,7 +65,10 @@ class OrderBookHandler:
         file_path = os.path.join(
             self.path, f"{symbol}_{config.ORDERBOOK_FILE_SUFF}.parquet")
         if os.path.exists(file_path):
-            return pd.read_parquet(file_path)
+            df = pd.read_parquet(file_path)
+            df['last_traded_time'] = pd.to_datetime(
+                df['last_traded_time']).dt.round('5min')
+            return df
         return pd.DataFrame()
 
     def register_callback(self, callback):
@@ -93,7 +96,7 @@ class OrderBookHandler:
                 order_book_data = response.get("d", {}).get(smb_key, {})
                 structured_df = self.extract_info_df(order_book_data, symbol)
                 structured_df['last_traded_time'] = pd.to_datetime(structured_df['last_traded_time']).dt.tz_localize(
-                    None).dt.floor('T')
+                    None).dt.round('5min')
                 self.process_order_book_data(symbol, structured_df)
                 logging.info(
                     f"Order book data for symbol {symbol} fetched successfully.")

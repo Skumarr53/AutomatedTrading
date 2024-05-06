@@ -16,12 +16,12 @@ class TechnicalIndicators:
             ind.obv, ind.sar, ind.cci, ind.ichimoku_cloud
     ]  # ind.fibonacci_retracements
 
-    def get_stock_indicators(self, all_stock_data: Dict[str, pd.DataFrame]) -> None:
-        indicators_data = {symbol: self._compute_indicators(data)
-                           for symbol, data in all_stock_data.items() if not data.empty}
-        return indicators_data
+    # def get_stock_indicators(self, all_stock_data: Dict[str, pd.DataFrame]) -> None:
+    #     indicators_data = {symbol: self._compute_indicators(data)
+    #                        for symbol, data in all_stock_data.items() if not data.empty}
+    #     return indicators_data
 
-    def _compute_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
+    def compute_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
         data = self._truncate_data_for_live_mode(
             data) if self.mode == 'LIVE' else data
         indicators_df = self._gather_indicators(data)
@@ -35,7 +35,8 @@ class TechnicalIndicators:
     def _gather_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
 
         # Initialize an empty DataFrame to store the results
-        indicators_df = pd.DataFrame(index=data.index) if self.mode == 'BACKTEST' else pd.DataFrame()
+        indicators_df = pd.DataFrame(
+            index=data.index if self.mode == 'BACKTEST' else data.index[-1:])
 
         # Iterate over each indicator function, compute the indicator, and merge the results into the DataFrame
         for func in self.indicators_functions:
@@ -48,7 +49,7 @@ class TechnicalIndicators:
                 for key, series in indicator_result.items():
                     indicators_df[key] = series
 
-        return indicators_df if self.mode == 'BACKTEST' else indicators_df.iloc[-1:]
+        return indicators_df 
 
 
 # Example of setting up and using the TechnicalIndicators class
