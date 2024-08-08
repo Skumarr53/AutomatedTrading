@@ -44,7 +44,7 @@ class AuthCodeGenerator:
             logging.info(fyers.get_profile())
             return fyers
         except Exception as e:
-            logging.error(f"Error in initializing Fyers Model: {e}")
+            logging.exception(f"Error in initializing Fyers Model: {e}")
             raise
 
     def gen_auth_code(self):
@@ -59,7 +59,7 @@ class AuthCodeGenerator:
             self._enter_pin(driver)
             return self._extract_auth_code(driver)
         except Exception as e:
-            logging.error(f"Error in generating auth code: {e}")
+            logging.exception(f"Error in generating auth code: {e}")
             raise
         finally:
             if driver:

@@ -7,8 +7,7 @@ from sklearn.pipeline import Pipeline
 from config import config
 from config.vars import CLOSE
 from config.config import MODEL_CONFIG
-
-
+from utils.utils import categorize_percent_change
 
 class MLPipelineBase:
     def __init__(self):

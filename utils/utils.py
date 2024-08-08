@@ -18,11 +18,11 @@ def get_NSE_symbol(symbol):
 
 def get_chrome_options():
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     # Add any other options you need here
     return options
 
-
+ 
 def load_symbols(symbols_file: str) -> List[str]:
     """
     Load stock symbols from a file.
