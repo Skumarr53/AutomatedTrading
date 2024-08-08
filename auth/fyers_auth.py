@@ -6,7 +6,7 @@
 # 3. Improved logging for better clarity.
 # 4. Modularized code for improved readability and maintenance.
 # 5. Ensured proper management of WebDriver.
-
+import time
 import logging
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,6 +17,9 @@ from fyers_apiv3 import fyersModel  # accessToken
 import os
 from config import config, log_config
 from utils import utils
+import pyperclip
+import webbrowser
+from urllib.parse import parse_qs,urlparse
 log_config.setup_logging()
 
 
@@ -50,14 +53,28 @@ class AuthCodeGenerator:
     def gen_auth_code(self):
         driver = None
         try:
-            driver = webdriver.Chrome(options=utils.get_chrome_options())
-            driver.get(self.session.generate_authcode())
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="fy_client_id"]')))
-            self._login(driver)
-            self._enter_otp(driver)
-            self._enter_pin(driver)
-            return self._extract_auth_code(driver)
+            # driver = webdriver.Chrome(options=utils.get_chrome_options())
+            url = self.session.generate_authcode()
+
+            webbrowser.open_new(url)
+
+            old_clipboard_contents = pyperclip.paste()
+            new_clipboard_contents = pyperclip.paste()
+            while old_clipboard_contents == new_clipboard_contents:
+                new_clipboard_contents = pyperclip.paste()
+                time.sleep(1)
+            
+            url = new_clipboard_contents
+            parsed = urlparse(url)
+            auth_code = parse_qs(parsed.query)["auth_code"][0]
+            ## EDIT
+            # WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+            #     (By.XPATH, '//*[@id="fy_client_id"]')))
+            # self._login(driver)
+            # self._enter_otp(driver)
+            # self._enter_pin(driver)
+            # self._extract_auth_code(driver)
+            return auth_code
         except Exception as e:
             logging.exception(f"Error in generating auth code: {e}")
             raise
