@@ -10,7 +10,7 @@ load_dotenv()
 REDIRECT_URL = "https://www.google.com/"
 RESPONSE_TYPE = "code"
 GRANT_TYPE = "authorization_code"
-MANUAL_SET_TRADE_MODE = 'BACKTEST'  # 'LIVE' 'None' 'BACKTEST'
+MANUAL_SET_TRADE_MODE = None  # 'LIVE' None 'BACKTEST'
 
 # Environment variables
 CLIENT_ID = os.environ.get('FYERS_CLIENT_ID')

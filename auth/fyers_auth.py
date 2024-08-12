@@ -22,7 +22,6 @@ import webbrowser
 from urllib.parse import parse_qs,urlparse
 log_config.setup_logging()
 
-
 class AuthCodeGenerator:
     def __init__(self):
         self.session = fyersModel.SessionModel(
@@ -54,6 +53,7 @@ class AuthCodeGenerator:
         driver = None
         try:
             # driver = webdriver.Chrome(options=utils.get_chrome_options())
+            # driver.get(self.session.generate_authcode())
             url = self.session.generate_authcode()
 
             webbrowser.open_new(url)
@@ -67,13 +67,14 @@ class AuthCodeGenerator:
             url = new_clipboard_contents
             parsed = urlparse(url)
             auth_code = parse_qs(parsed.query)["auth_code"][0]
-            ## EDIT
+            # EDIT
             # WebDriverWait(driver, 10).until(EC.presence_of_element_located(
             #     (By.XPATH, '//*[@id="fy_client_id"]')))
             # self._login(driver)
+            # self._handle_human_validation(driver)
             # self._enter_otp(driver)
             # self._enter_pin(driver)
-            # self._extract_auth_code(driver)
+            # auth_code = self._extract_auth_code(driver)
             return auth_code
         except Exception as e:
             logging.exception(f"Error in generating auth code: {e}")
@@ -81,6 +82,21 @@ class AuthCodeGenerator:
         finally:
             if driver:
                 driver.quit()
+
+    def _handle_human_validation(self, driver):
+        try:
+            # Wait for the human validation checkbox to be clickable
+            human_validation_checkbox = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '#qquD4 > div > label > input[type=checkbox]')))
+            
+            # Click the checkbox
+            human_validation_checkbox.click()
+            
+            # Optionally wait for a second to ensure the validation is processed
+            time.sleep(1)
+        except Exception as e:
+            logging.error(f"Error during human validation: {e}")
+            raise
 
     def _login(self, driver):
         try:
@@ -99,6 +115,8 @@ class AuthCodeGenerator:
         client_id_field = WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="fy_client_id"]')))
         client_id_field.send_keys(self.username)
+        time.sleep(2)
+        self._handle_human_validation(driver)
         submit_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="clientIdSubmit"]')))
         submit_button.click()
