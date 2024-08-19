@@ -43,7 +43,7 @@ class MarketAnalysisApp:
         self.data_aggregator = DataAggregator()
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
-        self.custom_model = CustomModelPipeline(model_id = 'COMB')
+        # self.custom_model = CustomModelPipeline(model_id = 'COMB')
         self.timezone = pytz.timezone(config.TIMEZONE)
 
     def _schedule_job(self, func: Callable, interval: int, job_id: str, max_instances: int=1) -> None:
@@ -66,7 +66,7 @@ class MarketAnalysisApp:
         """
         self._schedule_job(
             self.data_collection, config.DATA_FETCH_CRON_INTERVAL_MIN, "data_collection", max_instances=2)
-        self._schedule_job(self.start_live_trading, config.TRADE_RUN_INTERVAL_MIN, "start_live_trading")
+        # self._schedule_job(self.start_live_trading, config.TRADE_RUN_INTERVAL_MIN, "start_live_trading")
         self.scheduler.start()
 
     def data_collection(self):

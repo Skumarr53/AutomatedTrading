@@ -81,6 +81,8 @@ class OrderBookHandler:
     def fetch_order_book_data(self):
         for symbol in self.symbols:
             self.fetch_data_for_symbol(symbol)
+
+        self.backup_hourly()
         logging.info(
             f"fetching order book data for symbols completed")
         return self.data
@@ -138,10 +140,10 @@ class OrderBookHandler:
                     updated_df.to_parquet(file_path, engine='pyarrow',
                                   index=False)
                 logging.info(
-                    f"Ticker Data backup {symbol} completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                    f"Order Book Data backup {symbol} completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             except Exception as e:
                 logging.exception(
-                    f"Error backing up Ticker data for {symbol}: {e}")
+                    f"Error backing up Order Book data for {symbol}: {e}")
 
     def initialize_scheduler(self):
         # self.scheduler.add_job(self.fetch_order_book_data,
