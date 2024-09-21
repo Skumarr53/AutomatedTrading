@@ -8,7 +8,7 @@ import json
 import os, time
 import logging
 from datetime import datetime, timedelta
-from utils.utils import load_symbols, get_NSE_symbol
+from src.utils.utils import load_symbols, get_NSE_symbol
 from src.config import config, log_config
 log_config.setup_logging()
 

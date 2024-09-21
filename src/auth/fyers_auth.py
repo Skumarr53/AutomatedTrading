@@ -16,7 +16,7 @@ from pyotp import TOTP
 from fyers_apiv3 import fyersModel  # accessToken
 import os
 from src.config import config, log_config
-from utils import utils
+from src.utils import utils
 import pyperclip
 import webbrowser
 from urllib.parse import parse_qs,urlparse

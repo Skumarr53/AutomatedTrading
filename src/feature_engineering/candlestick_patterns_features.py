@@ -1,20 +1,41 @@
+# src/feature_engineering/candlestick_patterns_features.py
 import pandas as pd
 import talib
-from typing import Dict
+from typing import Dict, List
 from src.config import config
 
 
 class CandlestickPatternRecognizer:
-    def __init__(self):
-        self.mode = config.TRADE_MODE
-    
+    """
+    Recognizes various candlestick patterns in trading data.
+
+    Attributes:
+        mode (str): The trading mode, either 'BACKTEST' or 'LIVE'.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initializes the CandlestickPatternRecognizer with the trading mode from configuration.
+        """
+        self.mode: str = config.TRADE_MODE
+
     @staticmethod
-    def Engulfing(df: pd.DataFrame):
+    def Engulfing(df: pd.DataFrame) -> Dict[str, List[int]]:
+        """
+        Identifies bullish and bearish engulfing candlestick patterns in the provided DataFrame.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing trading data with 'open', 'high', 'low', and 'close' columns.
+
+        Returns:
+            Dict[str, List[int]]: Dictionary with keys 'BullishEngulfing' and 'BearishEngulfing',
+                each mapping to a list of integers indicating the presence (1) or absence (0) of the pattern.
+        """
         engulfing = talib.CDLENGULFING(df['open'], df['high'], df['low'], df['close'])
 
         # Create separate features for bullish and bearish engulfing
-        bullish_engulfing = [max(engulfing_value, 0) for engulfing_value in engulfing]
-        bearish_engulfing = [min(engulfing_value, 0) for engulfing_value in engulfing]
+        bullish_engulfing = [1 if engulfing_value > 0 else 0 for engulfing_value in engulfing]
+        bearish_engulfing = [1 if engulfing_value < 0 else 0 for engulfing_value in engulfing]
 
         # Create a dictionary with the separate features
         features = {
@@ -22,14 +43,21 @@ class CandlestickPatternRecognizer:
             'BearishEngulfing': bearish_engulfing
         }
         return features
-    
+
     def recognize_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Recognize specified candlestick patterns for each symbol's data.
+        Recognizes specified candlestick patterns within the provided trading data.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing trading data with 'open', 'high', 'low', and 'close' columns.
+
+        Returns:
+            pd.DataFrame: DataFrame containing binary indicators for each recognized candlestick pattern.
         """
         if self.mode == 'LIVE':
             df = df.iloc[-config.CS_PATTERNS_MAX_LENGTH:]
-        patterns = {
+
+        patterns: Dict[str, pd.Series] = {
             'Doji': talib.CDLDOJI(df['open'], df['high'], df['low'], df['close']),
             'Hammer': talib.CDLHAMMER(df['open'], df['high'], df['low'], df['close']),
             'InvertedHammer': talib.CDLINVERTEDHAMMER(df['open'], df['high'], df['low'], df['close']),
@@ -40,19 +68,20 @@ class CandlestickPatternRecognizer:
             'PiercingLine': talib.CDLPIERCING(df['open'], df['high'], df['low'], df['close']),
             'ThreeBlackCrows': talib.CDL3BLACKCROWS(df['open'], df['high'], df['low'], df['close']),
         }
-        Engulf_patterns = self.Engulfing(df)
+
+        engulf_patterns: Dict[str, List[int]] = self.Engulfing(df)
 
         # Convert pattern indicators to DataFrame
-        patterns = {**Engulf_patterns, **patterns}
-        pattern_df = pd.DataFrame(patterns)
-            
+        combined_patterns: Dict[str, List[int]] = {**engulf_patterns, **{k: (v > 0).astype(int).tolist() for k, v in patterns.items()}}
+        pattern_df: pd.DataFrame = pd.DataFrame(combined_patterns)
+
         return pattern_df
 
 
 # Example usage
 if __name__ == "__main__":
     # Mock data for demonstration
-    data = {
+    data: Dict[str, pd.DataFrame] = {
         'AAPL': pd.DataFrame({
             'open': [100, 102, 104, 103, 105],
             'high': [101, 103, 105, 104, 106],
@@ -61,8 +90,8 @@ if __name__ == "__main__":
         })
     }
 
-    recognizer = CandlestickPatternRecognizer(data)
-    patterns = recognizer.recognize_patterns()
-    for symbol, pattern_df in patterns.items():
+    recognizer: CandlestickPatternRecognizer = CandlestickPatternRecognizer()
+    for symbol, df in data.items():
+        patterns: pd.DataFrame = recognizer.recognize_patterns(df)
         print(f"Patterns for {symbol}:")
-        print(pattern_df)
+        print(patterns)
