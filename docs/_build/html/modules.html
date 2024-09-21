@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="lang:clipboard.copy" content="Copy to clipboard">
+  <meta name="lang:clipboard.copied" content="Copied to clipboard">
+  <meta name="lang:search.language" content="en">
+  <meta name="lang:search.pipeline.stopwords" content="True">
+  <meta name="lang:search.pipeline.trimmer" content="True">
+  <meta name="lang:search.result.none" content="No matching documents">
+  <meta name="lang:search.result.one" content="1 matching document">
+  <meta name="lang:search.result.other" content="# matching documents">
+  <meta name="lang:search.tokenizer" content="[\s\-]+">
+
+  
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700|Roboto:300,400,400i,700&display=fallback" rel="stylesheet">
+
+    <style>
+      body,
+      input {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+      }
+
+      code,
+      kbd,
+      pre {
+        font-family: "Roboto Mono", "Courier New", Courier, monospace
+      }
+    </style>
+  
+
+  <link rel="stylesheet" href="_static/stylesheets/application.css"/>
+  <link rel="stylesheet" href="_static/stylesheets/application-palette.css"/>
+  <link rel="stylesheet" href="_static/stylesheets/application-fixes.css"/>
+  
+  <link rel="stylesheet" href="_static/fonts/material-icons.css"/>
+  
+  <meta name="theme-color" content="#3f51b5">
+  <script src="_static/javascripts/modernizr.js"></script>
+  
+  
+  
+    <title>Modules &#8212; Automated Trading  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=83e35b93" />
+    <link rel="stylesheet" type="text/css" href="_static/material.css?v=79c92029" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="data package" href="source/data.html" />
+    <link rel="prev" title="Welcome to Automated Trading’s documentation!" href="index.html" />
+  
+   
+
+  </head>
+  <body dir=ltr
+        data-md-color-primary=blue-grey data-md-color-accent=blue>
+  
+  <svg class="md-svg">
+    <defs data-children-count="0">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+      
+    </defs>
+  </svg>
+  
+  <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer">
+  <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search">
+  <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+  <a href="#modules" tabindex="1" class="md-skip"> Skip to content </a>
+  <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex navheader">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="index.html" title="Automated Trading  documentation"
+           class="md-header-nav__button md-logo">
+          
+            &nbsp;
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          <span class="md-header-nav__topic">Automated Trading  documentation</span>
+          <span class="md-header-nav__topic"> Modules </span>
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+        
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" action="search.html" method="get" name="search">
+      <input type="text" class="md-search__input" name="q" placeholder=""Search""
+             autocapitalize="off" autocomplete="off" spellcheck="false"
+             data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+      
+      
+  
+  <script src="_static/javascripts/version_dropdown.js"></script>
+  <script>
+    var json_loc = ""versions.json"",
+        target_loc = "../",
+        text = "Versions";
+    $( document ).ready( add_version_dropdown(json_loc, target_loc, text));
+  </script>
+  
+
+    </div>
+  </nav>
+</header>
+
+  
+  <div class="md-container">
+    
+    
+    
+  <nav class="md-tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+      <ul class="md-tabs__list">
+          <li class="md-tabs__item"><a href="index.html" class="md-tabs__link">Automated Trading  documentation</a></li>
+      </ul>
+    </div>
+  </nav>
+    <main class="md-main">
+      <div class="md-main__inner md-grid" data-md-component="container">
+        
+          <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="index.html" title="Automated Trading documentation" class="md-nav__button md-logo">
+      
+        <img src="_static/" alt=" logo" width="48" height="48">
+      
+    </a>
+    <a href="index.html"
+       title="Automated Trading documentation">Automated Trading  documentation</a>
+  </label>
+  
+
+</nav>
+              </div>
+            </div>
+          </div>
+          <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                
+<nav class="md-nav md-nav--secondary">
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+<li class="md-nav__item"><a class="md-nav__extra_link" href="_sources/modules.rst.txt">Show Source</a> </li>
+
+<li id="searchbox" class="md-nav__item"></li>
+
+  </ul>
+</nav>
+              </div>
+            </div>
+          </div>
+        
+        <div class="md-content">
+          <article class="md-content__inner md-typeset" role="main">
+            
+  <section id="modules">
+<h1 id="modules--page-root">Modules<a class="headerlink" href="#modules--page-root" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Module Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/data.html">data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/data.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/data.html#module-src.data.data_fetcher">data.data_fetcher module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler"><code class="docutils literal notranslate"><span class="pre">DataHandler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.trading_mode"><code class="docutils literal notranslate"><span class="pre">DataHandler.trading_mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.fyres"><code class="docutils literal notranslate"><span class="pre">DataHandler.fyres</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.file_path"><code class="docutils literal notranslate"><span class="pre">DataHandler.file_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.symbols"><code class="docutils literal notranslate"><span class="pre">DataHandler.symbols</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.data"><code class="docutils literal notranslate"><span class="pre">DataHandler.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.data_len"><code class="docutils literal notranslate"><span class="pre">DataHandler.data_len</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.callback"><code class="docutils literal notranslate"><span class="pre">DataHandler.callback</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.scheduler"><code class="docutils literal notranslate"><span class="pre">DataHandler.scheduler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.backup_data"><code class="docutils literal notranslate"><span class="pre">DataHandler.backup_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.configure_scheduler"><code class="docutils literal notranslate"><span class="pre">DataHandler.configure_scheduler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.fetch_data"><code class="docutils literal notranslate"><span class="pre">DataHandler.fetch_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.fetch_full_year_data"><code class="docutils literal notranslate"><span class="pre">DataHandler.fetch_full_year_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.get_scheduler"><code class="docutils literal notranslate"><span class="pre">DataHandler.get_scheduler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.load_historical_data"><code class="docutils literal notranslate"><span class="pre">DataHandler.load_historical_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.load_or_initialize_data"><code class="docutils literal notranslate"><span class="pre">DataHandler.load_or_initialize_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.register_callback"><code class="docutils literal notranslate"><span class="pre">DataHandler.register_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.schedule_data_updates"><code class="docutils literal notranslate"><span class="pre">DataHandler.schedule_data_updates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.update_data"><code class="docutils literal notranslate"><span class="pre">DataHandler.update_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.data_fetcher.DataHandler.update_data_regularly"><code class="docutils literal notranslate"><span class="pre">DataHandler.update_data_regularly()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/data.html#module-src.data.order_book_handler">data.order_book_handler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.backup_hourly"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.backup_hourly()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.execute_callbacks"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.execute_callbacks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.extract_info_df"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.extract_info_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.fetch_data_for_symbol"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.fetch_data_for_symbol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.fetch_order_book_data"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.fetch_order_book_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.initialize_scheduler"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.initialize_scheduler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.load_existing_data"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.load_existing_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.process_order_book_data"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.process_order_book_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.register_callback"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.register_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/data.html#src.data.order_book_handler.OrderBookHandler.trim_data"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.trim_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/data.html#module-src.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/pipelines.html">pipelines package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/pipelines.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/pipelines.html#module-src.pipelines.base_pipeline">pipelines.base_pipeline module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.model_id"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.model_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.features"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.features</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.pipeline"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.best_model_dict"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.best_model_dict</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.run_ids"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.run_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.model"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.define_model"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.define_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.define_pipeline"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.define_pipeline()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.run"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.base_pipeline.MLPipelineBase.setup"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.setup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/pipelines.html#module-src.pipelines.custom_pipelines">pipelines.custom_pipelines module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/pipelines.html#src.pipelines.custom_pipelines.CustomModelPipeline"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.custom_pipelines.CustomModelPipeline.model_id"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.model_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.custom_pipelines.CustomModelPipeline.features"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.features</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.custom_pipelines.CustomModelPipeline.pipeline"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/pipelines.html#src.pipelines.custom_pipelines.CustomModelPipeline.define_pipeline"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.define_pipeline()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/pipelines.html#module-src.pipelines">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/preprocessing.html">preprocessing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/preprocessing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/preprocessing.html#module-src.preprocessing.custom_transformers">preprocessing.custom_transformers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.CategoricalPreprocessor"><code class="docutils literal notranslate"><span class="pre">CategoricalPreprocessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.CategoricalPreprocessor.columns"><code class="docutils literal notranslate"><span class="pre">CategoricalPreprocessor.columns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.CategoricalPreprocessor.encoder"><code class="docutils literal notranslate"><span class="pre">CategoricalPreprocessor.encoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.CategoricalPreprocessor.fit"><code class="docutils literal notranslate"><span class="pre">CategoricalPreprocessor.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.CategoricalPreprocessor.transform"><code class="docutils literal notranslate"><span class="pre">CategoricalPreprocessor.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ColumnExtractor"><code class="docutils literal notranslate"><span class="pre">ColumnExtractor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ColumnExtractor.cols"><code class="docutils literal notranslate"><span class="pre">ColumnExtractor.cols</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ColumnExtractor.fit"><code class="docutils literal notranslate"><span class="pre">ColumnExtractor.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ColumnExtractor.transform"><code class="docutils literal notranslate"><span class="pre">ColumnExtractor.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFFeatureUnion"><code class="docutils literal notranslate"><span class="pre">DFFeatureUnion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFFeatureUnion.transformer_list"><code class="docutils literal notranslate"><span class="pre">DFFeatureUnion.transformer_list</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFFeatureUnion.columns"><code class="docutils literal notranslate"><span class="pre">DFFeatureUnion.columns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFFeatureUnion.fit"><code class="docutils literal notranslate"><span class="pre">DFFeatureUnion.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFFeatureUnion.get_feature_names"><code class="docutils literal notranslate"><span class="pre">DFFeatureUnion.get_feature_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFFeatureUnion.transform"><code class="docutils literal notranslate"><span class="pre">DFFeatureUnion.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector.estimator"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector.estimator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector.n_features"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector.n_features</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector.step"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector.step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector.RFE"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector.RFE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector.fit"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DFRecursiveFeatureSelector.transform"><code class="docutils literal notranslate"><span class="pre">DFRecursiveFeatureSelector.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.estimator"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.estimator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.cv"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.cv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.step"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.scoring"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.scoring</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.rfevc"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.rfevc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.fit"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.DF_RFECV_FeatureSelection.transform"><code class="docutils literal notranslate"><span class="pre">DF_RFECV_FeatureSelection.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer.ss"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer.ss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer.mean_"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer.mean_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer.scale_"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer.scale_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer.fit"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer.get_params"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer.get_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.LongTermNormalizer.transform"><code class="docutils literal notranslate"><span class="pre">LongTermNormalizer.transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.look_back_period"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.look_back_period</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.params"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.columns"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.columns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.param_dict"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.param_dict</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.fit"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.get_params"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.get_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/preprocessing.html#src.preprocessing.custom_transformers.ShortTermNormalizer.transform"><code class="docutils literal notranslate"><span class="pre">ShortTermNormalizer.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/preprocessing.html#module-src.preprocessing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/feature_engineering.html">feature_engineering package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.candlestick_patterns_features">feature_engineering.candlestick_patterns_features module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.candlestick_patterns_features.CandlestickPatternRecognizer"><code class="docutils literal notranslate"><span class="pre">CandlestickPatternRecognizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.candlestick_patterns_features.CandlestickPatternRecognizer.mode"><code class="docutils literal notranslate"><span class="pre">CandlestickPatternRecognizer.mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.candlestick_patterns_features.CandlestickPatternRecognizer.Engulfing"><code class="docutils literal notranslate"><span class="pre">CandlestickPatternRecognizer.Engulfing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.candlestick_patterns_features.CandlestickPatternRecognizer.recognize_patterns"><code class="docutils literal notranslate"><span class="pre">CandlestickPatternRecognizer.recognize_patterns()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.custom_features_extraction">feature_engineering.custom_features_extraction module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_features_extraction.FeatureExtraction"><code class="docutils literal notranslate"><span class="pre">FeatureExtraction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_features_extraction.FeatureExtraction.mode"><code class="docutils literal notranslate"><span class="pre">FeatureExtraction.mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_features_extraction.FeatureExtraction.volume_max_window"><code class="docutils literal notranslate"><span class="pre">FeatureExtraction.volume_max_window</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_features_extraction.FeatureExtraction.periods"><code class="docutils literal notranslate"><span class="pre">FeatureExtraction.periods</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_features_extraction.FeatureExtraction.generate_features"><code class="docutils literal notranslate"><span class="pre">FeatureExtraction.generate_features()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.custom_target_tranform">feature_engineering.custom_target_tranform module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_target_tranform.FeatureExtractor"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.ticker_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_target_tranform.FeatureExtractor.extract_features"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.extract_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#id0"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.ticker_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.custom_target_tranform.FeatureExtractor.validate_data"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.validate_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.feature_aggregator">feature_engineering.feature_aggregator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator"><code class="docutils literal notranslate"><span class="pre">DataAggregator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.aggregate_features"><code class="docutils literal notranslate"><span class="pre">DataAggregator.aggregate_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.aggregate_order_book"><code class="docutils literal notranslate"><span class="pre">DataAggregator.aggregate_order_book()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.aggregate_order_book_data_to_run_min"><code class="docutils literal notranslate"><span class="pre">DataAggregator.aggregate_order_book_data_to_run_min()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.aggregate_ticker_to_run_min"><code class="docutils literal notranslate"><span class="pre">DataAggregator.aggregate_ticker_to_run_min()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.cs_pattern_recognizer"><code class="docutils literal notranslate"><span class="pre">DataAggregator.cs_pattern_recognizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.feature_extractor"><code class="docutils literal notranslate"><span class="pre">DataAggregator.feature_extractor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.indicator_generator"><code class="docutils literal notranslate"><span class="pre">DataAggregator.indicator_generator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.feature_aggregator.DataAggregator.order_book_transformer"><code class="docutils literal notranslate"><span class="pre">DataAggregator.order_book_transformer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.indicators">feature_engineering.indicators module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.adx"><code class="docutils literal notranslate"><span class="pre">adx()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.atr"><code class="docutils literal notranslate"><span class="pre">atr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.bollinger_bands"><code class="docutils literal notranslate"><span class="pre">bollinger_bands()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.calc_fib_levels"><code class="docutils literal notranslate"><span class="pre">calc_fib_levels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.calc_ichimoku_cloud"><code class="docutils literal notranslate"><span class="pre">calc_ichimoku_cloud()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.cci"><code class="docutils literal notranslate"><span class="pre">cci()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.ema"><code class="docutils literal notranslate"><span class="pre">ema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.fibonacci_retracements"><code class="docutils literal notranslate"><span class="pre">fibonacci_retracements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.get_param"><code class="docutils literal notranslate"><span class="pre">get_param()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.ichimoku_cloud"><code class="docutils literal notranslate"><span class="pre">ichimoku_cloud()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.macd"><code class="docutils literal notranslate"><span class="pre">macd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.obv"><code class="docutils literal notranslate"><span class="pre">obv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.rolling_pipe"><code class="docutils literal notranslate"><span class="pre">rolling_pipe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.rsi"><code class="docutils literal notranslate"><span class="pre">rsi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.sar"><code class="docutils literal notranslate"><span class="pre">sar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.stochastic_oscillator"><code class="docutils literal notranslate"><span class="pre">stochastic_oscillator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.indicators.vwap"><code class="docutils literal notranslate"><span class="pre">vwap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.orderbook_features_extraction">feature_engineering.orderbook_features_extraction module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer.None"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer.None</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer.add_condensed_order_book_info"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer.add_condensed_order_book_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer.add_derived_variables"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer.add_derived_variables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer.calculate_metrics"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer.calculate_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer.calculate_weighted_price_and_volume"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer.calculate_weighted_price_and_volume()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.orderbook_features_extraction.OrderBookDataTransformer.transform"><code class="docutils literal notranslate"><span class="pre">OrderBookDataTransformer.transform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering.technical_indicators">feature_engineering.technical_indicators module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.technical_indicators.TechnicalIndicators"><code class="docutils literal notranslate"><span class="pre">TechnicalIndicators</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.technical_indicators.TechnicalIndicators.callback"><code class="docutils literal notranslate"><span class="pre">TechnicalIndicators.callback</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.technical_indicators.TechnicalIndicators.compute_indicators"><code class="docutils literal notranslate"><span class="pre">TechnicalIndicators.compute_indicators()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.technical_indicators.TechnicalIndicators.get_stock_indicators"><code class="docutils literal notranslate"><span class="pre">TechnicalIndicators.get_stock_indicators()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.technical_indicators.TechnicalIndicators.indicators_functions"><code class="docutils literal notranslate"><span class="pre">TechnicalIndicators.indicators_functions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/feature_engineering.html#src.feature_engineering.technical_indicators.TechnicalIndicators.mode"><code class="docutils literal notranslate"><span class="pre">TechnicalIndicators.mode</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/feature_engineering.html#module-src.feature_engineering">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/financial_analysis.html">financial_analysis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/financial_analysis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/financial_analysis.html#module-src.financial_analysis.trading_strategies">financial_analysis.trading_strategies module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies"><code class="docutils literal notranslate"><span class="pre">TradingStrategies</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.bollinger_rsi_volume_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.bollinger_rsi_volume_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.ema_atr_obv_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.ema_atr_obv_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.execute_technical_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.execute_technical_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.fibonacci_ichimoku_cci_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.fibonacci_ichimoku_cci_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.macd_stochastic_adx_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.macd_stochastic_adx_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.majority_voting_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.majority_voting_strategy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source/financial_analysis.html#src.financial_analysis.trading_strategies.TradingStrategies.sar_vwap_rsi_strategy"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.sar_vwap_rsi_strategy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/financial_analysis.html#module-src.financial_analysis">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source/trading_logic.html">trading_logic Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.strategy_manager.StrategyManager"><code class="docutils literal notranslate"><span class="pre">StrategyManager</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.strategy_manager.StrategyManager.technical_strategies"><code class="docutils literal notranslate"><span class="pre">StrategyManager.technical_strategies</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.strategy_manager.StrategyManager.additional_strategies"><code class="docutils literal notranslate"><span class="pre">StrategyManager.additional_strategies</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.strategy_manager.StrategyManager.apply_strategies"><code class="docutils literal notranslate"><span class="pre">StrategyManager.apply_strategies()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager.base_path"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.base_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager.symbols"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.symbols</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager.strategy_manager"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.strategy_manager</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager.trade_simulator"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.trade_simulator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager.execute_trade_cycle"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.execute_trade_cycle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_execution_manager.TradeExecutionManager.load_data"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.load_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator"><code class="docutils literal notranslate"><span class="pre">TradeSimulator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.mode"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.initial_capital"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.initial_capital</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.transaction_cost"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.transaction_cost</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.positions"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.positions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.trade_history"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.trade_history</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.calculate_dynamic_trailing_stop_loss"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.calculate_dynamic_trailing_stop_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.calculate_holding_time"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.calculate_holding_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.calculate_shares"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.calculate_shares()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.check_trailing_stop_loss"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.check_trailing_stop_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.close_position"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.close_position()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.execute_trade"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.execute_trade()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.fetch_current_balance"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.fetch_current_balance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.load_positions"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.load_positions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.open_position"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.open_position()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.record_trade"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.record_trade()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="source/trading_logic.html#src.trading_logic.trade_simulator.TradeSimulator.update_positions_file"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.update_positions_file()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer class="md-footer">
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+          
+            <a href="index.html" title="Welcome to Automated Trading’s documentation!"
+               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+               rel="prev">
+              <div class="md-flex__cell md-flex__cell--shrink">
+                <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+              </div>
+              <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+                <span class="md-flex__ellipsis">
+                  <span
+                      class="md-footer-nav__direction"> "Previous" </span> Welcome to Automated Trading’s documentation! </span>
+              </div>
+            </a>
+          
+          
+            <a href="source/data.html" title="data package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--next"
+               rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title"><span
+                class="md-flex__ellipsis"> <span
+                class="md-footer-nav__direction"> "Next" </span> data package </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink"><i
+                class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          
+        </a>
+        
+      </nav>
+    </div>
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-footer-copyright">
+          <div class="md-footer-copyright__highlight">
+              &#169; Copyright 2024, Santhosh Kumar.
+              
+          </div>
+            Created using
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+             and
+            <a href="https://github.com/bashtage/sphinx-material/">Material for
+              Sphinx</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script src="_static/javascripts/application.js"></script>
+  <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+  </body>
+</html>

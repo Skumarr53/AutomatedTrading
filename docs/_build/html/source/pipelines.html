@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="lang:clipboard.copy" content="Copy to clipboard">
+  <meta name="lang:clipboard.copied" content="Copied to clipboard">
+  <meta name="lang:search.language" content="en">
+  <meta name="lang:search.pipeline.stopwords" content="True">
+  <meta name="lang:search.pipeline.trimmer" content="True">
+  <meta name="lang:search.result.none" content="No matching documents">
+  <meta name="lang:search.result.one" content="1 matching document">
+  <meta name="lang:search.result.other" content="# matching documents">
+  <meta name="lang:search.tokenizer" content="[\s\-]+">
+
+  
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700|Roboto:300,400,400i,700&display=fallback" rel="stylesheet">
+
+    <style>
+      body,
+      input {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+      }
+
+      code,
+      kbd,
+      pre {
+        font-family: "Roboto Mono", "Courier New", Courier, monospace
+      }
+    </style>
+  
+
+  <link rel="stylesheet" href="../_static/stylesheets/application.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-palette.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-fixes.css"/>
+  
+  <link rel="stylesheet" href="../_static/fonts/material-icons.css"/>
+  
+  <meta name="theme-color" content="#3f51b5">
+  <script src="../_static/javascripts/modernizr.js"></script>
+  
+  
+  
+    <title>pipelines package &#8212; Automated Trading  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=83e35b93" />
+    <link rel="stylesheet" type="text/css" href="../_static/material.css?v=79c92029" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="preprocessing package" href="preprocessing.html" />
+    <link rel="prev" title="data package" href="data.html" />
+  
+   
+
+  </head>
+  <body dir=ltr
+        data-md-color-primary=blue-grey data-md-color-accent=blue>
+  
+  <svg class="md-svg">
+    <defs data-children-count="0">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+      
+    </defs>
+  </svg>
+  
+  <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer">
+  <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search">
+  <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+  <a href="#source/pipelines" tabindex="1" class="md-skip"> Skip to content </a>
+  <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex navheader">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="../index.html" title="Automated Trading  documentation"
+           class="md-header-nav__button md-logo">
+          
+            &nbsp;
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          <span class="md-header-nav__topic">Automated Trading  documentation</span>
+          <span class="md-header-nav__topic"> pipelines package </span>
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+        
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" action="../search.html" method="get" name="search">
+      <input type="text" class="md-search__input" name="q" placeholder=""Search""
+             autocapitalize="off" autocomplete="off" spellcheck="false"
+             data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+      
+      
+  
+  <script src="../_static/javascripts/version_dropdown.js"></script>
+  <script>
+    var json_loc = "../"versions.json"",
+        target_loc = "../../",
+        text = "Versions";
+    $( document ).ready( add_version_dropdown(json_loc, target_loc, text));
+  </script>
+  
+
+    </div>
+  </nav>
+</header>
+
+  
+  <div class="md-container">
+    
+    
+    
+  <nav class="md-tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+      <ul class="md-tabs__list">
+          <li class="md-tabs__item"><a href="../index.html" class="md-tabs__link">Automated Trading  documentation</a></li>
+          <li class="md-tabs__item"><a href="../modules.html" class="md-tabs__link">Modules</a></li>
+      </ul>
+    </div>
+  </nav>
+    <main class="md-main">
+      <div class="md-main__inner md-grid" data-md-component="container">
+        
+          <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="../index.html" title="Automated Trading documentation" class="md-nav__button md-logo">
+      
+        <img src="../_static/" alt=" logo" width="48" height="48">
+      
+    </a>
+    <a href="../index.html"
+       title="Automated Trading documentation">Automated Trading  documentation</a>
+  </label>
+  
+
+</nav>
+              </div>
+            </div>
+          </div>
+          <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                
+<nav class="md-nav md-nav--secondary">
+    <label class="md-nav__title" for="__toc">"Contents"</label>
+  <ul class="md-nav__list" data-md-scrollfix="">
+        <li class="md-nav__item"><a href="#source-pipelines--page-root" class="md-nav__link">pipelines package</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#submodules" class="md-nav__link">Submodules</a>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.pipelines.base_pipeline" class="md-nav__link">pipelines.base_pipeline module</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.model_id" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.model_id</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.features" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.features</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.pipeline" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.pipeline</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.best_model_dict" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.best_model_dict</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.run_ids" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.run_ids</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.model" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.model</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.define_model" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.define_model()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.define_pipeline" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.define_pipeline()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.run" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.run()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.base_pipeline.MLPipelineBase.setup" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">MLPipelineBase.setup()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.pipelines.custom_pipelines" class="md-nav__link">pipelines.custom_pipelines module</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.pipelines.custom_pipelines.CustomModelPipeline" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.pipelines.custom_pipelines.CustomModelPipeline.model_id" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.model_id</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.custom_pipelines.CustomModelPipeline.features" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.features</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.custom_pipelines.CustomModelPipeline.pipeline" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.pipeline</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.pipelines.custom_pipelines.CustomModelPipeline.define_pipeline" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">CustomModelPipeline.define_pipeline()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.pipelines" class="md-nav__link">Module contents</a>
+        </li></ul>
+            </nav>
+        </li>
+    
+<li class="md-nav__item"><a class="md-nav__extra_link" href="../_sources/source/pipelines.rst.txt">Show Source</a> </li>
+
+<li id="searchbox" class="md-nav__item"></li>
+
+  </ul>
+</nav>
+              </div>
+            </div>
+          </div>
+        
+        <div class="md-content">
+          <article class="md-content__inner md-typeset" role="main">
+            
+  <section id="pipelines-package">
+<h1 id="source-pipelines--page-root">pipelines package<a class="headerlink" href="#source-pipelines--page-root" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2 id="submodules">Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-src.pipelines.base_pipeline">
+<span id="pipelines-base-pipeline-module"></span><h2 id="module-src.pipelines.base_pipeline">pipelines.base_pipeline module<a class="headerlink" href="#module-src.pipelines.base_pipeline" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pipelines.base_pipeline.</span></span><span class="sig-name descname"><span class="pre">MLPipelineBase</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for machine learning pipelines used in trading strategies.</p>
+<p>This class provides a foundational structure for defining and executing machine learning
+pipelines tailored for trading applications. It manages model definition, pipeline
+setup, parameter loading, and execution based on the operational mode (BACKTEST or LIVE).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.model_id">
+<span class="sig-name descname"><span class="pre">model_id</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.model_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifier for the model. Used for loading model parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.features">
+<span class="sig-name descname"><span class="pre">features</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of feature names used in the pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.pipeline">
+<span class="sig-name descname"><span class="pre">pipeline</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scikit-learn Pipeline object containing the sequence of transformations and the estimator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Pipeline]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.best_model_dict">
+<span class="sig-name descname"><span class="pre">best_model_dict</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.best_model_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary storing the best models per symbol and run ID. Loaded from persisted parameters in LIVE mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.run_ids">
+<span class="sig-name descname"><span class="pre">run_ids</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.run_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of run identifiers corresponding to different time windows or strategies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>GridSearchCV object for hyperparameter tuning in BACKTEST mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[GridSearchCV]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.define_model">
+<span class="sig-name descname"><span class="pre">define_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.define_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the machine learning model using GridSearchCV for hyperparameter tuning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of GridSearchCV configured with the pipeline and parameter grid.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>GridSearchCV</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.define_pipeline">
+<span class="sig-name descname"><span class="pre">define_pipeline</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.define_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the machine learning pipeline.</p>
+<p>This method should be implemented by subclasses to specify the sequence of transformations
+and the estimator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.12)"><strong>NotImplementedError</strong></a> – If the method is not implemented in the subclass.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the pipeline based on the operational mode (BACKTEST or LIVE).</p>
+<p>In BACKTEST mode, it trains the model on the provided data.
+In LIVE mode, it uses pre-loaded models to make predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>pd.DataFrame</em>) – Input DataFrame containing feature data and a ‘symbol’ column.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pipelines.base_pipeline.MLPipelineBase.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.pipelines.base_pipeline.MLPipelineBase.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the pipeline by defining the model and pipeline components.</p>
+<p>In BACKTEST mode, it defines the model using GridSearchCV.
+In LIVE mode, it relies on pre-loaded models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-src.pipelines.custom_pipelines">
+<span id="pipelines-custom-pipelines-module"></span><h2 id="module-src.pipelines.custom_pipelines">pipelines.custom_pipelines module<a class="headerlink" href="#module-src.pipelines.custom_pipelines" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.pipelines.custom_pipelines.CustomModelPipeline">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.pipelines.custom_pipelines.</span></span><span class="sig-name descname"><span class="pre">CustomModelPipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.pipelines.custom_pipelines.CustomModelPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src.pipelines.base_pipeline.MLPipelineBase" title="src.pipelines.base_pipeline.MLPipelineBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">MLPipelineBase</span></code></a></p>
+<p>Custom machine learning pipeline for specific trading models.</p>
+<p>This class extends the <cite>MLPipelineBase</cite> to define a tailored pipeline that includes
+feature extraction, normalization, feature selection, and model fitting using a
+Random Forest classifier. It leverages custom transformers for handling different
+types of features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – </p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.custom_pipelines.CustomModelPipeline.model_id">
+<span class="sig-name descname"><span class="pre">model_id</span></span><a class="headerlink" href="#src.pipelines.custom_pipelines.CustomModelPipeline.model_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifier for the specific model configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.custom_pipelines.CustomModelPipeline.features">
+<span class="sig-name descname"><span class="pre">features</span></span><a class="headerlink" href="#src.pipelines.custom_pipelines.CustomModelPipeline.features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of feature names used in the pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.pipelines.custom_pipelines.CustomModelPipeline.pipeline">
+<span class="sig-name descname"><span class="pre">pipeline</span></span><a class="headerlink" href="#src.pipelines.custom_pipelines.CustomModelPipeline.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scikit-learn Pipeline object containing the sequence
+of transformations and the estimator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Pipeline]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.pipelines.custom_pipelines.CustomModelPipeline.define_pipeline">
+<span class="sig-name descname"><span class="pre">define_pipeline</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.pipelines.custom_pipelines.CustomModelPipeline.define_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the machine learning pipeline with feature extraction, normalization,
+feature selection, and the Random Forest classifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>The pipeline consists of the following steps:</dt><dd><ol class="arabic simple">
+<li><p>Feature Union: Combines short-term numeric features, long-term numeric features,
+and categorical features.</p></li>
+<li><p>Feature Selection: Applies recursive feature selection to identify the most
+relevant features.</p></li>
+<li><p>Model Fit: Trains a Random Forest classifier.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If the <cite>features</cite> attribute is not set.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-src.pipelines">
+<span id="module-contents"></span><h2 id="module-src.pipelines">Module contents<a class="headerlink" href="#module-src.pipelines" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer class="md-footer">
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+          
+            <a href="data.html" title="data package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+               rel="prev">
+              <div class="md-flex__cell md-flex__cell--shrink">
+                <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+              </div>
+              <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+                <span class="md-flex__ellipsis">
+                  <span
+                      class="md-footer-nav__direction"> "Previous" </span> data package </span>
+              </div>
+            </a>
+          
+          
+            <a href="preprocessing.html" title="preprocessing package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--next"
+               rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title"><span
+                class="md-flex__ellipsis"> <span
+                class="md-footer-nav__direction"> "Next" </span> preprocessing package </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink"><i
+                class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          
+        </a>
+        
+      </nav>
+    </div>
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-footer-copyright">
+          <div class="md-footer-copyright__highlight">
+              &#169; Copyright 2024, Santhosh Kumar.
+              
+          </div>
+            Created using
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+             and
+            <a href="https://github.com/bashtage/sphinx-material/">Material for
+              Sphinx</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script src="../_static/javascripts/application.js"></script>
+  <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+  </body>
+</html>

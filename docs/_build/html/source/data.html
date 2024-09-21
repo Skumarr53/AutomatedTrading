@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="lang:clipboard.copy" content="Copy to clipboard">
+  <meta name="lang:clipboard.copied" content="Copied to clipboard">
+  <meta name="lang:search.language" content="en">
+  <meta name="lang:search.pipeline.stopwords" content="True">
+  <meta name="lang:search.pipeline.trimmer" content="True">
+  <meta name="lang:search.result.none" content="No matching documents">
+  <meta name="lang:search.result.one" content="1 matching document">
+  <meta name="lang:search.result.other" content="# matching documents">
+  <meta name="lang:search.tokenizer" content="[\s\-]+">
+
+  
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700|Roboto:300,400,400i,700&display=fallback" rel="stylesheet">
+
+    <style>
+      body,
+      input {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+      }
+
+      code,
+      kbd,
+      pre {
+        font-family: "Roboto Mono", "Courier New", Courier, monospace
+      }
+    </style>
+  
+
+  <link rel="stylesheet" href="../_static/stylesheets/application.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-palette.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-fixes.css"/>
+  
+  <link rel="stylesheet" href="../_static/fonts/material-icons.css"/>
+  
+  <meta name="theme-color" content="#3f51b5">
+  <script src="../_static/javascripts/modernizr.js"></script>
+  
+  
+  
+    <title>data package &#8212; Automated Trading  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=83e35b93" />
+    <link rel="stylesheet" type="text/css" href="../_static/material.css?v=79c92029" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pipelines package" href="pipelines.html" />
+    <link rel="prev" title="Modules" href="../modules.html" />
+  
+   
+
+  </head>
+  <body dir=ltr
+        data-md-color-primary=blue-grey data-md-color-accent=blue>
+  
+  <svg class="md-svg">
+    <defs data-children-count="0">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+      
+    </defs>
+  </svg>
+  
+  <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer">
+  <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search">
+  <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+  <a href="#source/data" tabindex="1" class="md-skip"> Skip to content </a>
+  <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex navheader">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="../index.html" title="Automated Trading  documentation"
+           class="md-header-nav__button md-logo">
+          
+            &nbsp;
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          <span class="md-header-nav__topic">Automated Trading  documentation</span>
+          <span class="md-header-nav__topic"> data package </span>
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+        
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" action="../search.html" method="get" name="search">
+      <input type="text" class="md-search__input" name="q" placeholder=""Search""
+             autocapitalize="off" autocomplete="off" spellcheck="false"
+             data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+      
+      
+  
+  <script src="../_static/javascripts/version_dropdown.js"></script>
+  <script>
+    var json_loc = "../"versions.json"",
+        target_loc = "../../",
+        text = "Versions";
+    $( document ).ready( add_version_dropdown(json_loc, target_loc, text));
+  </script>
+  
+
+    </div>
+  </nav>
+</header>
+
+  
+  <div class="md-container">
+    
+    
+    
+  <nav class="md-tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+      <ul class="md-tabs__list">
+          <li class="md-tabs__item"><a href="../index.html" class="md-tabs__link">Automated Trading  documentation</a></li>
+          <li class="md-tabs__item"><a href="../modules.html" class="md-tabs__link">Modules</a></li>
+      </ul>
+    </div>
+  </nav>
+    <main class="md-main">
+      <div class="md-main__inner md-grid" data-md-component="container">
+        
+          <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="../index.html" title="Automated Trading documentation" class="md-nav__button md-logo">
+      
+        <img src="../_static/" alt=" logo" width="48" height="48">
+      
+    </a>
+    <a href="../index.html"
+       title="Automated Trading documentation">Automated Trading  documentation</a>
+  </label>
+  
+
+</nav>
+              </div>
+            </div>
+          </div>
+          <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                
+<nav class="md-nav md-nav--secondary">
+    <label class="md-nav__title" for="__toc">"Contents"</label>
+  <ul class="md-nav__list" data-md-scrollfix="">
+        <li class="md-nav__item"><a href="#source-data--page-root" class="md-nav__link">data package</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#submodules" class="md-nav__link">Submodules</a>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.data.data_fetcher" class="md-nav__link">data.data_fetcher module</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.trading_mode" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.trading_mode</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.fyres" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.fyres</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.file_path" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.file_path</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.symbols" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.symbols</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.data</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.data_len" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.data_len</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.callback" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.callback</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.scheduler" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.scheduler</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.backup_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.backup_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.configure_scheduler" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.configure_scheduler()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.fetch_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.fetch_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.fetch_full_year_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.fetch_full_year_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.get_scheduler" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.get_scheduler()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.load_historical_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.load_historical_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.load_or_initialize_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.load_or_initialize_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.register_callback" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.register_callback()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.schedule_data_updates" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.schedule_data_updates()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.update_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.update_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.data_fetcher.DataHandler.update_data_regularly" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DataHandler.update_data_regularly()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.data.order_book_handler" class="md-nav__link">data.order_book_handler module</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.backup_hourly" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.backup_hourly()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.execute_callbacks" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.execute_callbacks()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.extract_info_df" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.extract_info_df()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.fetch_data_for_symbol" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.fetch_data_for_symbol()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.fetch_order_book_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.fetch_order_book_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.initialize_scheduler" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.initialize_scheduler()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.load_existing_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.load_existing_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.process_order_book_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.process_order_book_data()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.register_callback" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.register_callback()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.data.order_book_handler.OrderBookHandler.trim_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">OrderBookHandler.trim_data()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.data" class="md-nav__link">Module contents</a>
+        </li></ul>
+            </nav>
+        </li>
+    
+<li class="md-nav__item"><a class="md-nav__extra_link" href="../_sources/source/data.rst.txt">Show Source</a> </li>
+
+<li id="searchbox" class="md-nav__item"></li>
+
+  </ul>
+</nav>
+              </div>
+            </div>
+          </div>
+        
+        <div class="md-content">
+          <article class="md-content__inner md-typeset" role="main">
+            
+  <section id="data-package">
+<h1 id="source-data--page-root">data package<a class="headerlink" href="#source-data--page-root" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2 id="submodules">Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-src.data.data_fetcher">
+<span id="data-data-fetcher-module"></span><h2 id="module-src.data.data_fetcher">data.data_fetcher module<a class="headerlink" href="#module-src.data.data_fetcher" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.data.data_fetcher.</span></span><span class="sig-name descname"><span class="pre">DataHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fyres_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Handles fetching, loading, updating, and backing up trading data for automated trading.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fyres_instance</strong> (<em>fyersModel</em>) – </p></li>
+<li><p><strong>scheduler</strong> (<em>BackgroundScheduler</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.trading_mode">
+<span class="sig-name descname"><span class="pre">trading_mode</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.trading_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode of trading, either ‘BACKTEST’ or ‘LIVE’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.fyres">
+<span class="sig-name descname"><span class="pre">fyres</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.fyres" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instance of the FYRES API client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>FyresInstance</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.file_path">
+<span class="sig-name descname"><span class="pre">file_path</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the directory where ticker data is stored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.symbols">
+<span class="sig-name descname"><span class="pre">symbols</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of trading symbols.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary storing data for each symbol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.data_len">
+<span class="sig-name descname"><span class="pre">data_len</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.data_len" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duration of data to maintain, in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.callback">
+<span class="sig-name descname"><span class="pre">callback</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback function to execute after loading data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Callable[[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, pd.DataFrame]], None]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.scheduler">
+<span class="sig-name descname"><span class="pre">scheduler</span></span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scheduler instance for managing jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Scheduler</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.backup_data">
+<span class="sig-name descname"><span class="pre">backup_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.backup_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backs up the current trading data by saving each symbol’s data to a CSV file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.configure_scheduler">
+<span class="sig-name descname"><span class="pre">configure_scheduler</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.configure_scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures the scheduler by adding necessary jobs, such as data backup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.fetch_data">
+<span class="sig-name descname"><span class="pre">fetch_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_epoch_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_epoch_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.fetch_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches trading data for a given symbol between start and end epoch times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The trading symbol to fetch data for.</p></li>
+<li><p><strong>start_epoch_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – The start time in epoch seconds.</p></li>
+<li><p><strong>end_epoch_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – The end time in epoch seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame containing the fetched trading data with columns defined in TICKER_COLS.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.fetch_full_year_data">
+<span class="sig-name descname"><span class="pre">fetch_full_year_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.fetch_full_year_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches a full year’s worth of data for the given symbol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The trading symbol to fetch data for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame containing the fetched data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.get_scheduler">
+<span class="sig-name descname"><span class="pre">get_scheduler</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.get_scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the scheduler instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The scheduler instance used for managing jobs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scheduler</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.load_historical_data">
+<span class="sig-name descname"><span class="pre">load_historical_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.load_historical_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads historical data and invokes the registered callback if available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.load_or_initialize_data">
+<span class="sig-name descname"><span class="pre">load_or_initialize_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.load_or_initialize_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads existing data for a symbol from a CSV file or initializes it by fetching full-year data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The trading symbol to load data for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The loaded or initialized data for the symbol.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.register_callback">
+<span class="sig-name descname"><span class="pre">register_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.register_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a callback function to be called after loading historical data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>callback</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>pd.DataFrame</em><em>]</em><em>]</em><em>, </em><em>None</em><em>]</em>) – A function that takes the data dictionary as input.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.schedule_data_updates">
+<span class="sig-name descname"><span class="pre">schedule_data_updates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.schedule_data_updates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Schedule regular data updates during trading hours.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.update_data">
+<span class="sig-name descname"><span class="pre">update_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.update_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the data for a specific symbol by fetching missing data and concatenating it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The trading symbol to update data for.</p></li>
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Existing DataFrame containing data for the symbol.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.data_fetcher.DataHandler.update_data_regularly">
+<span class="sig-name descname"><span class="pre">update_data_regularly</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.data_fetcher.DataHandler.update_data_regularly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Regularly update the data during trading hours.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Updated data dictionary if within trading hours, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, pd.DataFrame]]</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-src.data.order_book_handler">
+<span id="data-order-book-handler-module"></span><h2 id="module-src.data.order_book_handler">data.order_book_handler module<a class="headerlink" href="#module-src.data.order_book_handler" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.data.order_book_handler.</span></span><span class="sig-name descname"><span class="pre">OrderBookHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fyers_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scheduler</strong> (<em>BackgroundScheduler</em>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.backup_hourly">
+<span class="sig-name descname"><span class="pre">backup_hourly</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.backup_hourly" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.execute_callbacks">
+<span class="sig-name descname"><span class="pre">execute_callbacks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.execute_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.extract_info_df">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">extract_info_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.extract_info_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts and formats basic information from the raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><em>dict</em></a>) – </p></li>
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.fetch_data_for_symbol">
+<span class="sig-name descname"><span class="pre">fetch_data_for_symbol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.fetch_data_for_symbol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.fetch_order_book_data">
+<span class="sig-name descname"><span class="pre">fetch_order_book_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.fetch_order_book_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.initialize_scheduler">
+<span class="sig-name descname"><span class="pre">initialize_scheduler</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.initialize_scheduler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.load_existing_data">
+<span class="sig-name descname"><span class="pre">load_existing_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.load_existing_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.process_order_book_data">
+<span class="sig-name descname"><span class="pre">process_order_book_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.process_order_book_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.register_callback">
+<span class="sig-name descname"><span class="pre">register_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.register_callback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.data.order_book_handler.OrderBookHandler.trim_data">
+<span class="sig-name descname"><span class="pre">trim_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.data.order_book_handler.OrderBookHandler.trim_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+</dd></dl>
+</section>
+<section id="module-src.data">
+<span id="module-contents"></span><h2 id="module-src.data">Module contents<a class="headerlink" href="#module-src.data" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer class="md-footer">
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+          
+            <a href="../modules.html" title="Modules"
+               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+               rel="prev">
+              <div class="md-flex__cell md-flex__cell--shrink">
+                <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+              </div>
+              <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+                <span class="md-flex__ellipsis">
+                  <span
+                      class="md-footer-nav__direction"> "Previous" </span> Modules </span>
+              </div>
+            </a>
+          
+          
+            <a href="pipelines.html" title="pipelines package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--next"
+               rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title"><span
+                class="md-flex__ellipsis"> <span
+                class="md-footer-nav__direction"> "Next" </span> pipelines package </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink"><i
+                class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          
+        </a>
+        
+      </nav>
+    </div>
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-footer-copyright">
+          <div class="md-footer-copyright__highlight">
+              &#169; Copyright 2024, Santhosh Kumar.
+              
+          </div>
+            Created using
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+             and
+            <a href="https://github.com/bashtage/sphinx-material/">Material for
+              Sphinx</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script src="../_static/javascripts/application.js"></script>
+  <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+  </body>
+</html>
