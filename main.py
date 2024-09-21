@@ -3,15 +3,15 @@ from datetime import datetime
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from auth.fyers_auth import AuthCodeGenerator
-from data.data_fetcher import DataHandler
+from src.data.data_fetcher import DataHandler
 from utils.utils import load_symbols
 from typing import Callable
-# from feature_engineering.technical_indicators import TechnicalIndicators
-from financial_analysis.trading_strategies import TradingStrategies
-from feature_engineering.feature_aggregator import DataAggregator
-from data.order_book_handler import OrderBookHandler
-from pipelines.custom_pipelines import CustomModelPipeline
-from config import log_config, config
+from src.feature_engineering.technical_indicators import TechnicalIndicators
+from src.financial_analysis.trading_strategies import TradingStrategies
+from src.feature_engineering.feature_aggregator import DataAggregator
+from src.data.order_book_handler import OrderBookHandler
+from src.pipelines.custom_pipelines import CustomModelPipeline
+from src.config import log_config, config
 
 # Setup logging
 log_config.setup_logging()
@@ -36,15 +36,34 @@ class MarketAnalysisApp:
         self.generator = AuthCodeGenerator()
         self._setup_authorization()
         self.scheduler = BackgroundScheduler() if self.trading_mode == 'LIVE' else None 
-        self.ticker_data_handler = DataHandler(self.fyers_instance, self.scheduler)
+        self._setup_data_handling()
         self.order_data_handler = OrderBookHandler(
             self.fyers_instance, self.scheduler)
-        # self.indicators = TechnicalIndicators()
         self.data_aggregator = DataAggregator()
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
         # self.custom_model = CustomModelPipeline(model_id = 'COMB')
         self.timezone = pytz.timezone(config.TIMEZONE)
+
+    def _setup_data_handling(self):
+        self.indicators = TechnicalIndicators()
+        self.ticker_data_handler = DataHandler(self.fyers_instance, self.scheduler)
+        self.ticker_data_handler.register_callback(
+                self.indicators.get_stock_indicators)
+        # self.indicators.register_callback(self.execute_strategies)
+    
+    def execute_strategies(self, indicators_data):
+        """
+        Execute trading strategies based on the indicators data.
+        """
+        try:
+            strategy_decisions = self.strategy_module.execute_technical_strategy(
+                indicators_data)
+            # Process the strategy decisions further as needed
+        except Exception as e:
+            logging.exception("Strategy execution failed")
+            raise
+
 
     def _schedule_job(self, func: Callable, interval: int, job_id: str, max_instances: int=1) -> None:
         """Schedules a single job with a delay mechanism."""
@@ -72,7 +91,7 @@ class MarketAnalysisApp:
     def data_collection(self):
         self.order_data_handler.fetch_order_book_data()
         time.sleep(5)
-        self.ticker_data_handler.update_data_regularly()
+        # self.ticker_data_handler.update_data_regularly()
         self.last_data_collection_time = datetime.now()
 
     def start_live_trading(self):

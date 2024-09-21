@@ -15,7 +15,7 @@ from selenium import webdriver
 from pyotp import TOTP
 from fyers_apiv3 import fyersModel  # accessToken
 import os
-from config import config, log_config
+from src.config import config, log_config
 from utils import utils
 import pyperclip
 import webbrowser

@@ -1,0 +1,23 @@
+# This is a Databricks asset bundle definition for AutomatedTrading.
+# The file was generated automatically by the Databricks extension. 
+# It's based on the configuration located in `.databricks/project.json`.
+# If you don't want this file to be created automatically, remove the `.databricks/project.json`.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+
+bundle:
+  name: AutomatedTrading
+
+targets:
+  dev:
+    mode: development
+    default: true
+    compute_id: 0831-160936-12baaxji
+    workspace:
+      host: https://adb-4302671361050638.18.azuredatabricks.net
+      root_path: /Users/skumarr53@gmail.com/.ide/AutomatedTrading-c2b1c90c
+
+  ## Optionally, there could be 'staging' or 'prod' targets here.
+  #
+  # prod:
+  #   workspace:
+  #     host: https://adb-4302671361050638.18.azuredatabricks.net
