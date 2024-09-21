@@ -1,11 +1,11 @@
 import time
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
-from auth.fyers_auth import AuthCodeGenerator
-from data.data_fetcher import DataHandler
-from financial_analysis.technical_indicators import TechnicalIndicators
-from financial_analysis.trading_strategies import TradingStrategies
-from utils.utils import determine_mode 
+from src.auth.fyers_auth import AuthCodeGenerator
+from src.data.data_fetcher import DataHandler
+from src.financial_analysis.technical_indicators import TechnicalIndicators
+from src.financial_analysis.trading_strategies import TradingStrategies
+from src.utils.utils import determine_mode 
 from data.order_book_handler import OrderBookHandler
 from config import log_config, config
 

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="lang:clipboard.copy" content="Copy to clipboard">
+  <meta name="lang:clipboard.copied" content="Copied to clipboard">
+  <meta name="lang:search.language" content="en">
+  <meta name="lang:search.pipeline.stopwords" content="True">
+  <meta name="lang:search.pipeline.trimmer" content="True">
+  <meta name="lang:search.result.none" content="No matching documents">
+  <meta name="lang:search.result.one" content="1 matching document">
+  <meta name="lang:search.result.other" content="# matching documents">
+  <meta name="lang:search.tokenizer" content="[\s\-]+">
+
+  
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700|Roboto:300,400,400i,700&display=fallback" rel="stylesheet">
+
+    <style>
+      body,
+      input {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+      }
+
+      code,
+      kbd,
+      pre {
+        font-family: "Roboto Mono", "Courier New", Courier, monospace
+      }
+    </style>
+  
+
+  <link rel="stylesheet" href="../_static/stylesheets/application.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-palette.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-fixes.css"/>
+  
+  <link rel="stylesheet" href="../_static/fonts/material-icons.css"/>
+  
+  <meta name="theme-color" content="#3f51b5">
+  <script src="../_static/javascripts/modernizr.js"></script>
+  
+  
+  
+    <title>financial_analysis package &#8212; Automated Trading  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=83e35b93" />
+    <link rel="stylesheet" type="text/css" href="../_static/material.css?v=79c92029" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="trading_logic Package" href="trading_logic.html" />
+    <link rel="prev" title="feature_engineering package" href="feature_engineering.html" />
+  
+   
+
+  </head>
+  <body dir=ltr
+        data-md-color-primary=blue-grey data-md-color-accent=blue>
+  
+  <svg class="md-svg">
+    <defs data-children-count="0">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+      
+    </defs>
+  </svg>
+  
+  <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer">
+  <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search">
+  <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+  <a href="#source/financial_analysis" tabindex="1" class="md-skip"> Skip to content </a>
+  <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex navheader">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="../index.html" title="Automated Trading  documentation"
+           class="md-header-nav__button md-logo">
+          
+            &nbsp;
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          <span class="md-header-nav__topic">Automated Trading  documentation</span>
+          <span class="md-header-nav__topic"> financial_analysis package </span>
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+        
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" action="../search.html" method="get" name="search">
+      <input type="text" class="md-search__input" name="q" placeholder=""Search""
+             autocapitalize="off" autocomplete="off" spellcheck="false"
+             data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+      
+      
+  
+  <script src="../_static/javascripts/version_dropdown.js"></script>
+  <script>
+    var json_loc = "../"versions.json"",
+        target_loc = "../../",
+        text = "Versions";
+    $( document ).ready( add_version_dropdown(json_loc, target_loc, text));
+  </script>
+  
+
+    </div>
+  </nav>
+</header>
+
+  
+  <div class="md-container">
+    
+    
+    
+  <nav class="md-tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+      <ul class="md-tabs__list">
+          <li class="md-tabs__item"><a href="../index.html" class="md-tabs__link">Automated Trading  documentation</a></li>
+          <li class="md-tabs__item"><a href="../modules.html" class="md-tabs__link">Modules</a></li>
+      </ul>
+    </div>
+  </nav>
+    <main class="md-main">
+      <div class="md-main__inner md-grid" data-md-component="container">
+        
+          <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="../index.html" title="Automated Trading documentation" class="md-nav__button md-logo">
+      
+        <img src="../_static/" alt=" logo" width="48" height="48">
+      
+    </a>
+    <a href="../index.html"
+       title="Automated Trading documentation">Automated Trading  documentation</a>
+  </label>
+  
+
+</nav>
+              </div>
+            </div>
+          </div>
+          <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                
+<nav class="md-nav md-nav--secondary">
+    <label class="md-nav__title" for="__toc">"Contents"</label>
+  <ul class="md-nav__list" data-md-scrollfix="">
+        <li class="md-nav__item"><a href="#source-financial-analysis--page-root" class="md-nav__link">financial_analysis package</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#submodules" class="md-nav__link">Submodules</a>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.financial_analysis.trading_strategies" class="md-nav__link">financial_analysis.trading_strategies module</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.bollinger_rsi_volume_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.bollinger_rsi_volume_strategy()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.ema_atr_obv_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.ema_atr_obv_strategy()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.execute_technical_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.execute_technical_strategy()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.fibonacci_ichimoku_cci_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.fibonacci_ichimoku_cci_strategy()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.macd_stochastic_adx_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.macd_stochastic_adx_strategy()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.majority_voting_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.majority_voting_strategy()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.financial_analysis.trading_strategies.TradingStrategies.sar_vwap_rsi_strategy" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradingStrategies.sar_vwap_rsi_strategy()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#module-src.financial_analysis" class="md-nav__link">Module contents</a>
+        </li></ul>
+            </nav>
+        </li>
+    
+<li class="md-nav__item"><a class="md-nav__extra_link" href="../_sources/source/financial_analysis.rst.txt">Show Source</a> </li>
+
+<li id="searchbox" class="md-nav__item"></li>
+
+  </ul>
+</nav>
+              </div>
+            </div>
+          </div>
+        
+        <div class="md-content">
+          <article class="md-content__inner md-typeset" role="main">
+            
+  <section id="financial-analysis-package">
+<h1 id="source-financial-analysis--page-root">financial_analysis package<a class="headerlink" href="#source-financial-analysis--page-root" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2 id="submodules">Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-src.financial_analysis.trading_strategies">
+<span id="financial-analysis-trading-strategies-module"></span><h2 id="module-src.financial_analysis.trading_strategies">financial_analysis.trading_strategies module<a class="headerlink" href="#module-src.financial_analysis.trading_strategies" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.financial_analysis.trading_strategies.</span></span><span class="sig-name descname"><span class="pre">TradingStrategies</span></span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Implements various trading strategies based on technical indicators.</p>
+<p>This class provides static methods for different trading strategies that analyze
+technical indicators to generate trading signals. It also includes a majority voting
+strategy to consolidate decisions from multiple strategies.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.bollinger_rsi_volume_strategy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bollinger_rsi_volume_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.bollinger_rsi_volume_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines a trading signal based on Bollinger Bands, RSI, and Volume indicators.</p>
+<dl class="simple">
+<dt>Buy Signal:</dt><dd><ul class="simple">
+<li><p>Current price (<cite>cp</cite>) is less than or equal to the lower Bollinger Band.</p></li>
+<li><p>RSI (<cite>crsi</cite>) is below 30.</p></li>
+<li><p>Current volume (<cite>cvol</cite>) is greater than the average volume.</p></li>
+</ul>
+</dd>
+<dt>Sell Signal:</dt><dd><ul class="simple">
+<li><p>Current price (<cite>cp</cite>) is greater than or equal to the upper Bollinger Band.</p></li>
+<li><p>RSI (<cite>crsi</cite>) is above 70.</p></li>
+</ul>
+</dd>
+<dt>Hold Signal:</dt><dd><ul class="simple">
+<li><p>No buy or sell conditions are met.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>’bollinger’: {</dt><dd><p>‘lowerband’: pd.Series,
+‘middleband’: pd.Series,
+‘upperband’: pd.Series</p>
+</dd>
+</dl>
+<p>},
+‘rsi’: {</p>
+<blockquote>
+<div><p>’rsi’: pd.Series</p>
+</div></blockquote>
+<p>},
+‘volume’: pd.Series</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.ema_atr_obv_strategy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ema_atr_obv_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.ema_atr_obv_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines a trading signal based on EMA, ATR, and OBV indicators.</p>
+<dl class="simple">
+<dt>Buy Signal:</dt><dd><ul class="simple">
+<li><p>Short-term EMA (<cite>ema_short</cite>) is greater than long-term EMA (<cite>ema_long</cite>).</p></li>
+<li><p>ATR (<cite>atr</cite>) is above its average value.</p></li>
+<li><p>OBV (<cite>obv</cite>) is above its average value.</p></li>
+</ul>
+</dd>
+<dt>Sell Signal:</dt><dd><ul class="simple">
+<li><p>Short-term EMA (<cite>ema_short</cite>) is less than long-term EMA (<cite>ema_long</cite>).</p></li>
+</ul>
+</dd>
+<dt>Hold Signal:</dt><dd><ul class="simple">
+<li><p>No buy or sell conditions are met.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>’ema’: {</dt><dd><p>‘ema_short’: pd.Series,
+‘ema_long’: pd.Series</p>
+</dd>
+</dl>
+<p>},
+‘atr’: {</p>
+<blockquote>
+<div><p>’atr’: pd.Series</p>
+</div></blockquote>
+<p>},
+‘obv’: {</p>
+<blockquote>
+<div><p>’obv’: pd.Series</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.execute_technical_strategy">
+<span class="sig-name descname"><span class="pre">execute_technical_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_indicators_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.execute_technical_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes all defined technical strategies for each stock symbol and consolidates decisions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>all_indicators_data</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – A dictionary where keys are stock symbols and values are dictionaries of technical indicators.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A nested dictionary where the first key is the stock symbol and the second key is the strategy name,
+mapping to their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’, ‘NONE’).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.fibonacci_ichimoku_cci_strategy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fibonacci_ichimoku_cci_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.fibonacci_ichimoku_cci_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines a trading signal based on Fibonacci Retracements, Ichimoku Cloud, and CCI indicators.</p>
+<dl class="simple">
+<dt>Buy Signal:</dt><dd><ul class="simple">
+<li><p>Current price (<cite>cp</cite>) is greater than or equal to a Fibonacci level.</p></li>
+<li><p>Price is above the Ichimoku Cloud.</p></li>
+<li><p>CCI (<cite>cci</cite>) is above -100.</p></li>
+</ul>
+</dd>
+<dt>Sell Signal:</dt><dd><ul class="simple">
+<li><p>Current price (<cite>cp</cite>) is below a Fibonacci level.</p></li>
+</ul>
+</dd>
+<dt>Hold Signal:</dt><dd><ul class="simple">
+<li><p>No buy or sell conditions are met.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>’fibonacci’: {</dt><dd><p>‘price’: float,
+‘levels’: List[float]</p>
+</dd>
+</dl>
+<p>},
+‘ichimoku’: {</p>
+<blockquote>
+<div><p>’price_above_cloud’: bool</p>
+</div></blockquote>
+<p>},
+‘cci’: {</p>
+<blockquote>
+<div><p>’cci’: pd.Series</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.macd_stochastic_adx_strategy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">macd_stochastic_adx_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.macd_stochastic_adx_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines a trading signal based on MACD, Stochastic Oscillator, and ADX indicators.</p>
+<dl class="simple">
+<dt>Buy Signal:</dt><dd><ul class="simple">
+<li><p>MACD value (<cite>m_val</cite>) is greater than the MACD signal (<cite>m_sig</cite>).</p></li>
+<li><p>Stochastic %K (<cite>sk</cite>) is above 20.</p></li>
+<li><p>ADX (<cite>adx</cite>) is above 25.</p></li>
+</ul>
+</dd>
+<dt>Sell Signal:</dt><dd><ul class="simple">
+<li><p>MACD value (<cite>m_val</cite>) is less than the MACD signal (<cite>m_sig</cite>).</p></li>
+<li><p>Stochastic %K (<cite>sk</cite>) is below 80.</p></li>
+</ul>
+</dd>
+<dt>Hold Signal:</dt><dd><ul class="simple">
+<li><p>No buy or sell conditions are met.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>’macd’: {</dt><dd><p>‘macd’: pd.Series,
+‘signal’: pd.Series,
+‘hist’: pd.Series</p>
+</dd>
+</dl>
+<p>},
+‘stochastic’: {</p>
+<blockquote>
+<div><p>’stochastic_k’: pd.Series,
+‘stochastic_d’: pd.Series</p>
+</div></blockquote>
+<p>},
+‘adx’: {</p>
+<blockquote>
+<div><p>’adx’: pd.Series</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.majority_voting_strategy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">majority_voting_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decision_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.majority_voting_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the final trading signal based on majority voting from multiple strategies.</p>
+<dl class="simple">
+<dt>Majority Rule:</dt><dd><ul class="simple">
+<li><p>If 60% or more of the strategies agree on ‘BUY’, return ‘BUY’.</p></li>
+<li><p>If 60% or more of the strategies agree on ‘SELL’, return ‘SELL’.</p></li>
+<li><p>Otherwise, return ‘NONE’ indicating no clear majority.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>decision_dict</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>]</em>) – A dictionary where keys are strategy names and values are their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘NONE’ based on the majority voting outcome.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.sar_vwap_rsi_strategy">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sar_vwap_rsi_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.sar_vwap_rsi_strategy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines a trading signal based on SAR, VWAP, and RSI indicators.</p>
+<dl class="simple">
+<dt>Buy Signal:</dt><dd><ul class="simple">
+<li><p>SAR (<cite>cp</cite>) is above VWAP (<cite>vwap</cite>).</p></li>
+<li><p>RSI (<cite>rsi</cite>) is between 50 and 70.</p></li>
+</ul>
+</dd>
+<dt>Sell Signal:</dt><dd><ul class="simple">
+<li><p>SAR (<cite>cp</cite>) is below VWAP (<cite>vwap</cite>).</p></li>
+</ul>
+</dd>
+<dt>Hold Signal:</dt><dd><ul class="simple">
+<li><p>No buy or sell conditions are met.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
+{</p>
+<blockquote>
+<div><dl class="simple">
+<dt>’sar’: {</dt><dd><p>‘sar’: pd.Series</p>
+</dd>
+</dl>
+<p>},
+‘vwap’: {</p>
+<blockquote>
+<div><p>’vwap’: pd.Series</p>
+</div></blockquote>
+<p>},
+‘rsi’: {</p>
+<blockquote>
+<div><p>’rsi’: pd.Series</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+<section id="module-src.financial_analysis">
+<span id="module-contents"></span><h2 id="module-src.financial_analysis">Module contents<a class="headerlink" href="#module-src.financial_analysis" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer class="md-footer">
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+          
+            <a href="feature_engineering.html" title="feature_engineering package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+               rel="prev">
+              <div class="md-flex__cell md-flex__cell--shrink">
+                <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+              </div>
+              <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+                <span class="md-flex__ellipsis">
+                  <span
+                      class="md-footer-nav__direction"> "Previous" </span> feature_engineering package </span>
+              </div>
+            </a>
+          
+          
+            <a href="trading_logic.html" title="trading_logic Package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--next"
+               rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title"><span
+                class="md-flex__ellipsis"> <span
+                class="md-footer-nav__direction"> "Next" </span> trading_logic Package </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink"><i
+                class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          
+        </a>
+        
+      </nav>
+    </div>
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-footer-copyright">
+          <div class="md-footer-copyright__highlight">
+              &#169; Copyright 2024, Santhosh Kumar.
+              
+          </div>
+            Created using
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+             and
+            <a href="https://github.com/bashtage/sphinx-material/">Material for
+              Sphinx</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script src="../_static/javascripts/application.js"></script>
+  <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+  </body>
+</html>

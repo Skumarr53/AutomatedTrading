@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="lang:clipboard.copy" content="Copy to clipboard">
+  <meta name="lang:clipboard.copied" content="Copied to clipboard">
+  <meta name="lang:search.language" content="en">
+  <meta name="lang:search.pipeline.stopwords" content="True">
+  <meta name="lang:search.pipeline.trimmer" content="True">
+  <meta name="lang:search.result.none" content="No matching documents">
+  <meta name="lang:search.result.one" content="1 matching document">
+  <meta name="lang:search.result.other" content="# matching documents">
+  <meta name="lang:search.tokenizer" content="[\s\-]+">
+
+  
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700|Roboto:300,400,400i,700&display=fallback" rel="stylesheet">
+
+    <style>
+      body,
+      input {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+      }
+
+      code,
+      kbd,
+      pre {
+        font-family: "Roboto Mono", "Courier New", Courier, monospace
+      }
+    </style>
+  
+
+  <link rel="stylesheet" href="../_static/stylesheets/application.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-palette.css"/>
+  <link rel="stylesheet" href="../_static/stylesheets/application-fixes.css"/>
+  
+  <link rel="stylesheet" href="../_static/fonts/material-icons.css"/>
+  
+  <meta name="theme-color" content="#3f51b5">
+  <script src="../_static/javascripts/modernizr.js"></script>
+  
+  
+  
+    <title>trading_logic Package &#8212; Automated Trading  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=83e35b93" />
+    <link rel="stylesheet" type="text/css" href="../_static/material.css?v=79c92029" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="financial_analysis package" href="financial_analysis.html" />
+  
+   
+
+  </head>
+  <body dir=ltr
+        data-md-color-primary=blue-grey data-md-color-accent=blue>
+  
+  <svg class="md-svg">
+    <defs data-children-count="0">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+      
+    </defs>
+  </svg>
+  
+  <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer">
+  <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search">
+  <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+  <a href="#source/trading_logic" tabindex="1" class="md-skip"> Skip to content </a>
+  <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex navheader">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="../index.html" title="Automated Trading  documentation"
+           class="md-header-nav__button md-logo">
+          
+            &nbsp;
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          <span class="md-header-nav__topic">Automated Trading  documentation</span>
+          <span class="md-header-nav__topic"> trading_logic Package </span>
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+        
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" action="../search.html" method="get" name="search">
+      <input type="text" class="md-search__input" name="q" placeholder=""Search""
+             autocapitalize="off" autocomplete="off" spellcheck="false"
+             data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+      
+      
+  
+  <script src="../_static/javascripts/version_dropdown.js"></script>
+  <script>
+    var json_loc = "../"versions.json"",
+        target_loc = "../../",
+        text = "Versions";
+    $( document ).ready( add_version_dropdown(json_loc, target_loc, text));
+  </script>
+  
+
+    </div>
+  </nav>
+</header>
+
+  
+  <div class="md-container">
+    
+    
+    
+  <nav class="md-tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+      <ul class="md-tabs__list">
+          <li class="md-tabs__item"><a href="../index.html" class="md-tabs__link">Automated Trading  documentation</a></li>
+          <li class="md-tabs__item"><a href="../modules.html" class="md-tabs__link">Modules</a></li>
+      </ul>
+    </div>
+  </nav>
+    <main class="md-main">
+      <div class="md-main__inner md-grid" data-md-component="container">
+        
+          <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="../index.html" title="Automated Trading documentation" class="md-nav__button md-logo">
+      
+        <img src="../_static/" alt=" logo" width="48" height="48">
+      
+    </a>
+    <a href="../index.html"
+       title="Automated Trading documentation">Automated Trading  documentation</a>
+  </label>
+  
+
+</nav>
+              </div>
+            </div>
+          </div>
+          <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                
+<nav class="md-nav md-nav--secondary">
+    <label class="md-nav__title" for="__toc">"Contents"</label>
+  <ul class="md-nav__list" data-md-scrollfix="">
+        <li class="md-nav__item"><a href="#source-trading-logic--page-root" class="md-nav__link">trading_logic Package</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.trading_logic.strategy_manager.StrategyManager" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">StrategyManager</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.trading_logic.strategy_manager.StrategyManager.technical_strategies" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">StrategyManager.technical_strategies</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.strategy_manager.StrategyManager.additional_strategies" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">StrategyManager.additional_strategies</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.strategy_manager.StrategyManager.apply_strategies" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">StrategyManager.apply_strategies()</span></code></a>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.base_path" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.base_path</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.symbols" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.symbols</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.strategy_manager" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.strategy_manager</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.trade_simulator" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.trade_simulator</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.execute_trade_cycle" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.execute_trade_cycle()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.load_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeExecutionManager.load_data()</span></code></a>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.mode" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.mode</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.initial_capital" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.initial_capital</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.transaction_cost" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.transaction_cost</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.positions" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.positions</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.trade_history" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.trade_history</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.calculate_dynamic_trailing_stop_loss" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.calculate_dynamic_trailing_stop_loss()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.calculate_holding_time" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.calculate_holding_time()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.calculate_shares" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.calculate_shares()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.check_trailing_stop_loss" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.check_trailing_stop_loss()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.close_position" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.close_position()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.execute_trade" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.execute_trade()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.fetch_current_balance" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.fetch_current_balance()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.load_positions" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.load_positions()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.open_position" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.open_position()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.record_trade" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.record_trade()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#src.trading_logic.trade_simulator.TradeSimulator.update_positions_file" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">TradeSimulator.update_positions_file()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+    
+<li class="md-nav__item"><a class="md-nav__extra_link" href="../_sources/source/trading_logic.rst.txt">Show Source</a> </li>
+
+<li id="searchbox" class="md-nav__item"></li>
+
+  </ul>
+</nav>
+              </div>
+            </div>
+          </div>
+        
+        <div class="md-content">
+          <article class="md-content__inner md-typeset" role="main">
+            
+  <section id="module-src.trading_logic.strategy_manager">
+<span id="trading-logic-package"></span><h1 id="source-trading-logic--page-root">trading_logic Package<a class="headerlink" href="#source-trading-logic--page-root" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.trading_logic.strategy_manager.StrategyManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.trading_logic.strategy_manager.</span></span><span class="sig-name descname"><span class="pre">StrategyManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">technical_strategies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_strategies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.strategy_manager.StrategyManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Manages and applies various trading strategies to market data.</p>
+<p>The <cite>StrategyManager</cite> class orchestrates the application of multiple trading strategies
+(both technical and additional) to a given dataset. It facilitates the integration of
+different strategies, allowing for a consolidated approach to generating trading signals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>technical_strategies</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.html#pandas.Series" title="(in pandas v2.2.3)"><em>Series</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><em>Any</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>additional_strategies</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.html#pandas.Series" title="(in pandas v2.2.3)"><em>Series</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><em>Any</em></a><em>]</em><em>] </em><em>| </em><em>None</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.strategy_manager.StrategyManager.technical_strategies">
+<span class="sig-name descname"><span class="pre">technical_strategies</span></span><a class="headerlink" href="#src.trading_logic.strategy_manager.StrategyManager.technical_strategies" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary mapping strategy names to their corresponding technical strategy functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Callable[[pd.Series], Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.strategy_manager.StrategyManager.additional_strategies">
+<span class="sig-name descname"><span class="pre">additional_strategies</span></span><a class="headerlink" href="#src.trading_logic.strategy_manager.StrategyManager.additional_strategies" title="Permalink to this definition">¶</a></dt>
+<dd><p>An optional dictionary mapping strategy names to their corresponding additional strategy functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Callable[[pd.Series], Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.strategy_manager.StrategyManager.apply_strategies">
+<span class="sig-name descname"><span class="pre">apply_strategies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.strategy_manager.StrategyManager.apply_strategies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies all available trading strategies to the given market data.</p>
+<p>This method processes each row of the input DataFrame by applying each configured
+trading strategy. The results are appended as new columns to the DataFrame, representing
+the signals generated by each strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>pd.DataFrame</em>) – A DataFrame containing market data. It is expected to have one row per time period
+and columns corresponding to various market indicators and features.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A copy of the input DataFrame augmented with new columns representing the signals
+generated by each trading strategy. The columns are named after the respective strategies.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<span class="target" id="module-src.trading_logic.trade_execution_manager"></span><dl class="py class">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.trading_logic.trade_execution_manager.</span></span><span class="sig-name descname"><span class="pre">TradeExecutionManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trade_simulator</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Manages the execution of trading strategies by handling data loading, strategy application,
+and trade simulation.</p>
+<dl class="simple">
+<dt>The <cite>TradeExecutionManager</cite> class orchestrates the complete trade cycle, which includes:</dt><dd><ol class="arabic simple">
+<li><p>Loading historical market data for specified symbols.</p></li>
+<li><p>Applying trading strategies to generate signals.</p></li>
+<li><p>Simulating trades based on generated signals.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – </p></li>
+<li><p><strong>symbols_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – </p></li>
+<li><p><strong>strategy_manager</strong> (<a class="reference internal" href="#src.trading_logic.strategy_manager.StrategyManager" title="src.trading_logic.strategy_manager.StrategyManager"><em>StrategyManager</em></a>) – </p></li>
+<li><p><strong>trade_simulator</strong> (<a class="reference internal" href="#src.trading_logic.trade_simulator.TradeSimulator" title="src.trading_logic.trade_simulator.TradeSimulator"><em>TradeSimulator</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager.base_path">
+<span class="sig-name descname"><span class="pre">base_path</span></span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.base_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory containing the CSV files with historical data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager.symbols">
+<span class="sig-name descname"><span class="pre">symbols</span></span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of stock symbols to process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager.strategy_manager">
+<span class="sig-name descname"><span class="pre">strategy_manager</span></span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.strategy_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instance responsible for applying trading strategies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#src.trading_logic.strategy_manager.StrategyManager" title="src.trading_logic.strategy_manager.StrategyManager">StrategyManager</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager.trade_simulator">
+<span class="sig-name descname"><span class="pre">trade_simulator</span></span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.trade_simulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instance responsible for simulating trade executions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#src.trading_logic.trade_simulator.TradeSimulator" title="src.trading_logic.trade_simulator.TradeSimulator">TradeSimulator</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager.execute_trade_cycle">
+<span class="sig-name descname"><span class="pre">execute_trade_cycle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.execute_trade_cycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the complete trade cycle, which includes data loading, strategy execution,
+and trade simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>The method performs the following steps:</dt><dd><ol class="arabic simple">
+<li><p>Loads historical market data for all specified symbols.</p></li>
+<li><p>Applies all configured trading strategies to generate signals.</p></li>
+<li><p>Iterates over each row of the data with signals and executes trades based on
+the ‘Majority_Vote_Strategy’ signal.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#KeyError" title="(in Python v3.12)"><strong>KeyError</strong></a> – If the ‘Majority_Vote_Strategy’ column is missing in the data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_execution_manager.TradeExecutionManager.load_data">
+<span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_execution_manager.TradeExecutionManager.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads and concatenates historical data for all specified symbols.</p>
+<p>It reads CSV files for each symbol from the <cite>base_path</cite> directory. Each CSV file is
+expected to contain historical market data for a specific symbol. The method adds a
+‘symbol’ column to each DataFrame for identification and concatenates all data into
+a single DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A concatenated DataFrame containing historical data for all symbols.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.12)"><strong>FileNotFoundError</strong></a> – If no data files are found in the specified directory.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<span class="target" id="module-src.trading_logic.trade_simulator"></span><dl class="py class">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.trading_logic.trade_simulator.</span></span><span class="sig-name descname"><span class="pre">TradeSimulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_capital</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Simulates trade executions based on generated trading signals.</p>
+<p>The <cite>TradeSimulator</cite> class manages the execution of trades by handling positions,
+calculating shares to trade, managing capital, applying transaction costs, and
+recording trade history. It supports both BACKTEST and LIVE trading modes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_capital</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – </p></li>
+<li><p><strong>transaction_cost</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operational mode (‘BACKTEST’ or ‘LIVE’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.initial_capital">
+<span class="sig-name descname"><span class="pre">initial_capital</span></span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.initial_capital" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starting capital for trading.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.transaction_cost">
+<span class="sig-name descname"><span class="pre">transaction_cost</span></span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.transaction_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fixed cost per transaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary tracking current positions per symbol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.trade_history">
+<span class="sig-name descname"><span class="pre">trade_history</span></span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.trade_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>List recording the history of executed trades.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.calculate_dynamic_trailing_stop_loss">
+<span class="sig-name descname"><span class="pre">calculate_dynamic_trailing_stop_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entry_price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.calculate_dynamic_trailing_stop_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates a dynamic trailing stop loss percentage based on the return.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Current price of the stock.</p></li>
+<li><p><strong>entry_price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Entry price of the stock.</p></li>
+<li><p><strong>position_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Type of position (‘long’ or ‘short’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Trailing stop loss percentage.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)">float</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If the position type is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.calculate_holding_time">
+<span class="sig-name descname"><span class="pre">calculate_holding_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exit_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entry_date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.calculate_holding_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the holding time of a trade.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exit_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Date and time when the trade was closed.</p></li>
+<li><p><strong>entry_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Date and time when the trade was opened.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Holding time in days.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)">float</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If date formats are incorrect.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.calculate_shares">
+<span class="sig-name descname"><span class="pre">calculate_shares</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.calculate_shares" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the number of shares to trade based on the current capital and position type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Current price of the stock.</p></li>
+<li><p><strong>position_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Type of position (‘long’ or ‘short’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of shares to trade.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If the position type is invalid.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.check_trailing_stop_loss">
+<span class="sig-name descname"><span class="pre">check_trailing_stop_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.check_trailing_stop_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks and applies trailing stop loss conditions for a given symbol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Stock symbol to check.</p></li>
+<li><p><strong>current_price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Current price of the stock.</p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Current date and time.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If the symbol does not have an open position.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.close_position">
+<span class="sig-name descname"><span class="pre">close_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.close_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes an existing position for a given symbol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Stock symbol to close.</p></li>
+<li><p><strong>price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Current price of the stock.</p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Date and time of the trade.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#KeyError" title="(in Python v3.12)"><strong>KeyError</strong></a> – If the symbol does not have an open position.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.execute_trade">
+<span class="sig-name descname"><span class="pre">execute_trade</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.execute_trade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes a trade based on the provided signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>signal</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Trading signal (‘BUY’ or ‘SELL’).</p></li>
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Stock symbol to trade.</p></li>
+<li><p><strong>price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Current price of the stock.</p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Date and time of the trade.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If an invalid signal is provided.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.fetch_current_balance">
+<span class="sig-name descname"><span class="pre">fetch_current_balance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.fetch_current_balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the current balance from the brokerage account in LIVE mode.</p>
+<p>Note: This method should be implemented to integrate with a real brokerage API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current account balance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)">float</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.12)"><strong>NotImplementedError</strong></a> – If not implemented.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.load_positions">
+<span class="sig-name descname"><span class="pre">load_positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.load_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads existing positions from a JSON file in LIVE mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of current positions per symbol.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a>, Any]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.12)"><strong>FileNotFoundError</strong></a> – If the positions file does not exist.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/json.html#json.JSONDecodeError" title="(in Python v3.12)"><strong>json.JSONDecodeError</strong></a> – If the positions file contains invalid JSON.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.open_position">
+<span class="sig-name descname"><span class="pre">open_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.open_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a new position (long or short) for a given symbol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>position_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Type of position (‘long’ or ‘short’).</p></li>
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Stock symbol to trade.</p></li>
+<li><p><strong>price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Entry price of the stock.</p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Date and time of the trade.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><strong>ValueError</strong></a> – If the position type is invalid or insufficient capital.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.record_trade">
+<span class="sig-name descname"><span class="pre">record_trade</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shares</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entry_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.record_trade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Records a trade action in the trade history.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Action type (‘OPEN’ or ‘CLOSE’).</p></li>
+<li><p><strong>position_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Type of position (‘long’ or ‘short’).</p></li>
+<li><p><strong>symbol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Stock symbol traded.</p></li>
+<li><p><strong>price</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Trade execution price.</p></li>
+<li><p><strong>shares</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – Number of shares traded.</p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – Date and time of the trade.</p></li>
+<li><p><strong>entry_date</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – Entry date for ‘CLOSE’ actions. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.trading_logic.trade_simulator.TradeSimulator.update_positions_file">
+<span class="sig-name descname"><span class="pre">update_positions_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.trading_logic.trade_simulator.TradeSimulator.update_positions_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the positions file by saving the current positions to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#IOError" title="(in Python v3.12)"><strong>IOError</strong></a> – If the file cannot be written.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer class="md-footer">
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+          
+            <a href="financial_analysis.html" title="financial_analysis package"
+               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+               rel="prev">
+              <div class="md-flex__cell md-flex__cell--shrink">
+                <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+              </div>
+              <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+                <span class="md-flex__ellipsis">
+                  <span
+                      class="md-footer-nav__direction"> "Previous" </span> financial_analysis package </span>
+              </div>
+            </a>
+          
+          
+        </a>
+        
+      </nav>
+    </div>
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-footer-copyright">
+          <div class="md-footer-copyright__highlight">
+              &#169; Copyright 2024, Santhosh Kumar.
+              
+          </div>
+            Created using
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+             and
+            <a href="https://github.com/bashtage/sphinx-material/">Material for
+              Sphinx</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script src="../_static/javascripts/application.js"></script>
+  <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+  </body>
+</html>

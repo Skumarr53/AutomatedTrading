@@ -7,8 +7,11 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
+from pathlib import Path
 
+# Resolve the absolute path to the project root directory
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 project = 'Automated Trading'
 copyright = '2024, Santhosh Kumar'
@@ -26,11 +29,26 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx_autodoc_typehints',
+        'sphinx.ext.autosummary',
+            'sphinx.ext.intersphinx',
+
+
 ]
+
+autosummary_generate = True
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    'sklearn': ('https://scikit-learn.org/stable/', None),
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 autodoc_typehints = 'description'
 
-html_theme = 'alabaster'
+html_theme = 'sphinx_material'
 html_static_path = ['_static']
+
+
+epub_show_urls = 'footnote'              # Show URLs as footnotes in EPUB

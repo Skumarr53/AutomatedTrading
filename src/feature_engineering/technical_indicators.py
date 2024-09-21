@@ -22,6 +22,7 @@ class TechnicalIndicators:
         return indicators_data
 
     def compute_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
+        
         data = self._truncate_data_for_live_mode(
             data) if self.mode == 'LIVE' else data
         indicators_df = self._gather_indicators(data)
