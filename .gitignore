@@ -99,3 +99,6 @@ dmypy.json
 .pyre/
 
 *.log
+
+.ipynb_checkpoints/
+.vscode/
