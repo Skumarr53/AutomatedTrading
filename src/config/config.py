@@ -50,7 +50,7 @@ TICKER_FILENAME = 'backups/TickerData'
 SYMBOLS_PATH = 'src/config/stock_symbols.txt'
 ORDERBOOK_FILE_SUFF = 'orderbook_data'
 TICKER_FILE_SUFF = 'ticker_data'
-MODEL_CONFIG_FILENAME = '../src/config/model_config.yaml'
+MODEL_CONFIG_FILENAME = 'src/config/model_config.yaml'
 MODEL_PARAM_FILE = 'model_artifacts'
 CUSTOM_MODEL_BEST_PARAM_PATH = '{}_CustiomModelPipeline.joblib'
 

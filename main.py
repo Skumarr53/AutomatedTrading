@@ -2,7 +2,7 @@ import time, pytz
 from datetime import datetime
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
-from auth.fyers_auth import AuthCodeGenerator
+from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
 from src.utils.utils import load_symbols
 from typing import Callable
