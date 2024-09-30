@@ -83,7 +83,11 @@ class CsvValidator:
         """Validate a single csv file for missing intervals."""
         print(file_path)
         try:
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(
+                        file_path,
+                        on_bad_lines="skip",
+                        engine="python",
+                    )
             df['last_traded_time'] = pd.to_datetime(df['last_traded_time'])
         except Exception as e:
             logging.error(f"Failed to process file {file_path}: {e}")

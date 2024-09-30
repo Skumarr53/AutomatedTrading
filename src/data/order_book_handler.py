@@ -66,7 +66,11 @@ class OrderBookHandler:
             file_path = os.path.join(
                 self.path, f"{symbol}_{config.ORDERBOOK_FILE_SUFF}.csv")
             if os.path.exists(file_path):
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(
+                        file_path,
+                        on_bad_lines="skip",
+                        engine="python",
+                    )
                 df['last_traded_time'] = pd.to_datetime(
                     df['last_traded_time']).dt.round('5min')
                 return df
@@ -86,7 +90,6 @@ class OrderBookHandler:
         logging.info(
             f"fetching order book data for symbols completed")
         return self.data
-
 
     def fetch_data_for_symbol(self, symbol):
         attempt = 0
@@ -135,7 +138,11 @@ class OrderBookHandler:
                 if not os.path.exists(file_path):
                     df.to_csv(file_path, index=False)
                 else:
-                    existing_df = pd.read_csv(file_path)
+                    existing_df = pd.read_csv(
+                        file_path,
+                        on_bad_lines="skip",
+                        engine="python",
+                    )
                     updated_df = pd.concat([existing_df, df], ignore_index=True)
                     updated_df.to_csv(file_path,index=False)
                 logging.info(

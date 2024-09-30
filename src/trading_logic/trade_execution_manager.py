@@ -74,7 +74,11 @@ class TradeExecutionManager:
             file_path = os.path.join(self.base_path, f"{symbol}_data.csv")
             if os.path.exists(file_path):
                 try:
-                    symbol_data = pd.read_csv(file_path, parse_dates=['date'])
+                    symbol_data = pd.read_csv(
+                        file_path,
+                        on_bad_lines="skip",
+                        engine="python",
+                        parse_dates=['date'])
                     symbol_data['symbol'] = symbol
                     all_data = pd.concat([all_data, symbol_data], ignore_index=True)
                     data_loaded = True

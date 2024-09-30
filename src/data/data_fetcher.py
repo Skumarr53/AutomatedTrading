@@ -112,7 +112,11 @@ class DataHandler:
         )
         if os.path.exists(symbol_file):
             try:
-                df: pd.DataFrame = pd.read_csv(symbol_file)
+                df: pd.DataFrame = pd.read_csv(
+                        symbol_file,
+                        on_bad_lines="skip",
+                        engine="python",
+                    )
             except Exception as e:
                 logging.exception(f"Error loading data for {symbol}: {e}")
                 return pd.DataFrame()
