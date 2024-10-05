@@ -1,4 +1,5 @@
 import time, pytz
+from scripts.telegram_notifier import send_telegram_message
 from datetime import datetime
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -20,6 +21,12 @@ if config.ENV == "prod":
 else:
     logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
+
+## TODO: use the following snippet for alert across 
+# send_telegram_message(
+# type: Good or Bad 
+# message=str('Service has started')
+# )
 
 class MarketAnalysisApp:
     """
