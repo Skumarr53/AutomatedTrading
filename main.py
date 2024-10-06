@@ -12,11 +12,11 @@ from src.financial_analysis.trading_strategies import TradingStrategies
 from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.custom_pipelines import CustomModelPipeline
-from src.config import log_config, config
+from src.config.config import setup_logging, config
 
 # Setup logging
-log_config.setup_logging()
-if config.ENV == "prod":
+setup_logging()
+if config.environment.app_settings.env == "prod":
     logging.getLogger('apscheduler').setLevel(logging.ERROR)
 else:
     logging.getLogger('apscheduler').setLevel(logging.DEBUG)
@@ -35,11 +35,11 @@ class MarketAnalysisApp:
     handling order book data.
     """
     def __init__(self):
-        self.trading_mode = config.TRADE_MODE
+        self.trading_mode = config.trading_config.trade_mode
         self.setup_based_on_mode()
     
     def setup_based_on_mode(self):
-        self.symbols = load_symbols(config.SYMBOLS_PATH)
+        self.symbols = load_symbols(config.paths.symbols_path)
         self.generator = AuthCodeGenerator()
         self._setup_authorization()
         self.scheduler = BackgroundScheduler() if self.trading_mode == 'LIVE' else None 
@@ -50,7 +50,7 @@ class MarketAnalysisApp:
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
         # self.custom_model = CustomModelPipeline(model_id = 'COMB')
-        self.timezone = pytz.timezone(config.TIMEZONE)
+        self.timezone = pytz.timezone(config.scheduler.timezone)
 
     def _setup_data_handling(self):
         self.indicators = TechnicalIndicators()
@@ -91,8 +91,8 @@ class MarketAnalysisApp:
         Schedule regular data updates during trading hours.
         """
         self._schedule_job(
-            self.data_collection, config.DATA_FETCH_CRON_INTERVAL_MIN, "data_collection", max_instances=2)
-        # self._schedule_job(self.start_live_trading, config.TRADE_RUN_INTERVAL_MIN, "start_live_trading")
+            self.data_collection, config.scheduler.data_fetch_cron_interval_min, "data_collection", max_instances=2)
+        # self._schedule_job(self.start_live_trading, config.scheduler.data_fetch_cron_interval_min, "start_live_trading")
         self.scheduler.start()
 
     def data_collection(self):

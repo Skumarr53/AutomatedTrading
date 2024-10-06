@@ -4,7 +4,7 @@ from src.pipelines.base_pipeline import MLPipelineBase
 from sklearn.pipeline import Pipeline
 from src.config import columns_def
 from sklearn.ensemble import RandomForestClassifier
-from src.config.config import MODEL_CONFIG
+from src.config.config import config
 from src.preprocessing.custom_transformers import (
     DFFeatureUnion,
     ColumnExtractor,
@@ -44,7 +44,7 @@ class CustomModelPipeline(MLPipelineBase):
         """
         super().__init__()
         self.model_id: str = model_id
-        self.features: List[str] = MODEL_CONFIG['CUSTOM_MODEL_FEATURES'][self.model_id]
+        self.features: List[str] = config.columns.custom_model_features[self.model_id]
         self.setup()
 
     def define_pipeline(self) -> None:
@@ -69,101 +69,25 @@ class CustomModelPipeline(MLPipelineBase):
             ('features', DFFeatureUnion([
                 ('short_numerics', Pipeline([
                     ('extract', ColumnExtractor(
-                        [col for col in self.features if col in columns_def.SHORT_NUM_COLS]
+                        [col for col in self.features if col in config.columns.short_num_cols]
                     )),
                     ('normalize', ShortTermNormalizer())
                 ])),
                 ('long_numerics', Pipeline([
                     ('extract', ColumnExtractor(
-                        [col for col in self.features if col in columns_def.LONG_NUM_COLS]
+                        [col for col in self.features if col in config.columns.long_num_cols]
                     )),
                     ('normalize', LongTermNormalizer())
                 ])),
                 ('cat_cols', Pipeline([
                     ('extract', ColumnExtractor(
-                        [col for col in self.features if col in columns_def.CAT_COLS]
+                        [col for col in self.features if col in config.columns.cat_cols]
                     )),
                     ('normalize', CategoricalPreprocessor(
-                        [col for col in self.features if col in columns_def.CAT_COLS]
+                        [col for col in self.features if col in config.columns.cat_cols]
                     ))
                 ])),
             ])),
             ('feature_selection', DFRecursiveFeatureSelector()),
-            ('model_fit', RandomForestClassifier(**MODEL_CONFIG['RANDOM_FOREST_PARAMS']))
+            ('model_fit', RandomForestClassifier())
         ])
-
-
-# Example of setting up and using the CustomModelPipeline class
-if __name__ == "__main__":
-    import pandas as pd
-    import numpy as np
-
-    # Example configuration for MODEL_CONFIG and columns_def
-    # This should be defined in your actual config modules
-    MODEL_CONFIG = {
-        'CUSTOM_MODEL_FEATURES': {
-            'model_1': ['feature1', 'feature2', 'feature3', 'feature4', 'feature5'],
-            # Add more model configurations as needed
-        },
-        'RANDOM_FOREST_PARAMS': {
-            'n_estimators': 100,
-            'max_depth': 10,
-            'random_state': 42
-        }
-    }
-
-    class ColumnsDef:
-        SHORT_NUM_COLS = ['feature1', 'feature2']
-        LONG_NUM_COLS = ['feature3', 'feature4']
-        CAT_COLS = ['feature5']
-
-    columns_def = ColumnsDef()
-
-    # Mock implementation of custom transformers
-    # Replace these with actual implementations
-    class DFFeatureUnion(Pipeline):
-        pass
-
-    class ColumnExtractor(Pipeline):
-        def __init__(self, columns: List[str]):
-            super().__init__()
-
-    class ShortTermNormalizer(Pipeline):
-        def __init__(self):
-            super().__init__()
-
-    class LongTermNormalizer(Pipeline):
-        def __init__(self):
-            super().__init__()
-
-    class CategoricalPreprocessor(Pipeline):
-        def __init__(self, columns: List[str]):
-            super().__init__()
-
-    class DFRecursiveFeatureSelector(Pipeline):
-        def __init__(self):
-            super().__init__()
-
-    # Example data setup
-    example_data = pd.DataFrame({
-        'feature1': np.random.rand(100),
-        'feature2': np.random.rand(100),
-        'feature3': np.random.rand(100),
-        'feature4': np.random.rand(100),
-        'feature5': np.random.choice(['A', 'B', 'C'], size=100),
-        'symbol': ['AAPL'] * 100,
-        'close': np.random.rand(100) * 100
-    })
-
-    # Initialize and set up the pipeline
-    custom_pipeline = CustomModelPipeline(model_id='model_1')
-    custom_pipeline.run_ids = ['5min', '15min', '30min']
-
-    # Execute the pipeline in BACKTEST mode
-    custom_pipeline.run(example_data)
-
-    # For LIVE mode, ensure model_id is set and models are loaded appropriately
-    # Example:
-    # custom_pipeline.model_id = 'model_1'
-    # custom_pipeline.run_ids = ['5min']
-    # custom_pipeline.run(example_data)

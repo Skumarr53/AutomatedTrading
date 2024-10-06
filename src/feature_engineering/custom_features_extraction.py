@@ -19,8 +19,9 @@ class FeatureExtraction:
         """
         Initializes the FeatureExtraction instance with the trading mode and sets up rolling window periods.
         """
-        self.mode: str = config.TRADE_MODE
-        self.volume_max_window: int = max(config.VOLUME_MEAN_WINDOWS)
+        self.mode: str = config.trading_config.trade_mode
+        # TODO
+        self.volume_max_window: int = max(config.backtest_data_load.volume_mean_windows)
         self.periods: Dict[str, int] = self._initialize_time_frame_windows()
 
     def _initialize_time_frame_windows(self) -> Dict[str, int]:
@@ -30,15 +31,18 @@ class FeatureExtraction:
         Returns:
             Dict[str, int]: A dictionary mapping time frame labels (e.g., '1h', '1d') to their corresponding window sizes.
         """
+        # TODO
+        n_oper_daily = config.backtest_data_load.n_operations_hours_daily
         return {
             '1h': self._rolling_window_market_hours(1),
             '5h': self._rolling_window_market_hours(5),
-            '1d': self._rolling_window_market_hours(config.N_OPERATIONS_HOURS_DAILY),
-            '3d': self._rolling_window_market_hours(config.N_OPERATIONS_HOURS_DAILY * 3),
-            '5d': self._rolling_window_market_hours(config.N_OPERATIONS_HOURS_DAILY * 5),
-            '14d': self._rolling_window_market_hours(config.N_OPERATIONS_HOURS_DAILY * 14),
+            '1d': self._rolling_window_market_hours(n_oper_daily),
+            '3d': self._rolling_window_market_hours(n_oper_daily * 3),
+            '5d': self._rolling_window_market_hours(n_oper_daily * 5),
+            '14d': self._rolling_window_market_hours(n_oper_daily * 14),
             '52w': self._rolling_window_market_hours(
-                config.N_OPERATIONS_HOURS_DAILY * config.N_OPERATIONS_DAYS_WEEKLY * 52
+                # TODO
+                n_oper_daily * config.backtest_data_load.n_operations_days_weekly * 52
             )
         }
 
@@ -66,7 +70,7 @@ class FeatureExtraction:
         Returns:
             int: Adjusted rolling window size based on the trading run interval.
         """
-        return hours * 60 // config.TRADE_RUN_INTERVAL_MIN  # Convert hours to number of intervals
+        return hours * 60 // config.scheduler.trade_run_interval_min  # Convert hours to number of intervals
 
     def _add_high_low_features(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -140,8 +144,9 @@ class FeatureExtraction:
             features['volume_pct_change_last_interval'] = data['volume'].pct_change() * 100
         else:
             features['volume_pct_change_last_interval'] = data['volume'].pct_change().iloc[-1:] * 100
-
-        for period in config.VOLUME_MEAN_WINDOWS:
+        
+        # TODO
+        for period in config.backtest_data_load.volume_mean_windows:
             # Calculate percent change compared to the rolling mean of the given period
             rolling_mean: pd.Series = data['volume'].rolling(window=period).mean()
             pct_change_from_rolling_mean: pd.Series = (

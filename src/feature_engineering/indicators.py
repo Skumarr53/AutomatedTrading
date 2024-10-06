@@ -4,7 +4,6 @@ import sys
 import pandas as pd
 from typing import Dict, List, Any, Callable
 from src.config import config
-from src.config.config import MODEL_CONFIG
 
 
 def rolling_pipe(dataframe: pd.DataFrame, window: int, fctn: Callable[[pd.DataFrame], pd.Series]) -> pd.DataFrame:
@@ -37,7 +36,7 @@ def get_param(func_name: str) -> List[Dict[str, int]]:
     """
     function_params = {
         key[len(func_name) + 2:]: value
-        for key, value in MODEL_CONFIG['TECHNICAL_INDICATORS_PARAMS'].items()
+        for key, value in config.model.technical_indicators_params.items()
         if key.startswith(func_name)
     }
     return [
@@ -60,6 +59,7 @@ def calc_fib_levels(df: pd.DataFrame) -> pd.Series:
     recent_low: float = df['low'].min()
     retracements: Dict[str, float] = {
         f'fib_level_{str(int(level * 1000))}': recent_low + (recent_high - recent_low) * level
+        # TODO
         for level in config.FIB_LEVELS
     }
     return pd.Series(retracements, name=df.iloc[-1].name)

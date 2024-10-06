@@ -9,8 +9,9 @@ import os, time
 import logging
 from datetime import datetime, timedelta
 from src.utils.utils import load_symbols, get_NSE_symbol
-from src.config import config, log_config
-log_config.setup_logging()
+from src.config.config import config, setup_logging
+
+setup_logging()
 
 
 class OrderBookHandler:
@@ -18,10 +19,10 @@ class OrderBookHandler:
         self.fyers = fyers_instance
         self.scheduler = scheduler
         self.transformer = OrderBookDataTransformer()  # Initialize once
-        self.symbols = load_symbols(config.SYMBOLS_PATH)
-        self.path = config.ORDERBOOK_FILENAME
+        self.symbols = load_symbols(config.paths.symbols_path)
+        self.path = config.paths.orderbook_filename
         self.callbacks = []
-        if config.TRADE_MODE == "LIVE":
+        if config.trading_config.trade_mode == "LIVE":
             self.data = {symbol: pd.DataFrame() for symbol in self.symbols}
             self.initialize_scheduler()
         else:
@@ -64,7 +65,8 @@ class OrderBookHandler:
     def load_existing_data(self, symbol) -> pd.DataFrame:
         try:
             file_path = os.path.join(
-                self.path, f"{symbol}_{config.ORDERBOOK_FILE_SUFF}.csv")
+                ## TODO:
+                self.path, f"{symbol}_{config.backtest_data_load.orderbook_file_suffix}.csv")
             if os.path.exists(file_path):
                 df = pd.read_csv(
                         file_path,
@@ -93,7 +95,7 @@ class OrderBookHandler:
 
     def fetch_data_for_symbol(self, symbol):
         attempt = 0
-        while attempt < config.MAX_API_CALL_ATTEMPT:
+        while attempt < config.scheduler.max_api_call_attempts:
             try:
                 smb_key = get_NSE_symbol(symbol)
                 data = {"symbol": smb_key, "ohlcv_flag": "1"}
@@ -108,8 +110,8 @@ class OrderBookHandler:
                 break
             except UnboundLocalError as ule:
                 logging.exception(
-                    f"UnboundLocalError occurred while fetching order book for {symbol}: {ule}. Retrying after {config.WAIT_TIME_BETWEEN_API_CALLS} seconds.")
-                time.sleep(config.WAIT_TIME_BETWEEN_API_CALLS)
+                    f"UnboundLocalError occurred while fetching order book for {symbol}: {ule}. Retrying after {config.scheduler.wait_time_between_api_calls} seconds.")
+                time.sleep(config.scheduler.wait_time_between_api_calls)
                 attempt += 1
             except Exception as e:
                 logging.exception(
@@ -122,7 +124,8 @@ class OrderBookHandler:
         self.trim_data(symbol)
 
     def trim_data(self, symbol):
-        start_tm = datetime.now() - pd.DateOffset(years=config.BACKTEST_DATA_LENGTH_YEARS)
+        # TODO:
+        start_tm = datetime.now() - pd.DateOffset(years=config.backtest_data_load.backtest_data_length_years)
         self.data[symbol] = self.data[symbol][pd.to_datetime(
             self.data[symbol]['last_traded_time']) > start_tm]
 
@@ -133,7 +136,7 @@ class OrderBookHandler:
 
         for symbol, df in self.data.items():
             file_path = os.path.join(
-                self.path, f"{symbol}_{config.ORDERBOOK_FILE_SUFF}.csv")
+                self.path, f"{symbol}_{config.backtest_data_load.orderbook_file_suffix}.csv")
             try:
                 if not os.path.exists(file_path):
                     df.to_csv(file_path, index=False)
@@ -152,8 +155,7 @@ class OrderBookHandler:
                     f"Error backing up Order Book data for {symbol}: {e}")
 
     def initialize_scheduler(self):
-        # self.scheduler.add_job(self.fetch_order_book_data,
-        #                        'cron', minute=f'*/{config.DATA_FETCH_CRON_INTERVAL_MIN}', id='order_book_job')
+
         self.scheduler.add_job(self.backup_hourly, 'cron',
                                hour='*', id='order_book_backup_job')
 

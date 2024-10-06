@@ -148,10 +148,12 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
         Args:
             look_back_days (int, optional): Number of days to look back for rolling calculations. Defaults to 5.
         """
-        self.look_back_period: int = look_back_days * config.N_OPERATIONS_HOURS_DAILY
+        # TODO
+        self.look_back_period: int = look_back_days * config.backtest_data_load.n_operations_hours_daily
         self.params: Dict[str, Dict[str, float]] = {}  # To store mean and std for live mode
         self.columns: List[str] = []
         self.param_dict: Dict[str, Dict[str, float]] = {}
+        self.model_param_file = config.paths.model_param_path
 
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'ShortTermNormalizer':
         """
@@ -165,7 +167,7 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
             ShortTermNormalizer: Fitted transformer.
         """
         self.columns = X.columns.tolist()
-        if config.TRADE_MODE == 'BACKTEST':
+        if config.trading_config.trade_mode == 'BACKTEST':
             # Assuming data is indexed by datetime
             for column in self.columns:
                 rolling_windows = X[column].rolling(window=self.look_back_period)
@@ -188,7 +190,7 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
             pd.DataFrame: Normalized DataFrame.
         """
         transformed_data = pd.DataFrame(index=X.index)
-        if config.TRADE_MODE == 'LIVE':
+        if config.trading_config.trade_mode == 'LIVE':
             # Load parameters if in LIVE mode
             self._load_params()
 
@@ -208,7 +210,8 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
                 'std': self.params[column]['std']
             }
 
-        params_path = os.path.join(config.MODEL_PARAM_FILE, 'shortterm_normalization_params.joblib')
+        # TODO
+        params_path = os.path.join(self.model_param_file, 'shortterm_normalization_params.joblib')
         joblib.dump(self.param_dict, params_path)
         logging.info(f"Short-term normalization parameters stored at {params_path}")
 
@@ -216,7 +219,8 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
         """
         Loads the stored mean and std parameters from a file in LIVE mode.
         """
-        params_path = os.path.join(config.MODEL_PARAM_FILE, 'shortterm_normalization_params.joblib')
+        # TODO
+        params_path = os.path.join(self.model_param_file, 'shortterm_normalization_params.joblib')
         if os.path.exists(params_path):
             self.params = joblib.load(params_path)
             logging.info(f"Short-term normalization parameters loaded from {params_path}")
@@ -284,7 +288,7 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         Returns:
             pd.DataFrame: Scaled DataFrame.
         """
-        if config.TRADE_MODE == 'LIVE':
+        if config.trading_config.trade_mode == 'LIVE':
             # Load parameters if in LIVE mode
             self._load_params()
             Xscaled = (X - self.mean_) / self.scale_
@@ -300,7 +304,8 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         Stores the calculated mean and scale for each column to a file for later use in LIVE mode.
         """
         params = {'mean': self.mean_, 'std': self.scale_}
-        params_path = os.path.join(config.MODEL_PARAM_FILE, 'longterm_normalization_params.joblib')
+        # TODO
+        params_path = os.path.join(self.model_param_file, 'longterm_normalization_params.joblib')
         joblib.dump(params, params_path)
         logging.info(f"Long-term normalization parameters stored at {params_path}")
 
@@ -308,7 +313,8 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         """
         Loads the stored mean and scale parameters from a file in LIVE mode.
         """
-        params_path = os.path.join(config.MODEL_PARAM_FILE, 'longterm_normalization_params.joblib')
+        # TODO
+        params_path = os.path.join(self.model_param_file, 'longterm_normalization_params.joblib')
         if os.path.exists(params_path):
             parameters = joblib.load(params_path)
             self.mean_ = parameters['mean']

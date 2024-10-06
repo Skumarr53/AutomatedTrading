@@ -33,11 +33,12 @@ class TradeSimulator:
             initial_capital (float, optional): Starting capital for trading. Defaults to 10000.0.
             transaction_cost (float, optional): Fixed cost per transaction. Defaults to 20.0.
         """
-        self.mode: str = config.TRADE_MODE
+        self.mode: str = config.trading_config.trade_mode
         self.initial_capital: float = initial_capital
         self.transaction_cost: float = transaction_cost
         self.positions: Dict[str, Dict[str, Any]] = self.load_positions() if self.mode == 'LIVE' else {}
         self.trade_history: List[Dict[str, Any]] = []
+        self.positions_file_path = config.paths.positions_file_path
         logging.info("TradeSimulator initialized in '%s' mode with initial capital: %.2f and transaction cost: %.2f",
                      self.mode, self.initial_capital, self.transaction_cost)
 
@@ -52,18 +53,18 @@ class TradeSimulator:
             FileNotFoundError: If the positions file does not exist.
             json.JSONDecodeError: If the positions file contains invalid JSON.
         """
-        if os.path.exists(config.POSITIONS_FILE_PATH):
+        if os.path.exists(self.positions_file_path):
             try:
-                with open(config.POSITIONS_FILE_PATH, 'r') as file:
+                with open(self.positions_file_path, 'r') as file:
                     positions = json.load(file)
-                logging.info("Loaded existing positions from '%s'.", config.POSITIONS_FILE_PATH)
+                logging.info("Loaded existing positions from '%s'.", self.positions_file_path)
                 return positions
             except json.JSONDecodeError as e:
                 logging.error("Invalid JSON format in positions file: %s", e)
                 raise
         else:
             logging.warning("Positions file '%s' does not exist. Starting with empty positions.",
-                            config.POSITIONS_FILE_PATH)
+                            self.positions_file_path)
             return {}
 
     def update_positions_file(self) -> None:
@@ -74,9 +75,9 @@ class TradeSimulator:
             IOError: If the file cannot be written.
         """
         try:
-            with open(config.POSITIONS_FILE_PATH, 'w') as file:
+            with open(self.positions_file_path, 'w') as file:
                 json.dump(self.positions, file, indent=4)
-            logging.info("Positions updated and saved to '%s'.", config.POSITIONS_FILE_PATH)
+            logging.info("Positions updated and saved to '%s'.", self.positions_file_path)
         except IOError as e:
             logging.error("Failed to write positions to file: %s", e)
             raise

@@ -1,0 +1,12 @@
+defaults:
+  - environment: development      # Loads environment/development
+  - scheduler          # Loads scheduler directly
+  - model/params                 # Loads model/params directly
+  - paths                  # Loads paths directly
+  - custom
+  - columns/common_column_defs    # Loads common_column_defs for shared column names
+  - columns/numerical_columns
+  - columns/core_columns
+  - columns/feature_engg_cols
+  - columns/indicators_cols
+  - columns/model_columns

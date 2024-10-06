@@ -2,12 +2,12 @@ from dataclasses import dataclass, field
 from typing import Callable, Dict, List
 import pandas as pd
 import src.feature_engineering.indicators as ind
-from src.config import config
+from src.config.config import config
 
 
 @dataclass
 class TechnicalIndicators:
-    mode: str = config.TRADE_MODE
+    mode: str = config.trading_config.trade_mode
     callback: Callable = field(default=None)
     ## TODO include fibonachi as well
     indicators_functions = [
@@ -30,7 +30,8 @@ class TechnicalIndicators:
 
     def _truncate_data_for_live_mode(self, data: pd.DataFrame) -> pd.DataFrame:
         #max_period = (14 * config.N_OPERATIONS_HOURS_DAILY * 60) // config.TRADE_RUN_INTERVAL_MIN
-        return data.tail(config.TECH_INDS_MAX_LENGTH+1)
+        # TODO
+        return data.tail(config.backtest_data_load.tech_inds_max_length + 1)
 
 
     def _gather_indicators(self, data: pd.DataFrame) -> pd.DataFrame:

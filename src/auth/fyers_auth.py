@@ -15,24 +15,27 @@ from selenium import webdriver
 from pyotp import TOTP
 from fyers_apiv3 import fyersModel  # accessToken
 import os
-from src.config import config, log_config
+from src.config.config import config, setup_logging
 from src.utils import utils
 import pyperclip
 import webbrowser
 from urllib.parse import parse_qs,urlparse
-log_config.setup_logging()
+
+
+setup_logging()
 
 class AuthCodeGenerator:
     def __init__(self):
         self.session = fyersModel.SessionModel(
-            client_id=config.CLIENT_ID,
-            secret_key=config.SECRET_KEY,
-            redirect_uri=config.REDIRECT_URL,
-            response_type=config.RESPONSE_TYPE,
-            grant_type=config.GRANT_TYPE
+            client_id=config.environment.app_settings.client_id,
+            secret_key=config.environment.app_settings.secret_key,
+            redirect_uri=config.trading_config.redirect_url,
+            response_type=config.trading_config.response_type,
+            grant_type=config.trading_config.response_type
         )
-        self.username = config.USER_NAME
-        self.totp = config.TOTP_SECRET
+        self.username = config.environment.app_settings.user_name
+        self.totp = config.environment.app_settings.totp_secret
+        ## TODO: add user_pin to config
         self.pin = config.USER_PIN
 
     def initialize_fyers_model(self):
@@ -42,7 +45,7 @@ class AuthCodeGenerator:
             response = self.session.generate_token()
             access_token = response["access_token"]
             fyers = fyersModel.FyersModel(
-                client_id=config.CLIENT_ID, is_async=False, token=access_token, log_path=os.getcwd())
+                client_id=config.environment.app_settings.client_id, is_async=False, token=access_token, log_path=os.getcwd())
             logging.info(fyers.get_profile())
             return fyers
         except Exception as e:

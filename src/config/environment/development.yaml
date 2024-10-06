@@ -1,0 +1,7 @@
+# src/config/environment/development.yaml
+app_settings:
+  client_id: ${oc.env:FYERS_CLIENT_ID}
+  secret_key: ${oc.env:FYERS_SECRET_ID}
+  totp_secret: ${oc.env:TOTP_SECRET}
+  user_name: ${oc.env:USER_NAME, "dummy-user"}  # Use environment variables with fallback
+  env: "dev"

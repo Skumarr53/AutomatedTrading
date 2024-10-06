@@ -59,7 +59,7 @@ class DataAggregator:
             data.set_index('date', inplace=True)
             
             # Resample data to 5-minute intervals
-            resampled_data = data.resample(f'{config.TRADE_RUN_INTERVAL_MIN}T').agg({
+            resampled_data = data.resample(f'{config.scheduler.trade_run_interval_min}T').agg({
                 'open': 'first',
                 'high': 'max',
                 'low': 'min',
@@ -96,7 +96,7 @@ class DataAggregator:
         Generate and combine features based on ticker data.
         """
         ## Add aggregate funtion
-        if config.DATA_FETCH_CRON_INTERVAL_MIN != config.TRADE_RUN_INTERVAL_MIN:
+        if config.scheduler.data_fetch_cron_interval_min != config.scheduler.trade_run_interval_min:
             ticker_data = self.aggregate_ticker_to_run_min(ticker_data)
         
         ticker_features = self.feature_extractor.generate_features(
@@ -119,7 +119,7 @@ class DataAggregator:
             order_book_data.set_index('last_traded_time', inplace=True)
 
             # Aggregate main data into 5-minute intervals
-            aggregated_data = order_book_data.resample(f'{config.TRADE_RUN_INTERVAL_MIN}T').agg({
+            aggregated_data = order_book_data.resample(f'{config.scheduler.trade_run_interval_min}T').agg({
                 'symbol': 'last',
                 'total_buy_qty': 'sum',
                 'total_sell_qty': 'sum',
@@ -155,11 +155,11 @@ class DataAggregator:
         Generate and combine features based on order book data.
         """
         
-        if config.DATA_FETCH_CRON_INTERVAL_MIN != config.TRADE_RUN_INTERVAL_MIN:
+        if config.scheduler.data_fetch_cron_interval_min != config.scheduler.trade_run_interval_min:
             order_book_data = self.aggregate_order_book_data_to_run_min(
                 order_book_data)
         
-        if config.TRADE_MODE == 'LIVE':
+        if config.trading_config.trade_mode == 'LIVE':
             order_book_data = order_book_data.iloc[-1:]
 
         order_book_features = self.order_book_transformer.transform(

@@ -11,10 +11,9 @@ import os
 import pandas as pd
 from typing import List, Dict, Callable, Optional
 from src.utils.utils import load_symbols, get_NSE_symbol
-from src.config.config import MODEL_CONFIG
-from src.config import config, log_config, columns_def
+from src.config.config import config, setup_logging
 
-log_config.setup_logging()
+setup_logging()
 
 
 class DataHandler:
@@ -40,13 +39,14 @@ class DataHandler:
             fyres_instance (FyresInstance): An instance of the FYRES API client.
             scheduler (Scheduler): Scheduler instance for managing jobs.
         """
-        self.trading_mode: str = config.TRADE_MODE
+        self.trading_mode: str = config.trading_config.trade_mode
 
         self.fyres = fyres_instance
-        self.file_path: str = config.TICKER_FILENAME
-        self.symbols: List[str] = load_symbols(config.SYMBOLS_PATH)
+        self.file_path: str = config.paths.ticker_filename
+        self.symbols: List[str] = load_symbols(config.paths.symbols_path)
         self.data: Dict[str, pd.DataFrame] = {symbol: pd.DataFrame() for symbol in self.symbols}
-        self.data_len: int = config.BACKTEST_DATA_LENGTH_YEARS * 12 * 30 * 24 * 60 * 60
+        ## TODO:
+        self.data_len: int = config.backtest_data_load.backtest_data_length_years * 12 * 30 * 24 * 60 * 60
         self.callback: Optional[Callable[[Dict[str, pd.DataFrame]], None]] = None
         self.scheduler = scheduler
 
@@ -92,7 +92,7 @@ class DataHandler:
         self.scheduler.add_job(
             self.backup_data,
             'interval',
-            hours=config.BACKUP_INTERVAL_HOURS,
+            hours=config.scheduler.backup_interval_hours,
             id='backup_data_job'
         )
         # self.schedule_data_updates()
@@ -107,6 +107,7 @@ class DataHandler:
         Returns:
             pd.DataFrame: The loaded or initialized data for the symbol.
         """
+        #TODO:
         symbol_file: str = os.path.join(
             self.file_path, f"{symbol}_{config.TICKER_FILE_SUFF}.csv"
         )
@@ -175,44 +176,46 @@ class DataHandler:
             pd.DataFrame: DataFrame containing the fetched trading data with columns defined in TICKER_COLS.
         """
         ONE_DAY_SECONDS: int = 86400
+        ticker_cols = config.core_columns.columns.ticker_cols
+        
         total_data: pd.DataFrame = pd.DataFrame()
-        date_col: str = columns_def.TICKER_COLS[-1]
-        IST = pytz.timezone(config.TIMEZONE)
+        date_col: str = ticker_cols[-1]
+        IST = pytz.timezone(config.scheduler.timezone)
 
         while start_epoch_time < end_epoch_time:
             attempt: int = 0
             current_time: float = datetime.now(IST).timestamp()
             chunk_end_time: float = min(
-                start_epoch_time + config.CHUNK_SIZE_DAYS * ONE_DAY_SECONDS, end_epoch_time
+                start_epoch_time + config.scheduler.chunk_size_days * ONE_DAY_SECONDS, end_epoch_time
             )
             inp_payload: Dict[str, str] = {
                 key: value.format(
                     symbol=get_NSE_symbol(symbol),
-                    interval=config.DATA_FETCH_CRON_INTERVAL_MIN,
+                    interval=config.scheduler.data_fetch_cron_interval_min,
                     start_epoch_time=int(start_epoch_time),
                     end_epoch_time=int(chunk_end_time)
                 )
-                for key, value in MODEL_CONFIG['BASE_PAYLOAD'].items()
+                for key, value in config.base_payload_args.items()
             }
 
             ## API call to fetch data
-            while attempt < config.MAX_API_CALL_ATTEMPT:
+            while attempt < config.scheduler.max_api_call_attempts:
                 try:
                     cs_data: Dict = self.fyres.history(inp_payload)
                     df: pd.DataFrame = pd.DataFrame(
-                        cs_data['candles'], columns=columns_def.TICKER_COLS[:6]
+                        cs_data['candles'], columns=ticker_cols[:6]
                     )
                     total_data = pd.concat([total_data, df])
                     logging.info(
-                        f"time diff in seconds symbol {symbol}: {current_time - df[columns_def.TICKER_COLS[0]].max()}"
+                        f"time diff in seconds symbol {symbol}: {current_time - df[ticker_cols[0]].max()}"
                     )
                     break
                 except Exception as e:
                     if cs_data.get('code') == 429:
                         logging.info(
-                            f"Rate limit exceeded. Waiting {config.WAIT_TIME_BETWEEN_API_CALLS} seconds before retrying..."
+                            f"Rate limit exceeded. Waiting {config.scheduler.wait_time_between_api_calls} seconds before retrying..."
                         )
-                        time.sleep(config.WAIT_TIME_BETWEEN_API_CALLS)
+                        time.sleep(config.scheduler.wait_time_between_api_calls)
                         attempt += 1
                     else:
                         logging.exception(
@@ -222,9 +225,9 @@ class DataHandler:
             start_epoch_time = chunk_end_time
 
             total_data[date_col] = pd.to_datetime(
-                total_data[columns_def.TICKER_COLS[0]], unit='s'
+                total_data[ticker_cols[0]], unit='s'
             )
-            total_data[date_col] = total_data[date_col].dt.tz_localize('UTC').dt.tz_convert(config.TIMEZONE)
+            total_data[date_col] = total_data[date_col].dt.tz_localize('UTC').dt.tz_convert(config.scheduler.timezone)
             total_data[date_col] = total_data[date_col].dt.tz_localize(None).dt.round('5min')
         return total_data
 
@@ -232,7 +235,7 @@ class DataHandler:
         """
         Schedule regular data updates during trading hours.
         """
-        IST = pytz.timezone(config.TIMEZONE)
+        IST = pytz.timezone(config.scheduler.timezone)
 
         def delayed_job() -> None:
             """
@@ -248,7 +251,7 @@ class DataHandler:
             'cron',
             day_of_week='mon-fri',
             hour='9-15',
-            minute=f'*/{config.DATA_FETCH_CRON_INTERVAL_MIN}',
+            minute=f'*/{config.scheduler.data_fetch_cron_interval_min}',
             timezone=IST,
             id='update_data_regularly_job'
         )
@@ -261,7 +264,7 @@ class DataHandler:
             Optional[Dict[str, pd.DataFrame]]: Updated data dictionary if within trading hours, else None.
         """
         try:
-            IST = pytz.timezone(config.TIMEZONE)
+            IST = pytz.timezone(config.scheduler.timezone)
             now: datetime = datetime.now(IST)
             logging.debug(f"Attempting data update at {now}")
             if _time(9, 0) <= now.time() <= _time(15, 0):
@@ -288,6 +291,7 @@ class DataHandler:
             try:
                 df.to_csv(
                     os.path.join(
+                        # TODO:
                         self.file_path, f"{symbol}_{config.TICKER_FILE_SUFF}.csv"
                     ),
                     index=False

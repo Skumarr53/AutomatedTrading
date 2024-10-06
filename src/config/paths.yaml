@@ -1,0 +1,9 @@
+# src/config/paths.yaml
+paths:
+  orderbook_filename: 'backups/OrderBookData'
+  ticker_filename: 'backups/TickerData'
+  symbols_path: 'src/config/stock_symbols.txt'
+  model_config_filename: 'src/config/model_config.yaml'
+  custom_model_best_param_path: 'model_artifacts/best_params.joblib'
+  model_param_path: 'model_artifacts'
+  positions_file_path: ''

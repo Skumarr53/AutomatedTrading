@@ -1,6 +1,8 @@
 .env
 *.pyc
 
+outputs
+
 __pycache__/
 *.pyo
 *.pyd

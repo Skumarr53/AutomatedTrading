@@ -11,7 +11,7 @@ from config import log_config, config
 
 # Setup logging
 log_config.setup_logging()
-if config.ENV == "prod":
+if config.app == "prod":
     logging.getLogger('apscheduler').setLevel(logging.ERROR)
 else:
     logging.getLogger('apscheduler').setLevel(logging.DEBUG)

@@ -17,7 +17,7 @@ class CandlestickPatternRecognizer:
         """
         Initializes the CandlestickPatternRecognizer with the trading mode from configuration.
         """
-        self.mode: str = config.TRADE_MODE
+        self.mode: str = config.trading_config.trade_mode
 
     @staticmethod
     def Engulfing(df: pd.DataFrame) -> Dict[str, List[int]]:
@@ -55,7 +55,7 @@ class CandlestickPatternRecognizer:
             pd.DataFrame: DataFrame containing binary indicators for each recognized candlestick pattern.
         """
         if self.mode == 'LIVE':
-            df = df.iloc[-config.CS_PATTERNS_MAX_LENGTH:]
+            df = df.iloc[-config.backtest_data_load.cs_patterns_max_length:]
 
         patterns: Dict[str, pd.Series] = {
             'Doji': talib.CDLDOJI(df['open'], df['high'], df['low'], df['close']),

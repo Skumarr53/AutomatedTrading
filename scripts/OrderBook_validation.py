@@ -14,15 +14,15 @@ import matplotlib.pyplot as plt
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(project_root)
 
-from src.config import config
+from src.config.config import config, setup_logging
 from dataclasses import dataclass
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+setup_logging()
 
 @dataclass
 class ValidationConfig:
-    input_directory: str = config.ORDERBOOK_FILENAME
+    input_directory: str = config.paths.orderbook_filename
     output_directory: str = "WeeklyReports/orderbook_weekly_valid_plots"
     holiday_year: int = datetime.now().year
 

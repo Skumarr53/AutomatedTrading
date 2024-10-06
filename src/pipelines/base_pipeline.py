@@ -10,7 +10,7 @@ from sklearn.base import clone
 import pandas as pd
 from src.config import config
 from src.config.vars import CLOSE
-from src.config.config import MODEL_CONFIG
+from src.config.config import config
 from src.utils.utils import categorize_percent_change
 
 
@@ -45,10 +45,10 @@ class MLPipelineBase:
         self.model: Optional[GridSearchCV] = None
         self.best_model_dict: Dict[str, Any] = (
             {}
-            if config.TRADE_MODE == 'BACKTEST'
+            if config.trading_config.trade_mode == 'BACKTEST'
             else self._load_models()
         )
-        self.mode: str = config.TRADE_MODE
+        self.mode: str = config.trading_config.trade_mode
         # self.define_pipeline()
 
     def setup(self) -> None:
@@ -74,7 +74,8 @@ class MLPipelineBase:
 
         return GridSearchCV(
             self.pipeline,
-            param_grid=MODEL_CONFIG['CUSTOM_MODEL_PARAMS'],
+            # TODO
+            param_grid=config.model.model_params,
             scoring='f1_weighted',
             n_jobs=5,
             cv=5,
@@ -111,11 +112,11 @@ class MLPipelineBase:
         if not self.model_id:
             raise ValueError("model_id must be set before loading models.")
 
-        CUSTOM_MODEL_BEST_PARAM_PATH = '{}_{}_pipeline_params_{}w.joblib'
-        params_filename = CUSTOM_MODEL_BEST_PARAM_PATH.format(
-            self.model_id, config.CUSTOM_MODEL_BEST_PARAM_PATH
+        param_pth = '{}_{}_pipeline_params_{}w.joblib'
+        params_filename = param_pth.format(
+            self.model_id, config.paths.custom_model_best_param_path
         )
-        params_path = os.path.join(config.MODEL_PARAM_FILE, params_filename)
+        params_path = os.path.join(config.paths.model_param_path, params_filename)
 
         if os.path.exists(params_path):
             logging.info(f"Loading models from {params_path}")

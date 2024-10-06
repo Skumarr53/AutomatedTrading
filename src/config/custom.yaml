@@ -1,0 +1,24 @@
+# src/config/custom.yaml
+trading_config:
+  trade_mode: "BACKTEST"
+  manual_set_trade_mode: null
+  redirect_url: "https://www.google.com/"
+  response_type: "code"
+  grant_type: "authorization_code"
+
+base_payload_args:
+  symbol: "{symbol}"
+  resolution: "{interval}"
+  date_format: "0"
+  range_from: "{start_epoch_time}"
+  range_to: "{end_epoch_time}"
+  cont_flag: "1"
+
+backtest_data_load:
+  tech_inds_max_length: 234
+  n_operations_hours_daily: 8
+  volume_mean_windows: [3, 5]
+  backtest_data_length_years: 3
+  cs_patterns_max_length: 96
+  n_operations_days_weekly:  5
+  orderbook_file_suffix: orderbook_data

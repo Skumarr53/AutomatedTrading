@@ -1,0 +1,74 @@
+
+cat_cols:
+  - ${columns.common_columns.is_green}
+  - ${columns.common_columns.is_green_prev_1}
+  - ${columns.common_columns.is_green_prev_2}
+  - ${columns.common_columns.symbol}
+  - ${columns.common_columns.hour_of_day}
+  - ${columns.common_columns.day_of_week}
+  - ${columns.common_columns.month_of_year}
+  - ${columns.common_columns.quarter_of_year}
+
+short_term_benf_cols:
+  - ${columns.common_columns.candlestick_length}
+  - ${columns.common_columns.body_length}
+  - ${columns.common_columns.body_mid_point}
+  - ${columns.common_columns.is_green}
+  - ${columns.common_columns.body_to_length_ratio}
+  - ${columns.common_columns.candlestick_length_prev_1}
+  - ${columns.common_columns.body_length_prev_1}
+  - ${columns.common_columns.body_mid_point_prev_1}
+  - ${columns.common_columns.is_green_prev_1}
+  - ${columns.common_columns.body_to_length_ratio_prev_1}
+  - ${columns.common_columns.candlestick_length_prev_2}
+  - ${columns.common_columns.body_length_prev_2}
+  - ${columns.common_columns.body_mid_point_prev_2}
+  - ${columns.common_columns.is_green_prev_2}
+  - ${columns.common_columns.body_to_length_ratio_prev_2}
+  - ${columns.common_columns.high_1h}
+  - ${columns.common_columns.low_1h}
+  - ${columns.common_columns.high_5h}
+  - ${columns.common_columns.low_5h}
+  - ${columns.common_columns.high_1d}
+  - ${columns.common_columns.low_1d}
+  - ${columns.common_columns.high_3d}
+  - ${columns.common_columns.low_3d}
+  - ${columns.common_columns.high_5d}
+  - ${columns.common_columns.low_5d}
+  - ${columns.common_columns.high_14d}
+  - ${columns.common_columns.low_14d}
+  - ${columns.common_columns.high_52w}
+  - ${columns.common_columns.low_52w}
+  - ${columns.common_columns.volume_pct_change_last_interval}
+  - ${columns.common_columns.volume_pct_change_mean_3}
+  - ${columns.common_columns.volume_pct_change_mean_5}
+  - ${columns.common_columns.hour_of_day}
+  - ${columns.common_columns.day_of_week}
+  - ${columns.common_columns.month_of_year}
+  - ${columns.common_columns.quarter_of_year}
+  - ${columns.common_columns.candlestick_gap}
+  - ${columns.common_columns.epoch_time}
+  - ${columns.common_columns.open}
+  - ${columns.common_columns.high}
+  - ${columns.common_columns.low}
+  - ${columns.common_columns.close}
+  - ${columns.common_columns.volume}
+  - ${columns.common_columns.date}
+  - ${columns.common_columns.weighted_bid_price}
+  - ${columns.common_columns.total_bid_volume}
+  - ${columns.common_columns.weighted_ask_price}
+  - ${columns.common_columns.total_ask_volume}
+  - ${columns.common_columns.spread}
+  - ${columns.common_columns.buy_sell_pressure_ratio}
+  - ${columns.common_columns.intraday_price_range}
+  - ${columns.common_columns.price_movement_open_close}
+
+order_book_derv_cols:
+  - ${columns.common_columns.weighted_bid_price}
+  - ${columns.common_columns.total_bid_volume}
+  - ${columns.common_columns.weighted_ask_price}
+  - ${columns.common_columns.total_ask_volume}
+  - ${columns.common_columns.spread}
+  - ${columns.common_columns.buy_sell_pressure_ratio}
+  - ${columns.common_columns.intraday_price_range}
+  - ${columns.common_columns.price_movement_open_close}

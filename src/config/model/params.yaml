@@ -1,0 +1,28 @@
+# src/config/model/params.yaml
+model_params:
+  feature_selection__n_features: [10, 25, 50, None]
+  Model_fit__n_estimators: [10, 50, 100, 200]  # Hyperparameters for models
+  Model_fit__max_depth: [3, 5, 10]
+  Model_fit__min_samples_split: [20, 50, 100]
+  Model_fit__min_samples_leaf: [10, 20, 50]
+
+
+technical_indicators_params:
+  bollinger_bands__timeperiod: [10, 12, 15]
+  rsi__timeperiod: [5, 7, 9]
+  macd__fastperiod: [3, 5, 8]
+  macd__slowperiod: [16, 19, 22]
+  macd__signalperiod: [3, 5, 7]
+  stochastic_oscillator__fastk_period: [5, 7, 9]
+  adx__timeperiod: [7, 10, 12]
+  ema__short_period: [5, 7, 9]
+  ema__long_period: [12, 15, 18]
+  atr__timeperiod: [5, 7, 10]
+  cci__timeperiod: [5, 10, 12]
+  ichimoku_cloud__conversion_line_period: [6, 7, 9]
+  ichimoku_cloud__base_line_periods: [16, 19, 22]
+  ichimoku_cloud__lagging_span2_periods: [22, 30, 44]
+  ichimoku_cloud__displacement: [16, 19, 22]
+  fibonacci_retracements__window: [78, 156, 234]
+# Custom model
+custom_model_windows: [5, 15, 30, 60, 180]

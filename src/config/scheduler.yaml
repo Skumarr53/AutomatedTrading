@@ -1,0 +1,9 @@
+# src/config/scheduler.yaml
+scheduler:
+  backup_interval_hours: 1  # Interval for backing up data
+  data_fetch_cron_interval_min: 5  # Interval for data fetching jobs
+  trade_run_interval_min: 5  # Interval for trade run jobs
+  chunk_size_days: 90  # Chunk size for fetching data
+  timezone: 'Asia/Kolkata'  # Timezone for scheduling jobs
+  wait_time_between_api_calls: 10  # Time between API calls in seconds
+  max_api_call_attempts: 3  # Retry count for failed API calls

@@ -1,0 +1,34 @@
+# src/config/columns/core_columns.yaml
+
+ticker_cols:
+  - ${columns.common_columns.epoch_time}
+  - ${columns.common_columns.open}
+  - ${columns.common_columns.high}
+  - ${columns.common_columns.low}
+  - ${columns.common_columns.close}
+  - ${columns.common_columns.volume}
+  - ${columns.common_columns.date}
+
+order_book_cols:
+  - ${columns.common_columns.symbol}
+  - ${columns.common_columns.total_buy_qty}
+  - ${columns.common_columns.total_sell_qty}
+  - ${columns.common_columns.open}
+  - ${columns.common_columns.high}
+  - ${columns.common_columns.low}
+  - ${columns.common_columns.close}
+  - ${columns.common_columns.change_percent}
+  - ${columns.common_columns.tick_size}
+  - ${columns.common_columns.change}
+  - ${columns.common_columns.last_traded_qty}
+  - ${columns.common_columns.last_traded_time}
+  - ${columns.common_columns.last_traded_price}
+  - ${columns.common_columns.volume}
+  - ${columns.common_columns.average_traded_price}
+  - ${columns.common_columns.lower_circuit}
+  - ${columns.common_columns.upper_circuit}
+  - ${columns.common_columns.expiry}
+  - ${columns.common_columns.open_interest}
+  - ${columns.common_columns.open_interest_flag}
+  - ${columns.common_columns.previous_day_open_interest}
+  - ${columns.common_columns.open_interest_percent}

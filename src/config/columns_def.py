@@ -35,7 +35,7 @@ SHORT_TERM_BENF_COLS = [
     'ichimoku_conversion_line_param3', 'ichimoku_base_line_param3', 'ichimoku_leading_span_a_param3', 'ichimoku_leading_span_b_param3', 'ichimoku_lagging_span_param3', 'ichimoku_price_above_cloud_param3'
 ]
 
-LONG_TERM_BENF_COLS = [
+SHORT_TERM_BENF_COLS = [
     'epoch_time', 'open', 'high', 'low', 'close', 'volume', 'date',
     'high_14d', 'low_14d', 'high_52w', 'low_52w',
     'total_buy_qty', 'total_sell_qty',
