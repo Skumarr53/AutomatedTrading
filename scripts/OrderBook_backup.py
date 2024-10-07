@@ -22,7 +22,7 @@ def backup_to_gdrive(local_directory, gdrive_directory):
         print(f"Error during backup: {e}")
 
 if __name__ == "__main__":
-    local_directory = "backups/OderBookData"
+    local_directory = "backups/OrderBookData"
     gdrive_directory = "DATA_BACKUP/Stock_OrderBookData"  # This should match the directory name in your Google Drive
     
     backup_to_gdrive(local_directory, gdrive_directory)
