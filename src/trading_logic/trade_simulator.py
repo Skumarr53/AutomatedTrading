@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, Optional, List
 
 import pandas as pd
-from src.config import config
+from src.config.config import setup_logging, config
 
 
 class TradeSimulator:

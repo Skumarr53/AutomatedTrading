@@ -14,7 +14,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.feature_selection import SelectKBest, mutual_info_regression, RFE, RFECV
 from sklearn.base import TransformerMixin, BaseEstimator
 
-from src.config import config
+from src.config.config import setup_logging, config
 
 
 class ColumnExtractor(BaseEstimator, TransformerMixin):

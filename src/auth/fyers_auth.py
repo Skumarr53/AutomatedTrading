@@ -31,12 +31,12 @@ class AuthCodeGenerator:
             secret_key=config.environment.app_settings.secret_key,
             redirect_uri=config.trading_config.redirect_url,
             response_type=config.trading_config.response_type,
-            grant_type=config.trading_config.response_type
+            grant_type=config.trading_config.grant_type
         )
         self.username = config.environment.app_settings.user_name
         self.totp = config.environment.app_settings.totp_secret
         ## TODO: add user_pin to config
-        self.pin = config.USER_PIN
+        self.pin = config.environment.app_settings.user_pin
 
     def initialize_fyers_model(self):
         try:

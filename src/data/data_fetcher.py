@@ -109,7 +109,7 @@ class DataHandler:
         """
         #TODO:
         symbol_file: str = os.path.join(
-            self.file_path, f"{symbol}_{config.TICKER_FILE_SUFF}.csv"
+            self.file_path, f"{symbol}_{config.backtest_data_load.ticker_file_suffix}.csv"
         )
         if os.path.exists(symbol_file):
             try:
@@ -176,7 +176,7 @@ class DataHandler:
             pd.DataFrame: DataFrame containing the fetched trading data with columns defined in TICKER_COLS.
         """
         ONE_DAY_SECONDS: int = 86400
-        ticker_cols = config.core_columns.columns.ticker_cols
+        ticker_cols = config.columns.ticker_cols
         
         total_data: pd.DataFrame = pd.DataFrame()
         date_col: str = ticker_cols[-1]

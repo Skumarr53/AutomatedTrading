@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 from typing import Dict, List
-from src.config import config
+from src.config.config import setup_logging, config
 
 
 class FeatureExtraction:

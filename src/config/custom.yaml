@@ -22,3 +22,4 @@ backtest_data_load:
   cs_patterns_max_length: 96
   n_operations_days_weekly:  5
   orderbook_file_suffix: orderbook_data
+  ticker_file_suffix: ticker_data
