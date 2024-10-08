@@ -21,16 +21,16 @@ class TradingStrategies:
         Determines a trading signal based on Bollinger Bands, RSI, and Volume indicators.
 
         Buy Signal:
-            - Current price (`cp`) is less than or equal to the lower Bollinger Band.
-            - RSI (`crsi`) is below 30.
-            - Current volume (`cvol`) is greater than the average volume.
+            Current price (`cp`) is less than or equal to the lower Bollinger Band.
+            RSI (`crsi`) is below 30.
+            Current volume (`cvol`) is greater than the average volume.
 
         Sell Signal:
-            - Current price (`cp`) is greater than or equal to the upper Bollinger Band.
-            - RSI (`crsi`) is above 70.
+            Current price (`cp`) is greater than or equal to the upper Bollinger Band.
+            RSI (`crsi`) is above 70.
 
         Hold Signal:
-            - No buy or sell conditions are met.
+            No buy or sell conditions are met.
 
         Args:
             indicators (Dict[str, Dict[str, Any]]): 
@@ -76,16 +76,16 @@ class TradingStrategies:
         Determines a trading signal based on MACD, Stochastic Oscillator, and ADX indicators.
 
         Buy Signal:
-            - MACD value (`m_val`) is greater than the MACD signal (`m_sig`).
-            - Stochastic %K (`sk`) is above 20.
-            - ADX (`adx`) is above 25.
+            MACD value (`m_val`) is greater than the MACD signal (`m_sig`).
+            Stochastic %K (`sk`) is above 20.
+            ADX (`adx`) is above 25.
 
         Sell Signal:
-            - MACD value (`m_val`) is less than the MACD signal (`m_sig`).
-            - Stochastic %K (`sk`) is below 80.
+            MACD value (`m_val`) is less than the MACD signal (`m_sig`).
+            Stochastic %K (`sk`) is below 80.
 
         Hold Signal:
-            - No buy or sell conditions are met.
+            No buy or sell conditions are met.
 
         Args:
             indicators (Dict[str, Dict[str, Any]]): 
@@ -131,15 +131,15 @@ class TradingStrategies:
         Determines a trading signal based on EMA, ATR, and OBV indicators.
 
         Buy Signal:
-            - Short-term EMA (`ema_short`) is greater than long-term EMA (`ema_long`).
-            - ATR (`atr`) is above its average value.
-            - OBV (`obv`) is above its average value.
+            Short-term EMA (`ema_short`) is greater than long-term EMA (`ema_long`).
+            ATR (`atr`) is above its average value.
+            OBV (`obv`) is above its average value.
 
         Sell Signal:
-            - Short-term EMA (`ema_short`) is less than long-term EMA (`ema_long`).
+            Short-term EMA (`ema_short`) is less than long-term EMA (`ema_long`).
 
         Hold Signal:
-            - No buy or sell conditions are met.
+            No buy or sell conditions are met.
 
         Args:
             indicators (Dict[str, Dict[str, Any]]): 
@@ -187,14 +187,14 @@ class TradingStrategies:
         Determines a trading signal based on SAR, VWAP, and RSI indicators.
 
         Buy Signal:
-            - SAR (`cp`) is above VWAP (`vwap`).
-            - RSI (`rsi`) is between 50 and 70.
+            SAR (`cp`) is above VWAP (`vwap`).
+            RSI (`rsi`) is between 50 and 70.
 
         Sell Signal:
-            - SAR (`cp`) is below VWAP (`vwap`).
+            SAR (`cp`) is below VWAP (`vwap`).
 
         Hold Signal:
-            - No buy or sell conditions are met.
+            No buy or sell conditions are met.
 
         Args:
             indicators (Dict[str, Dict[str, Any]]): 
@@ -235,15 +235,15 @@ class TradingStrategies:
         Determines a trading signal based on Fibonacci Retracements, Ichimoku Cloud, and CCI indicators.
 
         Buy Signal:
-            - Current price (`cp`) is greater than or equal to a Fibonacci level.
-            - Price is above the Ichimoku Cloud.
-            - CCI (`cci`) is above -100.
+            Current price (`cp`) is greater than or equal to a Fibonacci level.
+            Price is above the Ichimoku Cloud.
+            CCI (`cci`) is above -100.
 
         Sell Signal:
-            - Current price (`cp`) is below a Fibonacci level.
+            Current price (`cp`) is below a Fibonacci level.
 
         Hold Signal:
-            - No buy or sell conditions are met.
+            No buy or sell conditions are met.
 
         Args:
             indicators (Dict[str, Dict[str, Any]]): 
@@ -282,9 +282,9 @@ class TradingStrategies:
         Determines the final trading signal based on majority voting from multiple strategies.
 
         Majority Rule:
-            - If 60% or more of the strategies agree on 'BUY', return 'BUY'.
-            - If 60% or more of the strategies agree on 'SELL', return 'SELL'.
-            - Otherwise, return 'NONE' indicating no clear majority.
+            If 60% or more of the strategies agree on 'BUY', return 'BUY'.
+            If 60% or more of the strategies agree on 'SELL', return 'SELL'.
+            Otherwise, return 'NONE' indicating no clear majority.
 
         Args:
           decision_dict (Dict[str, str]): 
