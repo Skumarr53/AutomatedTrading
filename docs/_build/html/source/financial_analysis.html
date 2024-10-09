@@ -237,58 +237,21 @@
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.financial_analysis.trading_strategies.</span></span><span class="sig-name descname"><span class="pre">TradingStrategies</span></span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Implements various trading strategies based on technical indicators.</p>
-<p>This class provides static methods for different trading strategies that analyze
-technical indicators to generate trading signals. It also includes a majority voting
-strategy to consolidate decisions from multiple strategies.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.bollinger_rsi_volume_strategy">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bollinger_rsi_volume_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.bollinger_rsi_volume_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines a trading signal based on Bollinger Bands, RSI, and Volume indicators.</p>
-<dl class="simple">
-<dt>Buy Signal:</dt><dd><ul class="simple">
-<li><p>Current price (<cite>cp</cite>) is less than or equal to the lower Bollinger Band.</p></li>
-<li><p>RSI (<cite>crsi</cite>) is below 30.</p></li>
-<li><p>Current volume (<cite>cvol</cite>) is greater than the average volume.</p></li>
-</ul>
-</dd>
-<dt>Sell Signal:</dt><dd><ul class="simple">
-<li><p>Current price (<cite>cp</cite>) is greater than or equal to the upper Bollinger Band.</p></li>
-<li><p>RSI (<cite>crsi</cite>) is above 70.</p></li>
-</ul>
-</dd>
-<dt>Hold Signal:</dt><dd><ul class="simple">
-<li><p>No buy or sell conditions are met.</p></li>
-</ul>
-</dd>
-</dl>
+<p>Buy Signal:Current price (<cite>cp</cite>) is less than or equal to the lower Bollinger Band.RSI (<cite>crsi</cite>) is below 30.Current volume (<cite>cvol</cite>) is greater than the average volume.</p>
+<p>Sell Signal:Current price (<cite>cp</cite>) is greater than or equal to the upper Bollinger Band.RSI (<cite>crsi</cite>) is above 70.</p>
+<p>Hold Signal:No buy or sell conditions are met.</p>
+<p>Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        ‘bollinger’: {            ‘lowerband’: pd.Series,            ‘middleband’: pd.Series,            ‘upperband’: pd.Series        },        ‘rsi’: {            ‘rsi’: pd.Series        },        ‘volume’: pd.Series    }</p>
+<p>Returns:str: ‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
-{</p>
-<blockquote>
-<div><dl class="simple">
-<dt>’bollinger’: {</dt><dd><p>‘lowerband’: pd.Series,
-‘middleband’: pd.Series,
-‘upperband’: pd.Series</p>
-</dd>
-</dl>
-<p>},
-‘rsi’: {</p>
-<blockquote>
-<div><p>’rsi’: pd.Series</p>
-</div></blockquote>
-<p>},
-‘volume’: pd.Series</p>
-</div></blockquote>
-<p>}</p>
-</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -296,52 +259,17 @@ strategy to consolidate decisions from multiple strategies.</p>
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.ema_atr_obv_strategy">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ema_atr_obv_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.ema_atr_obv_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines a trading signal based on EMA, ATR, and OBV indicators.</p>
-<dl class="simple">
-<dt>Buy Signal:</dt><dd><ul class="simple">
-<li><p>Short-term EMA (<cite>ema_short</cite>) is greater than long-term EMA (<cite>ema_long</cite>).</p></li>
-<li><p>ATR (<cite>atr</cite>) is above its average value.</p></li>
-<li><p>OBV (<cite>obv</cite>) is above its average value.</p></li>
-</ul>
-</dd>
-<dt>Sell Signal:</dt><dd><ul class="simple">
-<li><p>Short-term EMA (<cite>ema_short</cite>) is less than long-term EMA (<cite>ema_long</cite>).</p></li>
-</ul>
-</dd>
-<dt>Hold Signal:</dt><dd><ul class="simple">
-<li><p>No buy or sell conditions are met.</p></li>
-</ul>
-</dd>
-</dl>
+<p>Buy Signal:Short-term EMA (<cite>ema_short</cite>) is greater than long-term EMA (<cite>ema_long</cite>).ATR (<cite>atr</cite>) is above its average value.OBV (<cite>obv</cite>) is above its average value.</p>
+<p>Sell Signal:Short-term EMA (<cite>ema_short</cite>) is less than long-term EMA (<cite>ema_long</cite>).</p>
+<p>Hold Signal:No buy or sell conditions are met.</p>
+<p>Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        ‘ema’: {            ‘ema_short’: pd.Series,            ‘ema_long’: pd.Series        },        ‘atr’: {            ‘atr’: pd.Series        },        ‘obv’: {            ‘obv’: pd.Series        }    }</p>
+<p>Returns:str: ‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
-{</p>
-<blockquote>
-<div><dl class="simple">
-<dt>’ema’: {</dt><dd><p>‘ema_short’: pd.Series,
-‘ema_long’: pd.Series</p>
-</dd>
-</dl>
-<p>},
-‘atr’: {</p>
-<blockquote>
-<div><p>’atr’: pd.Series</p>
-</div></blockquote>
-<p>},
-‘obv’: {</p>
-<blockquote>
-<div><p>’obv’: pd.Series</p>
-</div></blockquote>
-<p>}</p>
-</div></blockquote>
-<p>}</p>
-</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -349,16 +277,14 @@ strategy to consolidate decisions from multiple strategies.</p>
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.execute_technical_strategy">
 <span class="sig-name descname"><span class="pre">execute_technical_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_indicators_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.execute_technical_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Executes all defined technical strategies for each stock symbol and consolidates decisions.</p>
+<p>Args:all_indicators_data (Dict[str, Dict[str, Any]]):     A dictionary where keys are stock symbols and values are dictionaries of technical indicators.</p>
+<p>Returns:Dict[str, Dict[str, str]]:     A nested dictionary where the first key is the stock symbol and the second key is the strategy name,    mapping to their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’, ‘NONE’).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>all_indicators_data</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – A dictionary where keys are stock symbols and values are dictionaries of technical indicators.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A nested dictionary where the first key is the stock symbol and the second key is the strategy name,
-mapping to their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’, ‘NONE’).</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]]</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>all_indicators_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -366,52 +292,17 @@ mapping to their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’, ‘NON
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.fibonacci_ichimoku_cci_strategy">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fibonacci_ichimoku_cci_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.fibonacci_ichimoku_cci_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines a trading signal based on Fibonacci Retracements, Ichimoku Cloud, and CCI indicators.</p>
-<dl class="simple">
-<dt>Buy Signal:</dt><dd><ul class="simple">
-<li><p>Current price (<cite>cp</cite>) is greater than or equal to a Fibonacci level.</p></li>
-<li><p>Price is above the Ichimoku Cloud.</p></li>
-<li><p>CCI (<cite>cci</cite>) is above -100.</p></li>
-</ul>
-</dd>
-<dt>Sell Signal:</dt><dd><ul class="simple">
-<li><p>Current price (<cite>cp</cite>) is below a Fibonacci level.</p></li>
-</ul>
-</dd>
-<dt>Hold Signal:</dt><dd><ul class="simple">
-<li><p>No buy or sell conditions are met.</p></li>
-</ul>
-</dd>
-</dl>
+<p>Buy Signal:Current price (<cite>cp</cite>) is greater than or equal to a Fibonacci level.Price is above the Ichimoku Cloud.CCI (<cite>cci</cite>) is above -100.</p>
+<p>Sell Signal:Current price (<cite>cp</cite>) is below a Fibonacci level.</p>
+<p>Hold Signal:No buy or sell conditions are met.</p>
+<p>Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        ‘fibonacci’: {            ‘price’: float,            ‘levels’: List[float]        },        ‘ichimoku’: {            ‘price_above_cloud’: bool        },        ‘cci’: {            ‘cci’: pd.Series        }    }</p>
+<p>Returns:str: ‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
-{</p>
-<blockquote>
-<div><dl class="simple">
-<dt>’fibonacci’: {</dt><dd><p>‘price’: float,
-‘levels’: List[float]</p>
-</dd>
-</dl>
-<p>},
-‘ichimoku’: {</p>
-<blockquote>
-<div><p>’price_above_cloud’: bool</p>
-</div></blockquote>
-<p>},
-‘cci’: {</p>
-<blockquote>
-<div><p>’cci’: pd.Series</p>
-</div></blockquote>
-<p>}</p>
-</div></blockquote>
-<p>}</p>
-</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -419,55 +310,17 @@ mapping to their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’, ‘NON
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.macd_stochastic_adx_strategy">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">macd_stochastic_adx_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.macd_stochastic_adx_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines a trading signal based on MACD, Stochastic Oscillator, and ADX indicators.</p>
-<dl class="simple">
-<dt>Buy Signal:</dt><dd><ul class="simple">
-<li><p>MACD value (<cite>m_val</cite>) is greater than the MACD signal (<cite>m_sig</cite>).</p></li>
-<li><p>Stochastic %K (<cite>sk</cite>) is above 20.</p></li>
-<li><p>ADX (<cite>adx</cite>) is above 25.</p></li>
-</ul>
-</dd>
-<dt>Sell Signal:</dt><dd><ul class="simple">
-<li><p>MACD value (<cite>m_val</cite>) is less than the MACD signal (<cite>m_sig</cite>).</p></li>
-<li><p>Stochastic %K (<cite>sk</cite>) is below 80.</p></li>
-</ul>
-</dd>
-<dt>Hold Signal:</dt><dd><ul class="simple">
-<li><p>No buy or sell conditions are met.</p></li>
-</ul>
-</dd>
-</dl>
+<p>Buy Signal:MACD value (<cite>m_val</cite>) is greater than the MACD signal (<cite>m_sig</cite>).Stochastic %K (<cite>sk</cite>) is above 20.ADX (<cite>adx</cite>) is above 25.</p>
+<p>Sell Signal:MACD value (<cite>m_val</cite>) is less than the MACD signal (<cite>m_sig</cite>).Stochastic %K (<cite>sk</cite>) is below 80.</p>
+<p>Hold Signal:No buy or sell conditions are met.</p>
+<p>Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        ‘macd’: {            ‘macd’: pd.Series,            ‘signal’: pd.Series,            ‘hist’: pd.Series        },        ‘stochastic’: {            ‘stochastic_k’: pd.Series,            ‘stochastic_d’: pd.Series        },        ‘adx’: {            ‘adx’: pd.Series        }    }</p>
+<p>Returns:str: ‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
-{</p>
-<blockquote>
-<div><dl class="simple">
-<dt>’macd’: {</dt><dd><p>‘macd’: pd.Series,
-‘signal’: pd.Series,
-‘hist’: pd.Series</p>
-</dd>
-</dl>
-<p>},
-‘stochastic’: {</p>
-<blockquote>
-<div><p>’stochastic_k’: pd.Series,
-‘stochastic_d’: pd.Series</p>
-</div></blockquote>
-<p>},
-‘adx’: {</p>
-<blockquote>
-<div><p>’adx’: pd.Series</p>
-</div></blockquote>
-<p>}</p>
-</div></blockquote>
-<p>}</p>
-</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -475,74 +328,32 @@ mapping to their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’, ‘NON
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.majority_voting_strategy">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">majority_voting_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decision_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.majority_voting_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines the final trading signal based on majority voting from multiple strategies.</p>
-<dl class="simple">
-<dt>Majority Rule:</dt><dd><ul class="simple">
-<li><p>If 60% or more of the strategies agree on ‘BUY’, return ‘BUY’.</p></li>
-<li><p>If 60% or more of the strategies agree on ‘SELL’, return ‘SELL’.</p></li>
-<li><p>Otherwise, return ‘NONE’ indicating no clear majority.</p></li>
-</ul>
-</dd>
-</dl>
+<p>Majority Rule:If 60% or more of the strategies agree on ‘BUY’, return ‘BUY’.If 60% or more of the strategies agree on ‘SELL’, return ‘SELL’.Otherwise, return ‘NONE’ indicating no clear majority.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>decision_dict</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – A dictionary where keys are strategy names and values are their respective decisions (‘BUY’, ‘SELL’, ‘HOLD’).</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘NONE’ based on the majority voting outcome.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
+<p>Returns:str: ‘BUY’, ‘SELL’, or ‘NONE’ based on the majority voting outcome.</p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="src.financial_analysis.trading_strategies.TradingStrategies.sar_vwap_rsi_strategy">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sar_vwap_rsi_strategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.financial_analysis.trading_strategies.TradingStrategies.sar_vwap_rsi_strategy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determines a trading signal based on SAR, VWAP, and RSI indicators.</p>
-<dl class="simple">
-<dt>Buy Signal:</dt><dd><ul class="simple">
-<li><p>SAR (<cite>cp</cite>) is above VWAP (<cite>vwap</cite>).</p></li>
-<li><p>RSI (<cite>rsi</cite>) is between 50 and 70.</p></li>
-</ul>
-</dd>
-<dt>Sell Signal:</dt><dd><ul class="simple">
-<li><p>SAR (<cite>cp</cite>) is below VWAP (<cite>vwap</cite>).</p></li>
-</ul>
-</dd>
-<dt>Hold Signal:</dt><dd><ul class="simple">
-<li><p>No buy or sell conditions are met.</p></li>
-</ul>
-</dd>
-</dl>
+<p>Buy Signal:SAR (<cite>cp</cite>) is above VWAP (<cite>vwap</cite>).RSI (<cite>rsi</cite>) is between 50 and 70.</p>
+<p>Sell Signal:SAR (<cite>cp</cite>) is below VWAP (<cite>vwap</cite>).</p>
+<p>Hold Signal:No buy or sell conditions are met.</p>
+<p>Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        ‘sar’: {            ‘sar’: pd.Series        },        ‘vwap’: {            ‘vwap’: pd.Series        },        ‘rsi’: {            ‘rsi’: pd.Series        }    }</p>
+<p>Returns:str: ‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>indicators</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>A dictionary containing technical indicators with the following structure:
-{</p>
-<blockquote>
-<div><dl class="simple">
-<dt>’sar’: {</dt><dd><p>‘sar’: pd.Series</p>
-</dd>
-</dl>
-<p>},
-‘vwap’: {</p>
-<blockquote>
-<div><p>’vwap’: pd.Series</p>
-</div></blockquote>
-<p>},
-‘rsi’: {</p>
-<blockquote>
-<div><p>’rsi’: pd.Series</p>
-</div></blockquote>
-<p>}</p>
-</div></blockquote>
-<p>}</p>
-</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>‘BUY’, ‘SELL’, or ‘HOLD’ based on the strategy conditions.</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em>) – </p>
 </dd>
 </dl>
 </dd></dl>

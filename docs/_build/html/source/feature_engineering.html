@@ -220,11 +220,9 @@
               <ul class="md-nav__list">
         <li class="md-nav__item"><a href="#src.feature_engineering.custom_target_tranform.FeatureExtractor" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor</span></code></a><nav class="md-nav">
               <ul class="md-nav__list">
-        <li class="md-nav__item"><a href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.ticker_data</span></code></a>
-        </li>
         <li class="md-nav__item"><a href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.extract_features" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.extract_features()</span></code></a>
         </li>
-        <li class="md-nav__item"><a href="#id0" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.ticker_data</span></code></a>
+        <li class="md-nav__item"><a href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.ticker_data</span></code></a>
         </li>
         <li class="md-nav__item"><a href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.validate_data" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">FeatureExtractor.validate_data()</span></code></a>
         </li></ul>
@@ -475,22 +473,11 @@
 <dt class="sig sig-object py" id="src.feature_engineering.custom_target_tranform.FeatureExtractor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.feature_engineering.custom_target_tranform.</span></span><span class="sig-name descname"><span class="pre">FeatureExtractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ticker_data=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.feature_engineering.custom_target_tranform.FeatureExtractor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Extracts and generates custom target features from ticker data for automated trading systems.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ticker_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><em>DataFrame</em></a><em>]</em>) – </p>
 </dd>
 </dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data">
-<span class="sig-name descname"><span class="pre">ticker_data</span></span><a class="headerlink" href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dictionary containing ticker data for each symbol.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, pd.DataFrame]</p>
-</dd>
-</dl>
-</dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="src.feature_engineering.custom_target_tranform.FeatureExtractor.extract_features">
 <span class="sig-name descname"><span class="pre">extract_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.extract_features" title="Permalink to this definition">¶</a></dt>
@@ -508,8 +495,8 @@
 </dl>
 </dd></dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">ticker_data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data">
+<span class="sig-name descname"><span class="pre">ticker_data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#src.feature_engineering.custom_target_tranform.FeatureExtractor.ticker_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="src.feature_engineering.custom_target_tranform.FeatureExtractor.validate_data">

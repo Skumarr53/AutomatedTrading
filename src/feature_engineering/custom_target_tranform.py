@@ -14,12 +14,6 @@ logging.basicConfig(
 
 @dataclass
 class FeatureExtractor:
-    """
-    Extracts and generates custom target features from ticker data for automated trading systems.
-
-    Attributes:
-        ticker_data (Dict[str, pd.DataFrame]): Dictionary containing ticker data for each symbol.
-    """
     ticker_data: Dict[str, pd.DataFrame] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -83,25 +77,3 @@ class FeatureExtractor:
             feature_data[f'{window_name}_high'] = rolling_window.max()
             feature_data[f'{window_name}_low'] = rolling_window.min()
         return feature_data
-
-
-# Example usage
-if __name__ == "__main__":
-    # Example data setup
-    data_example: Dict[str, pd.DataFrame] = {
-        'AAPL': pd.DataFrame({
-            'close': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            'time': pd.date_range(start='1/1/2022', periods=10, freq='5T')
-        }).set_index('time')
-    }
-
-    windows: Dict[str, pd.Timedelta] = {
-        '5min': pd.Timedelta(minutes=5),
-        '1hour': pd.Timedelta(hours=1),
-        '8hour': pd.Timedelta(hours=8)
-    }
-
-    extractor: FeatureExtractor = FeatureExtractor(ticker_data=data_example)
-    features: Dict[str, pd.DataFrame] = extractor.extract_features(windows=windows)
-    for symbol, feature_df in features.items():
-        print(f"Features for {symbol}:\n{feature_df}\n")

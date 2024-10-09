@@ -7,48 +7,21 @@ from typing import Dict, Any
 
 
 class TradingStrategies:
-    """
-    Implements various trading strategies based on technical indicators.
-
-    This class provides static methods for different trading strategies that analyze
-    technical indicators to generate trading signals. It also includes a majority voting
-    strategy to consolidate decisions from multiple strategies.
-    """
 
     @staticmethod
     def bollinger_rsi_volume_strategy(indicators: Dict[str, Dict[str, Any]]) -> str:
         """
         Determines a trading signal based on Bollinger Bands, RSI, and Volume indicators.
 
-        Buy Signal:
-            Current price (`cp`) is less than or equal to the lower Bollinger Band.
-            RSI (`crsi`) is below 30.
-            Current volume (`cvol`) is greater than the average volume.
+        Buy Signal:Current price (`cp`) is less than or equal to the lower Bollinger Band.RSI (`crsi`) is below 30.Current volume (`cvol`) is greater than the average volume.
 
-        Sell Signal:
-            Current price (`cp`) is greater than or equal to the upper Bollinger Band.
-            RSI (`crsi`) is above 70.
+        Sell Signal:Current price (`cp`) is greater than or equal to the upper Bollinger Band.RSI (`crsi`) is above 70.
 
-        Hold Signal:
-            No buy or sell conditions are met.
+        Hold Signal:No buy or sell conditions are met.
 
-        Args:
-            indicators (Dict[str, Dict[str, Any]]): 
-                A dictionary containing technical indicators with the following structure:
-                {
-                    'bollinger': {
-                        'lowerband': pd.Series,
-                        'middleband': pd.Series,
-                        'upperband': pd.Series
-                    },
-                    'rsi': {
-                        'rsi': pd.Series
-                    },
-                    'volume': pd.Series
-                }
+        Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        'bollinger': {            'lowerband': pd.Series,            'middleband': pd.Series,            'upperband': pd.Series        },        'rsi': {            'rsi': pd.Series        },        'volume': pd.Series    }
 
-        Returns:
-            str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
+        Returns:str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
         """
         lower_band: pd.Series = indicators['bollinger']['lowerband']
         mid_band: pd.Series = indicators['bollinger']['middleband']
@@ -75,38 +48,15 @@ class TradingStrategies:
         """
         Determines a trading signal based on MACD, Stochastic Oscillator, and ADX indicators.
 
-        Buy Signal:
-            MACD value (`m_val`) is greater than the MACD signal (`m_sig`).
-            Stochastic %K (`sk`) is above 20.
-            ADX (`adx`) is above 25.
+        Buy Signal:MACD value (`m_val`) is greater than the MACD signal (`m_sig`).Stochastic %K (`sk`) is above 20.ADX (`adx`) is above 25.
 
-        Sell Signal:
-            MACD value (`m_val`) is less than the MACD signal (`m_sig`).
-            Stochastic %K (`sk`) is below 80.
+        Sell Signal:MACD value (`m_val`) is less than the MACD signal (`m_sig`).Stochastic %K (`sk`) is below 80.
 
-        Hold Signal:
-            No buy or sell conditions are met.
+        Hold Signal:No buy or sell conditions are met.
 
-        Args:
-            indicators (Dict[str, Dict[str, Any]]): 
-                A dictionary containing technical indicators with the following structure:
-                {
-                    'macd': {
-                        'macd': pd.Series,
-                        'signal': pd.Series,
-                        'hist': pd.Series
-                    },
-                    'stochastic': {
-                        'stochastic_k': pd.Series,
-                        'stochastic_d': pd.Series
-                    },
-                    'adx': {
-                        'adx': pd.Series
-                    }
-                }
+        Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        'macd': {            'macd': pd.Series,            'signal': pd.Series,            'hist': pd.Series        },        'stochastic': {            'stochastic_k': pd.Series,            'stochastic_d': pd.Series        },        'adx': {            'adx': pd.Series        }    }
 
-        Returns:
-            str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
+        Returns:str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
         """
         m_val: pd.Series = indicators['macd']['macd']
         m_sig: pd.Series = indicators['macd']['signal']
@@ -130,35 +80,15 @@ class TradingStrategies:
         """
         Determines a trading signal based on EMA, ATR, and OBV indicators.
 
-        Buy Signal:
-            Short-term EMA (`ema_short`) is greater than long-term EMA (`ema_long`).
-            ATR (`atr`) is above its average value.
-            OBV (`obv`) is above its average value.
+        Buy Signal:Short-term EMA (`ema_short`) is greater than long-term EMA (`ema_long`).ATR (`atr`) is above its average value.OBV (`obv`) is above its average value.
 
-        Sell Signal:
-            Short-term EMA (`ema_short`) is less than long-term EMA (`ema_long`).
+        Sell Signal:Short-term EMA (`ema_short`) is less than long-term EMA (`ema_long`).
 
-        Hold Signal:
-            No buy or sell conditions are met.
+        Hold Signal:No buy or sell conditions are met.
 
-        Args:
-            indicators (Dict[str, Dict[str, Any]]): 
-                A dictionary containing technical indicators with the following structure:
-                {
-                    'ema': {
-                        'ema_short': pd.Series,
-                        'ema_long': pd.Series
-                    },
-                    'atr': {
-                        'atr': pd.Series
-                    },
-                    'obv': {
-                        'obv': pd.Series
-                    }
-                }
+        Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        'ema': {            'ema_short': pd.Series,            'ema_long': pd.Series        },        'atr': {            'atr': pd.Series        },        'obv': {            'obv': pd.Series        }    }
 
-        Returns:
-            str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
+        Returns:str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
         """
         ema_short: pd.Series = indicators['ema']['ema_short']
         ema_long: pd.Series = indicators['ema']['ema_long']
@@ -186,33 +116,15 @@ class TradingStrategies:
         """
         Determines a trading signal based on SAR, VWAP, and RSI indicators.
 
-        Buy Signal:
-            SAR (`cp`) is above VWAP (`vwap`).
-            RSI (`rsi`) is between 50 and 70.
+        Buy Signal:SAR (`cp`) is above VWAP (`vwap`).RSI (`rsi`) is between 50 and 70.
 
-        Sell Signal:
-            SAR (`cp`) is below VWAP (`vwap`).
+        Sell Signal:SAR (`cp`) is below VWAP (`vwap`).
 
-        Hold Signal:
-            No buy or sell conditions are met.
+        Hold Signal:No buy or sell conditions are met.
 
-        Args:
-            indicators (Dict[str, Dict[str, Any]]): 
-                A dictionary containing technical indicators with the following structure:
-                {
-                    'sar': {
-                        'sar': pd.Series
-                    },
-                    'vwap': {
-                        'vwap': pd.Series
-                    },
-                    'rsi': {
-                        'rsi': pd.Series
-                    }
-                }
+        Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        'sar': {            'sar': pd.Series        },        'vwap': {            'vwap': pd.Series        },        'rsi': {            'rsi': pd.Series        }    }
 
-        Returns:
-            str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
+        Returns:str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
         """
         cp: pd.Series = indicators['sar']['sar']
         vwap: pd.Series = indicators['vwap']['vwap']
@@ -234,35 +146,15 @@ class TradingStrategies:
         """
         Determines a trading signal based on Fibonacci Retracements, Ichimoku Cloud, and CCI indicators.
 
-        Buy Signal:
-            Current price (`cp`) is greater than or equal to a Fibonacci level.
-            Price is above the Ichimoku Cloud.
-            CCI (`cci`) is above -100.
+        Buy Signal:Current price (`cp`) is greater than or equal to a Fibonacci level.Price is above the Ichimoku Cloud.CCI (`cci`) is above -100.
 
-        Sell Signal:
-            Current price (`cp`) is below a Fibonacci level.
+        Sell Signal:Current price (`cp`) is below a Fibonacci level.
 
-        Hold Signal:
-            No buy or sell conditions are met.
+        Hold Signal:No buy or sell conditions are met.
 
-        Args:
-            indicators (Dict[str, Dict[str, Any]]): 
-                A dictionary containing technical indicators with the following structure:
-                {
-                    'fibonacci': {
-                        'price': float,
-                        'levels': List[float]
-                    },
-                    'ichimoku': {
-                        'price_above_cloud': bool
-                    },
-                    'cci': {
-                        'cci': pd.Series
-                    }
-                }
+        Args:indicators (Dict[str, Dict[str, Any]]):     A dictionary containing technical indicators with the following structure:    {        'fibonacci': {            'price': float,            'levels': List[float]        },        'ichimoku': {            'price_above_cloud': bool        },        'cci': {            'cci': pd.Series        }    }
 
-        Returns:
-            str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
+        Returns:str: 'BUY', 'SELL', or 'HOLD' based on the strategy conditions.
         """
         cp: float = indicators['fibonacci']['price']
         levels: List[float] = indicators['fibonacci']['levels']
@@ -281,17 +173,12 @@ class TradingStrategies:
         """
         Determines the final trading signal based on majority voting from multiple strategies.
 
-        Majority Rule:
-            If 60% or more of the strategies agree on 'BUY', return 'BUY'.
-            If 60% or more of the strategies agree on 'SELL', return 'SELL'.
-            Otherwise, return 'NONE' indicating no clear majority.
+        Majority Rule:If 60% or more of the strategies agree on 'BUY', return 'BUY'.If 60% or more of the strategies agree on 'SELL', return 'SELL'.Otherwise, return 'NONE' indicating no clear majority.
 
         Args:
-          decision_dict (Dict[str, str]): 
-            A dictionary where keys are strategy names and values are their respective decisions ('BUY', 'SELL', 'HOLD').
+          decision_dict (Dict[str, str]): A dictionary where keys are strategy names and values are their respective decisions ('BUY', 'SELL', 'HOLD').
 
-        Returns:
-            str: 'BUY', 'SELL', or 'NONE' based on the majority voting outcome.
+        Returns:str: 'BUY', 'SELL', or 'NONE' based on the majority voting outcome.
         """
         vote_count: Dict[str, int] = {'BUY': 0, 'SELL': 0, 'HOLD': 0}
         total_votes: int = 0
@@ -310,14 +197,9 @@ class TradingStrategies:
         """
         Executes all defined technical strategies for each stock symbol and consolidates decisions.
 
-        Args:
-            all_indicators_data (Dict[str, Dict[str, Any]]): 
-                A dictionary where keys are stock symbols and values are dictionaries of technical indicators.
+        Args:all_indicators_data (Dict[str, Dict[str, Any]]):     A dictionary where keys are stock symbols and values are dictionaries of technical indicators.
 
-        Returns:
-            Dict[str, Dict[str, str]]: 
-                A nested dictionary where the first key is the stock symbol and the second key is the strategy name,
-                mapping to their respective decisions ('BUY', 'SELL', 'HOLD', 'NONE').
+        Returns:Dict[str, Dict[str, str]]:     A nested dictionary where the first key is the stock symbol and the second key is the strategy name,    mapping to their respective decisions ('BUY', 'SELL', 'HOLD', 'NONE').
         """
         strategy_decision: Dict[str, Dict[str, str]] = {}
 
@@ -333,72 +215,3 @@ class TradingStrategies:
             strategy_decision[symbol] = decision
 
         return strategy_decision
-
-
-# Example of setting up and using the TradingStrategies class
-if __name__ == "__main__":
-    # Example indicator data setup for demonstration
-    example_indicators = {
-        'AAPL': {
-            'bollinger': {
-                'lowerband': pd.Series([140, 142, 144]),
-                'middleband': pd.Series([150, 152, 154]),
-                'upperband': pd.Series([160, 162, 164])
-            },
-            'rsi': {
-                'rsi': pd.Series([25, 35, 45])
-            },
-            'volume': pd.Series([10000, 15000, 20000]),
-            'macd': {
-                'macd': pd.Series([1.2, 1.5, 1.8]),
-                'signal': pd.Series([1.0, 1.3, 1.6]),
-                'hist': pd.Series([0.2, 0.2, 0.2])
-            },
-            'stochastic': {
-                'stochastic_k': pd.Series([25, 50, 75]),
-                'stochastic_d': pd.Series([20, 55, 70])
-            },
-            'adx': {
-                'adx': pd.Series([30, 35, 40])
-            },
-            'ema': {
-                'ema_short': pd.Series([145, 147, 149]),
-                'ema_long': pd.Series([140, 142, 144])
-            },
-            'atr': {
-                'atr': pd.Series([1.5, 1.6, 1.7])
-            },
-            'obv': {
-                'obv': pd.Series([5000, 6000, 7000])
-            },
-            'sar': {
-                'sar': pd.Series([151, 153, 155])
-            },
-            'vwap': {
-                'vwap': pd.Series([150, 152, 154])
-            },
-            'cci': {
-                'cci': pd.Series([50, 60, 70])
-            },
-            'fibonacci': {
-                'price': 155,
-                'levels': [150, 145, 140]
-            },
-            'ichimoku': {
-                'price_above_cloud': True
-            }
-        }
-    }
-
-    # Initialize TradingStrategies instance
-    ts: TradingStrategies = TradingStrategies()
-
-    # Execute strategies
-    strategy_results: Dict[str, Dict[str, str]] = ts.execute_technical_strategy(example_indicators)
-
-    # Print the results
-    for symbol, decisions in strategy_results.items():
-        print(f"Trading decisions for {symbol}:")
-        for strategy, decision in decisions.items():
-            print(f"  {strategy}: {decision}")
-        print()
