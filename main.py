@@ -1,7 +1,7 @@
 import time, pytz
 from scripts.telegram_notifier import send_telegram_message
 from datetime import datetime
-import logging
+from loguru import logger
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
@@ -13,13 +13,6 @@ from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.custom_pipelines import CustomModelPipeline
 from src.config.config import setup_logging, config
-
-# Setup logging
-setup_logging()
-if config.environment.app_settings.env == "prod":
-    logging.getLogger('apscheduler').setLevel(logging.ERROR)
-else:
-    logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
 
 ## TODO: use the following snippet for alert across 
@@ -68,7 +61,7 @@ class MarketAnalysisApp:
                 indicators_data)
             # Process the strategy decisions further as needed
         except Exception as e:
-            logging.exception("Strategy execution failed")
+            logger.error("Strategy execution failed")
             raise
 
 
@@ -84,7 +77,7 @@ class MarketAnalysisApp:
             id=job_id,
             max_instances=max_instances
         )
-        logging.info(f"Scheduled {job_id} every {interval} minutes.")
+        logger.info(f"Scheduled {job_id} every {interval} minutes.")
 
     def configure_scheduler(self):
         """
@@ -129,9 +122,9 @@ class MarketAnalysisApp:
         """
         try:
             self.fyers_instance = self.generator.initialize_fyers_model()
-            logging.info("Authorization successful.")
+            logger.info("Authorization successful.")
         except Exception as e:
-            logging.exception("Authorization failed")
+            logger.error("Authorization failed")
             raise
 
 

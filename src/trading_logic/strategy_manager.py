@@ -2,7 +2,7 @@
 
 from typing import Callable, Dict, Optional, Any
 import pandas as pd
-import logging
+from loguru import logger
 
 
 class StrategyManager:
@@ -37,7 +37,7 @@ class StrategyManager:
         """
         self.technical_strategies: Dict[str, Callable[[pd.Series], Any]] = technical_strategies
         self.additional_strategies: Dict[str, Callable[[pd.Series], Any]] = additional_strategies or {}
-        logging.info("StrategyManager initialized with %d technical strategies and %d additional strategies.",
+        logger.info("StrategyManager initialized with %d technical strategies and %d additional strategies.",
                      len(self.technical_strategies), len(self.additional_strategies))
 
     def apply_strategies(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -62,28 +62,28 @@ class StrategyManager:
             raise TypeError("Input data must be a pandas DataFrame.")
 
         data_with_signals: pd.DataFrame = data.copy()
-        logging.info("Applying %d technical strategies and %d additional strategies.",
+        logger.info("Applying %d technical strategies and %d additional strategies.",
                      len(self.technical_strategies), len(self.additional_strategies))
 
         # Apply technical strategies
         for strategy_name, strategy_func in self.technical_strategies.items():
             try:
-                logging.debug("Applying technical strategy: %s", strategy_name)
+                logger.debug("Applying technical strategy: %s", strategy_name)
                 data_with_signals[strategy_name] = data_with_signals.apply(strategy_func, axis=1)
-                logging.debug("Strategy %s applied successfully.", strategy_name)
+                logger.debug("Strategy %s applied successfully.", strategy_name)
             except Exception as e:
-                logging.error("Error applying technical strategy '%s': %s", strategy_name, e)
+                logger.error("Error applying technical strategy '%s': %s", strategy_name, e)
                 data_with_signals[strategy_name] = None  # Assign None or a default value in case of error
 
         # Apply additional strategies if any
         for strategy_name, strategy_func in self.additional_strategies.items():
             try:
-                logging.debug("Applying additional strategy: %s", strategy_name)
+                logger.debug("Applying additional strategy: %s", strategy_name)
                 data_with_signals[strategy_name] = data_with_signals.apply(strategy_func, axis=1)
-                logging.debug("Strategy %s applied successfully.", strategy_name)
+                logger.debug("Strategy %s applied successfully.", strategy_name)
             except Exception as e:
-                logging.error("Error applying additional strategy '%s': %s", strategy_name, e)
+                logger.error("Error applying additional strategy '%s': %s", strategy_name, e)
                 data_with_signals[strategy_name] = None  # Assign None or a default value in case of error
 
-        logging.info("All strategies applied successfully.")
+        logger.info("All strategies applied successfully.")
         return data_with_signals

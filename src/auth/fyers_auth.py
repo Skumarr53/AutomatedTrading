@@ -7,7 +7,7 @@
 # 4. Modularized code for improved readability and maintenance.
 # 5. Ensured proper management of WebDriver.
 import time
-import logging
+from loguru import logger
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -46,10 +46,10 @@ class AuthCodeGenerator:
             access_token = response["access_token"]
             fyers = fyersModel.FyersModel(
                 client_id=config.environment.app_settings.client_id, is_async=False, token=access_token, log_path=os.getcwd())
-            logging.info(fyers.get_profile())
+            logger.info(fyers.get_profile())
             return fyers
         except Exception as e:
-            logging.exception(f"Error in initializing Fyers Model: {e}")
+            logger.error(f"Error in initializing Fyers Model: {e}")
             raise
 
     def gen_auth_code(self):
@@ -80,7 +80,7 @@ class AuthCodeGenerator:
             # auth_code = self._extract_auth_code(driver)
             return auth_code
         except Exception as e:
-            logging.exception(f"Error in generating auth code: {e}")
+            logger.error(f"Error in generating auth code: {e}")
             raise
         finally:
             if driver:
@@ -98,7 +98,7 @@ class AuthCodeGenerator:
             # Optionally wait for a second to ensure the validation is processed
             time.sleep(1)
         except Exception as e:
-            logging.error(f"Error during human validation: {e}")
+            logger.error(f"Error during human validation: {e}")
             raise
 
     def _login(self, driver):
@@ -107,7 +107,7 @@ class AuthCodeGenerator:
                 By.XPATH, '//*[@id="fy_client_id"]')
             client_id_field.send_keys(self.username)
         except Exception as e:
-            logging.info(
+            logger.info(
                 f"Standard login field not found, attempting alternative login. Error: {e}")
             self._alternative_login(driver)
 
@@ -126,7 +126,7 @@ class AuthCodeGenerator:
 
     def _enter_otp(self, driver):
         otp = TOTP(self.totp).now()
-        logging.info(f'OTP: {otp}')
+        logger.info(f'OTP: {otp}')
         otp_field_ids = ["first", "second",
                          "third", "fourth", "fifth", "sixth"]
         for i, otp_digit in enumerate(otp):

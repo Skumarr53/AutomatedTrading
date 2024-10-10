@@ -3,7 +3,7 @@
 from typing import Any, Dict, Union, List, Optional
 import joblib
 import os
-import logging
+from loguru import logger
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.base import clone
@@ -119,7 +119,7 @@ class MLPipelineBase:
         params_path = os.path.join(config.paths.model_param_path, params_filename)
 
         if os.path.exists(params_path):
-            logging.info(f"Loading models from {params_path}")
+            logger.info(f"Loading models from {params_path}")
             return joblib.load(params_path)
         else:
             raise FileNotFoundError(f"Parameter file does not exist at {params_path}.")
@@ -165,7 +165,7 @@ class MLPipelineBase:
         elif self.mode == 'LIVE':
             model_fit_dict = self.best_model_dict.get(symbol, {})
             if not model_fit_dict:
-                logging.warning(f"No models available for symbol '{symbol}' in LIVE mode.")
+                logger.warning(f"No models available for symbol '{symbol}' in LIVE mode.")
                 return
 
             for run_id, model in model_fit_dict.items():

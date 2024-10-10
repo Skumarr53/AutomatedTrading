@@ -213,7 +213,7 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
         # TODO
         params_path = os.path.join(self.model_param_file, 'shortterm_normalization_params.joblib')
         joblib.dump(self.param_dict, params_path)
-        logging.info(f"Short-term normalization parameters stored at {params_path}")
+        logger.info(f"Short-term normalization parameters stored at {params_path}")
 
     def _load_params(self) -> None:
         """
@@ -223,7 +223,7 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
         params_path = os.path.join(self.model_param_file, 'shortterm_normalization_params.joblib')
         if os.path.exists(params_path):
             self.params = joblib.load(params_path)
-            logging.info(f"Short-term normalization parameters loaded from {params_path}")
+            logger.info(f"Short-term normalization parameters loaded from {params_path}")
         else:
             raise FileNotFoundError(f"Normalization parameters file not found at {params_path}")
 
@@ -307,7 +307,7 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         # TODO
         params_path = os.path.join(self.model_param_file, 'longterm_normalization_params.joblib')
         joblib.dump(params, params_path)
-        logging.info(f"Long-term normalization parameters stored at {params_path}")
+        logger.info(f"Long-term normalization parameters stored at {params_path}")
 
     def _load_params(self) -> None:
         """
@@ -319,7 +319,7 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
             parameters = joblib.load(params_path)
             self.mean_ = parameters['mean']
             self.scale_ = parameters['std']
-            logging.info(f"Long-term normalization parameters loaded from {params_path}")
+            logger.info(f"Long-term normalization parameters loaded from {params_path}")
         else:
             raise FileNotFoundError(f"Normalization parameters file not found at {params_path}")
 

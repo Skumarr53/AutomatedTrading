@@ -2,14 +2,11 @@
 from typing import Dict, Any
 import pandas as pd
 import numpy as np
-import logging
+from loguru import logger
 from dataclasses import dataclass, field
+from src.config.config import setup_logging
 
-# Setting up basic configuration for logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+setup_logging()
 
 
 @dataclass
@@ -31,7 +28,7 @@ class FeatureExtractor:
         """
         for symbol, data in self.ticker_data.items():
             if 'close' not in data.columns:
-                logging.error(f"Data for {symbol} is missing 'close' column.")
+                logger.error(f"Data for {symbol} is missing 'close' column.")
                 raise ValueError(f"Data for {symbol} is missing 'close' column.")
 
     def extract_features(self, windows: Dict[str, pd.Timedelta]) -> Dict[str, pd.DataFrame]:

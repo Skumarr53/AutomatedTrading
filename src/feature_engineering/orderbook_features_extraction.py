@@ -1,7 +1,7 @@
 # src/feature_engineering/orderbook_features_extraction.py
 import pandas as pd
 import numpy as np
-import logging
+from loguru import logger
 from typing import Dict, Any, List, Tuple
 
 

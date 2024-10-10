@@ -2,7 +2,7 @@
 
 import json
 import os
-import logging
+from loguru import logger
 from typing import Any, Dict, Optional, List
 
 import pandas as pd
@@ -39,7 +39,7 @@ class TradeSimulator:
         self.positions: Dict[str, Dict[str, Any]] = self.load_positions() if self.mode == 'LIVE' else {}
         self.trade_history: List[Dict[str, Any]] = []
         self.positions_file_path = config.paths.positions_file_path
-        logging.info("TradeSimulator initialized in '%s' mode with initial capital: %.2f and transaction cost: %.2f",
+        logger.info("TradeSimulator initialized in '%s' mode with initial capital: %.2f and transaction cost: %.2f",
                      self.mode, self.initial_capital, self.transaction_cost)
 
     def load_positions(self) -> Dict[str, Any]:
@@ -57,13 +57,13 @@ class TradeSimulator:
             try:
                 with open(self.positions_file_path, 'r') as file:
                     positions = json.load(file)
-                logging.info("Loaded existing positions from '%s'.", self.positions_file_path)
+                logger.info("Loaded existing positions from '%s'.", self.positions_file_path)
                 return positions
             except json.JSONDecodeError as e:
-                logging.error("Invalid JSON format in positions file: %s", e)
+                logger.error("Invalid JSON format in positions file: %s", e)
                 raise
         else:
-            logging.warning("Positions file '%s' does not exist. Starting with empty positions.",
+            logger.warning("Positions file '%s' does not exist. Starting with empty positions.",
                             self.positions_file_path)
             return {}
 
@@ -77,9 +77,9 @@ class TradeSimulator:
         try:
             with open(self.positions_file_path, 'w') as file:
                 json.dump(self.positions, file, indent=4)
-            logging.info("Positions updated and saved to '%s'.", self.positions_file_path)
+            logger.info("Positions updated and saved to '%s'.", self.positions_file_path)
         except IOError as e:
-            logging.error("Failed to write positions to file: %s", e)
+            logger.error("Failed to write positions to file: %s", e)
             raise
 
     def fetch_current_balance(self) -> float:
@@ -110,9 +110,9 @@ class TradeSimulator:
         Raises:
             ValueError: If an invalid signal is provided.
         """
-        logging.debug("Executing trade: %s for %s at price %.2f on %s", signal, symbol, price, date)
+        logger.debug("Executing trade: %s for %s at price %.2f on %s", signal, symbol, price, date)
         if signal not in {'BUY', 'SELL'}:
-            logging.error("Invalid trade signal '%s' received for symbol '%s'.", signal, symbol)
+            logger.error("Invalid trade signal '%s' received for symbol '%s'.", signal, symbol)
             raise ValueError(f"Invalid trade signal '{signal}'. Must be 'BUY' or 'SELL'.")
 
         if signal == 'BUY':
@@ -137,7 +137,7 @@ class TradeSimulator:
         Raises:
             ValueError: If the position type is invalid or insufficient capital.
         """
-        logging.debug("Opening %s position for %s at price %.2f on %s", position_type, symbol, price, date)
+        logger.debug("Opening %s position for %s at price %.2f on %s", position_type, symbol, price, date)
         shares: int = self.calculate_shares(price, position_type)
         cost: float = shares * price + self.transaction_cost
 
@@ -153,10 +153,10 @@ class TradeSimulator:
             }
             self.record_trade('OPEN', position_type, symbol, price, shares, date)
             self.update_positions_file()
-            logging.info("Opened %s position for %s: %d shares at %.2f on %s",
+            logger.info("Opened %s position for %s: %d shares at %.2f on %s",
                          position_type.upper(), symbol, shares, price, date)
         else:
-            logging.warning("Insufficient capital to open %s position for %s: Required %.2f, Available %.2f",
+            logger.warning("Insufficient capital to open %s position for %s: Required %.2f, Available %.2f",
                             position_type.upper(), symbol, cost, self.initial_capital)
 
     def close_position(self, symbol: str, price: float, date: str) -> None:
@@ -171,7 +171,7 @@ class TradeSimulator:
         Raises:
             KeyError: If the symbol does not have an open position.
         """
-        logging.debug("Closing position for %s at price %.2f on %s", symbol, price, date)
+        logger.debug("Closing position for %s at price %.2f on %s", symbol, price, date)
         position: Optional[Dict[str, Any]] = self.positions.pop(symbol, None)
         if position:
             profit_loss: float
@@ -184,10 +184,10 @@ class TradeSimulator:
             self.initial_capital += net_profit_loss
             self.record_trade('CLOSE', position['type'], symbol, price, position['shares'], date, position['entry_date'])
             self.update_positions_file()
-            logging.info("Closed %s position for %s: %d shares at %.2f on %s. P/L: %.2f",
+            logger.info("Closed %s position for %s: %d shares at %.2f on %s. P/L: %.2f",
                          position['type'].upper(), symbol, position['shares'], price, date, net_profit_loss)
         else:
-            logging.warning("Attempted to close non-existent position for symbol '%s'.", symbol)
+            logger.warning("Attempted to close non-existent position for symbol '%s'.", symbol)
 
     def calculate_shares(self, price: float, position_type: str) -> int:
         """
@@ -208,10 +208,10 @@ class TradeSimulator:
         shares: int = max(int(trade_size), 1)  # Ensure at least 1 share is traded
 
         if position_type not in {'long', 'short'}:
-            logging.error("Invalid position type '%s'. Must be 'long' or 'short'.", position_type)
+            logger.error("Invalid position type '%s'. Must be 'long' or 'short'.", position_type)
             raise ValueError(f"Invalid position type '{position_type}'. Must be 'long' or 'short'.")
 
-        logging.debug("Calculated shares: %d for %s position at price %.2f", shares, position_type, price)
+        logger.debug("Calculated shares: %d for %s position at price %.2f", shares, position_type, price)
         return shares
 
     def calculate_dynamic_trailing_stop_loss(self, current_price: float, entry_price: float, position_type: str) -> float:
@@ -234,7 +234,7 @@ class TradeSimulator:
         elif position_type == 'short':
             return_percentage = ((entry_price - current_price) / entry_price) * 100
         else:
-            logging.error("Invalid position type '%s' for trailing stop loss calculation.", position_type)
+            logger.error("Invalid position type '%s' for trailing stop loss calculation.", position_type)
             raise ValueError(f"Invalid position type '{position_type}'. Must be 'long' or 'short'.")
 
         # Adjusting trailing stop loss based on return
@@ -245,7 +245,7 @@ class TradeSimulator:
         else:
             trailing_stop_loss = max(50.0 - (return_percentage - 10.0), 10.0)
 
-        logging.debug("Calculated trailing stop loss: %.2f%% for %s position.", trailing_stop_loss, position_type)
+        logger.debug("Calculated trailing stop loss: %.2f%% for %s position.", trailing_stop_loss, position_type)
         return trailing_stop_loss
 
     def check_trailing_stop_loss(self, symbol: str, current_price: float, date: str) -> None:
@@ -265,25 +265,25 @@ class TradeSimulator:
             updated_trailing_stop_loss: float = self.calculate_dynamic_trailing_stop_loss(
                 current_price, position['entry_price'], position['type']
             )
-            logging.debug("Checking trailing stop loss for %s at price %.2f with trailing stop %.2f%%",
+            logger.debug("Checking trailing stop loss for %s at price %.2f with trailing stop %.2f%%",
                           symbol, current_price, updated_trailing_stop_loss)
 
             if position['type'] == 'long':
                 if current_price > position['max_swing_high']:
                     position['max_swing_high'] = current_price
-                    logging.debug("Updated max swing high for %s to %.2f", symbol, current_price)
+                    logger.debug("Updated max swing high for %s to %.2f", symbol, current_price)
                 if current_price <= position['max_swing_high'] * (1 - updated_trailing_stop_loss / 100):
-                    logging.info("Trailing stop loss triggered for %s. Closing position.", symbol)
+                    logger.info("Trailing stop loss triggered for %s. Closing position.", symbol)
                     self.close_position(symbol, current_price, date)
             elif position['type'] == 'short':
                 if current_price < position['max_swing_high']:
                     position['max_swing_high'] = current_price
-                    logging.debug("Updated max swing high for %s to %.2f", symbol, current_price)
+                    logger.debug("Updated max swing high for %s to %.2f", symbol, current_price)
                 if current_price >= position['max_swing_high'] * (1 + updated_trailing_stop_loss / 100):
-                    logging.info("Trailing stop loss triggered for %s. Closing position.", symbol)
+                    logger.info("Trailing stop loss triggered for %s. Closing position.", symbol)
                     self.close_position(symbol, current_price, date)
         else:
-            logging.warning("No open position found for symbol '%s' to check trailing stop loss.", symbol)
+            logger.warning("No open position found for symbol '%s' to check trailing stop loss.", symbol)
 
     def record_trade(self, action: str, position_type: str, symbol: str, price: float, shares: int,
                     date: str, entry_date: Optional[str] = None) -> None:
@@ -311,7 +311,7 @@ class TradeSimulator:
             'holding_time': holding_time
         }
         self.trade_history.append(trade)
-        logging.debug("Recorded trade: %s", trade)
+        logger.debug("Recorded trade: %s", trade)
         # TODO: Store trade history in local storage or database for later analysis
 
     def calculate_holding_time(self, exit_date: str, entry_date: str) -> float:
@@ -332,47 +332,11 @@ class TradeSimulator:
             exit_dt = pd.to_datetime(exit_date)
             entry_dt = pd.to_datetime(entry_date)
             holding_time: float = (exit_dt - entry_dt).days + (exit_dt - entry_dt).seconds / 86400
-            logging.debug("Calculated holding time: %.2f days for trade from %s to %s",
+            logger.debug("Calculated holding time: %.2f days for trade from %s to %s",
                           holding_time, entry_date, exit_date)
             return holding_time
         except Exception as e:
-            logging.error("Error calculating holding time: %s", e)
+            logger.error("Error calculating holding time: %s", e)
             return 0.0
 
 
-# Example of setting up and using the TradeSimulator class
-if __name__ == "__main__":
-    import logging
-
-    # Configure logging
-    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:%(message)s')
-
-    # Mock configuration setup
-    class Config:
-        TRADE_MODE = 'BACKTEST'  # Change to 'LIVE' as needed
-        POSITIONS_FILE_PATH = 'positions.json'
-
-    config = Config()
-
-    # Initialize TradeSimulator
-    trade_simulator = TradeSimulator(initial_capital=10000.0, transaction_cost=20.0)
-
-    # Example trade execution
-    try:
-        # Execute a BUY trade
-        trade_simulator.execute_trade('BUY', 'AAPL', 150.0, '2023-10-01 10:00:00')
-
-        # Execute a SELL trade
-        trade_simulator.execute_trade('SELL', 'AAPL', 155.0, '2023-10-02 10:00:00')
-
-        # Check trailing stop loss (example)
-        trade_simulator.check_trailing_stop_loss('AAPL', 148.0, '2023-10-03 10:00:00')
-
-        # Display trade history
-        print("Trade History:")
-        for trade in trade_simulator.trade_history:
-            print(trade)
-    except NotImplementedError as nie:
-        logging.error(nie)
-    except Exception as e:
-        logging.error("An error occurred during trade simulation: %s", e)

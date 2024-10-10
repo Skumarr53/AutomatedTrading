@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 import json
 import os, time
-import logging
+from loguru import logger
 from datetime import datetime, timedelta
 from src.utils.utils import load_symbols, get_NSE_symbol
 from src.config.config import config, setup_logging
@@ -89,7 +89,7 @@ class OrderBookHandler:
     def fetch_order_book_data(self):
         for symbol in self.symbols:
             self.fetch_data_for_symbol(symbol)
-        logging.info(
+        logger.info(
             f"fetching order book data for symbols completed")
         return self.data
 
@@ -105,16 +105,16 @@ class OrderBookHandler:
                 structured_df['last_traded_time'] = pd.to_datetime(structured_df['last_traded_time']).dt.tz_localize(
                     None).dt.round('5min').astype(str)
                 self.process_order_book_data(symbol, structured_df)
-                logging.info(
+                logger.info(
                     f"Order book data for symbol {symbol} fetched successfully.")
                 break
             except UnboundLocalError as ule:
-                logging.exception(
+                logger.error(
                     f"UnboundLocalError occurred while fetching order book for {symbol}: {ule}. Retrying after {config.scheduler.wait_time_between_api_calls} seconds.")
                 time.sleep(config.scheduler.wait_time_between_api_calls)
                 attempt += 1
             except Exception as e:
-                logging.exception(
+                logger.error(
                     f"Exception occurred while fetching order book for {symbol}: {e}")
             break
 
@@ -131,7 +131,7 @@ class OrderBookHandler:
 
     def backup_hourly(self):
         now = datetime.now()
-        logging.info(
+        logger.info(
             f"Starting order data backup at {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
         for symbol, df in self.data.items():
@@ -148,10 +148,10 @@ class OrderBookHandler:
                     )
                     updated_df = pd.concat([existing_df, df], ignore_index=True)
                     updated_df.to_csv(file_path,index=False)
-                logging.info(
+                logger.info(
                     f"Order Book Data backup {symbol} completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             except Exception as e:
-                logging.exception(
+                logger.error(
                     f"Error backing up Order Book data for {symbol}: {e}")
 
     def initialize_scheduler(self):

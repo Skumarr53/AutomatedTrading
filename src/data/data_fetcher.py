@@ -3,7 +3,7 @@ import time
 import pytz
 import json
 import requests
-import logging
+from loguru import logger
 from fyers_apiv3 import fyersModel  # accessToken
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, time as _time
@@ -119,7 +119,7 @@ class DataHandler:
                         engine="python",
                     )
             except Exception as e:
-                logging.exception(f"Error loading data for {symbol}: {e}")
+                logger.error(f"Error loading data for {symbol}: {e}")
                 return pd.DataFrame()
         else:
             df: pd.DataFrame = self.fetch_full_year_data(symbol)
@@ -206,19 +206,19 @@ class DataHandler:
                         cs_data['candles'], columns=ticker_cols[:6]
                     )
                     total_data = pd.concat([total_data, df])
-                    logging.info(
+                    logger.info(
                         f"time diff in seconds symbol {symbol}: {current_time - df[ticker_cols[0]].max()}"
                     )
                     break
                 except Exception as e:
                     if cs_data.get('code') == 429:
-                        logging.info(
+                        logger.info(
                             f"Rate limit exceeded. Waiting {config.scheduler.wait_time_between_api_calls} seconds before retrying..."
                         )
                         time.sleep(config.scheduler.wait_time_between_api_calls)
                         attempt += 1
                     else:
-                        logging.exception(
+                        logger.error(
                             f"Error fetching data for {symbol}: {e}"
                         )
                         break
@@ -266,17 +266,17 @@ class DataHandler:
         try:
             IST = pytz.timezone(config.scheduler.timezone)
             now: datetime = datetime.now(IST)
-            logging.debug(f"Attempting data update at {now}")
+            logger.debug(f"Attempting data update at {now}")
             if _time(9, 0) <= now.time() <= _time(15, 0):
                 for symbol in self.symbols:
                     last_update: float = now.timestamp() - 5 * 60
                     self.update_data(symbol, self.data[symbol])
                 return self.data
             else:
-                logging.debug("Outside trading hours")
+                logger.debug("Outside trading hours")
                 return None
         except Exception as e:
-            logging.exception("Error in scheduled data update")
+            logger.error("Error in scheduled data update")
             return None
 
     def backup_data(self) -> None:
@@ -284,7 +284,7 @@ class DataHandler:
         Backs up the current trading data by saving each symbol's data to a CSV file.
         """
         now: datetime = datetime.now()
-        logging.info(
+        logger.info(
             f"Starting ticker data backup at {now.strftime('%Y-%m-%d %H:%M:%S')}"
         )
         for symbol, df in self.data.items():
@@ -296,8 +296,8 @@ class DataHandler:
                     ),
                     index=False
                 )
-                logging.info(
+                logger.info(
                     f"Data backup completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                 )
             except Exception as e:
-                logging.exception(f"Error backing up data for {symbol}: {e}")
+                logger.error(f"Error backing up data for {symbol}: {e}")

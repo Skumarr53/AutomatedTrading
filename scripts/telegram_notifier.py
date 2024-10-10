@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv  # Correct import statement
 import requests
 import os
-import logging 
+from loguru import logger 
 
 load_dotenv()
 
@@ -43,13 +43,13 @@ def send_telegram_message(type: str, message: str) -> bool:
         response.raise_for_status()
 
         # Log the successful message send
-        logging.info(f"Message sent successfully: {message}")
+        logger.info(f"Message sent successfully: {message}")
 
         return True
 
     except requests.exceptions.RequestException as e:
         # Log the error
-        logging.error(f"Failed to send message: {e}")
+        logger.error(f"Failed to send message: {e}")
 
         return False
 

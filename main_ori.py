@@ -1,5 +1,5 @@
 import time
-import logging
+from loguru import logger
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler

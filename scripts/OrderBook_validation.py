@@ -1,6 +1,6 @@
 import os, sys
 from  pathlib import Path
-import logging
+from loguru import logger
 from datetime import datetime, timedelta
 from typing import List, Tuple
 import pandas as pd
@@ -74,7 +74,7 @@ class CsvValidator:
         heatmap_file = os.path.join(self.config.output_directory, f"{Path(file_name).stem}_heatmap.png")
         plt.savefig(heatmap_file, bbox_inches='tight', dpi=300)  # Increase DPI for better quality
         plt.close()
-        logging.info(f"Heatmap generated: {heatmap_file}")
+        logger.info(f"Heatmap generated: {heatmap_file}")
 
     #EDITED: Removed combined heatmap generation as it's not required
     # If needed, similar changes can be applied to the combined heatmap method
@@ -90,7 +90,7 @@ class CsvValidator:
                     )
             df['last_traded_time'] = pd.to_datetime(df['last_traded_time'])
         except Exception as e:
-            logging.error(f"Failed to process file {file_path}: {e}")
+            logger.error(f"Failed to process file {file_path}: {e}")
             return
 
         validation_matrix = np.ones((len(self.trading_days), len(self.intervals)))
@@ -120,7 +120,7 @@ class CsvValidator:
         """Validate all csv files in the directory and generate heatmaps."""
         files = [f for f in Path(self.config.input_directory).iterdir() if f.suffix == '.csv']
         if not files:
-            logging.warning(f"No csv files found in directory {self.config.input_directory}")
+            logger.warning(f"No csv files found in directory {self.config.input_directory}")
             return
 
         #EDITED: Initialize combined missing data array (if combined heatmap is needed)
