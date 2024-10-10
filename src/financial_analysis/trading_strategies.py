@@ -3,7 +3,7 @@
 import pandas as pd
 from loguru import logger
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class TradingStrategies:
