@@ -3,7 +3,7 @@
 from src.pipelines.base_pipeline import MLPipelineBase
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from src.config.config import config
+from src import config
 from src.preprocessing.custom_transformers import (
     DFFeatureUnion,
     ColumnExtractor,

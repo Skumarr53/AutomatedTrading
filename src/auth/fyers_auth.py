@@ -6,6 +6,7 @@
 # 3. Improved logging for better clarity.
 # 4. Modularized code for improved readability and maintenance.
 # 5. Ensured proper management of WebDriver.
+from src import config 
 import time
 from loguru import logger
 from selenium.webdriver.common.by import By
@@ -15,14 +16,15 @@ from selenium import webdriver
 from pyotp import TOTP
 from fyers_apiv3 import fyersModel  # accessToken
 import os
-from src.config.config import config, setup_logging
+# from src.config.config import config
+#from src.config.log_config import setup_logging
 from src.utils import utils
 import pyperclip
 import webbrowser
 from urllib.parse import parse_qs,urlparse
 
 
-setup_logging()
+#setup_logging()
 
 class AuthCodeGenerator:
     def __init__(self):

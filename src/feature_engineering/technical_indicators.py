@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Dict, List
 import pandas as pd
 import src.feature_engineering.indicators as ind
-from src.config.config import config
+from src import config
 
 
 @dataclass

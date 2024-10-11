@@ -10,7 +10,7 @@ from sklearn.base import clone
 import pandas as pd
 from src.config import config
 from src.config.vars import CLOSE
-from src.config.config import config
+from src import config
 from src.utils.utils import categorize_percent_change
 
 

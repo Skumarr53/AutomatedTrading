@@ -11,9 +11,10 @@ import os
 import pandas as pd
 from typing import List, Dict, Callable, Optional
 from src.utils.utils import load_symbols, get_NSE_symbol
-from src.config.config import config, setup_logging
+from src import config
+#from src.config.log_config import setup_logging
 
-setup_logging()
+#setup_logging()
 
 
 class DataHandler:

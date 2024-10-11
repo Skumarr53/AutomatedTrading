@@ -2,8 +2,10 @@
 import pandas as pd
 import talib
 from typing import Dict, List
-from src.config.config import setup_logging, config
+from src import config
+#from src.config.log_config import setup_logging
 
+#setup_logging()
 
 class CandlestickPatternRecognizer:
     """

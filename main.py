@@ -1,3 +1,4 @@
+from src import config
 import time, pytz
 from scripts.telegram_notifier import send_telegram_message
 from datetime import datetime
@@ -12,9 +13,10 @@ from src.financial_analysis.trading_strategies import TradingStrategies
 from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.custom_pipelines import CustomModelPipeline
-from src.config.config import setup_logging, config
 
 
+
+#setup_logging()
 ## TODO: use the following snippet for alert across 
 # send_telegram_message(
 # type: Good or Bad 

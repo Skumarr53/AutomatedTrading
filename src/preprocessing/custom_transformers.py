@@ -14,9 +14,10 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.feature_selection import SelectKBest, mutual_info_regression, RFE, RFECV
 from sklearn.base import TransformerMixin, BaseEstimator
 
-from src.config.config import setup_logging, config
+from src import config
+#from src.config.log_config import setup_logging
 
-
+#setup_logging()
 class ColumnExtractor(BaseEstimator, TransformerMixin):
     """
     Extracts specified columns from a pandas DataFrame.

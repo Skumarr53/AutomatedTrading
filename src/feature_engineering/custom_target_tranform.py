@@ -6,7 +6,7 @@ from loguru import logger
 from dataclasses import dataclass, field
 from src.config.config import setup_logging
 
-setup_logging()
+#setup_logging()
 
 
 @dataclass
