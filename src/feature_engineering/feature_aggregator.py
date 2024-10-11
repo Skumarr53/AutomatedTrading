@@ -6,9 +6,8 @@ from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.feature_engineering.orderbook_features_extraction import OrderBookDataTransformer
 from src.feature_engineering.candlestick_patterns_features import CandlestickPatternRecognizer
 from src import config
-#from src.config.log_config import setup_logging
 
-#setup_logging()
+
 @dataclass
 class DataAggregator:
     feature_extractor: FeatureExtraction = field(

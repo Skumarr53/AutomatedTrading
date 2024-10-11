@@ -15,9 +15,8 @@ from sklearn.feature_selection import SelectKBest, mutual_info_regression, RFE, 
 from sklearn.base import TransformerMixin, BaseEstimator
 
 from src import config
-#from src.config.log_config import setup_logging
 
-#setup_logging()
+
 class ColumnExtractor(BaseEstimator, TransformerMixin):
     """
     Extracts specified columns from a pandas DataFrame.

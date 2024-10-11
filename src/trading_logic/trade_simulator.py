@@ -7,9 +7,8 @@ from typing import Any, Dict, Optional, List
 
 import pandas as pd
 from src import config
-#from src.config.log_config import setup_logging
 
-#setup_logging()
+
 class TradeSimulator:
     """
     Simulates trade executions based on generated trading signals.

@@ -15,11 +15,10 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(project_root)
 
 from src import config
-#from src.config.log_config import setup_logging
 from dataclasses import dataclass
 
 # Set up logging
-#setup_logging()
+
 
 @dataclass
 class ValidationConfig:

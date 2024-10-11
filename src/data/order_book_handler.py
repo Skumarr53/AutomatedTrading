@@ -10,9 +10,8 @@ from loguru import logger
 from datetime import datetime, timedelta
 from src.utils.utils import load_symbols, get_NSE_symbol
 from src import config
-#from src.config.log_config import setup_logging
 
-#setup_logging()
+
 
 
 class OrderBookHandler:

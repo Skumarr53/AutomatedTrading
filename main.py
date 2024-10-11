@@ -16,7 +16,7 @@ from src.pipelines.custom_pipelines import CustomModelPipeline
 
 
 
-#setup_logging()
+
 ## TODO: use the following snippet for alert across 
 # send_telegram_message(
 # type: Good or Bad 
