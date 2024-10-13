@@ -1,6 +1,7 @@
 # src/config/columns.yaml
 columns:
   ticker_cols: 
+    - 'symbol'
     - 'epoch_time'
     - 'open'
     - 'high'

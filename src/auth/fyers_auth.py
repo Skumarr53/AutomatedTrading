@@ -6,7 +6,7 @@
 # 3. Improved logging for better clarity.
 # 4. Modularized code for improved readability and maintenance.
 # 5. Ensured proper management of WebDriver.
-from src import config 
+from src import config
 import time
 from loguru import logger
 from selenium.webdriver.common.by import By
