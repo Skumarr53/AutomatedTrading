@@ -13,6 +13,7 @@ from src.financial_analysis.trading_strategies import TradingStrategies
 from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.custom_pipelines import CustomModelPipeline
+from src.utils.utils import determine_mode
 
 
 
@@ -30,11 +31,12 @@ class MarketAnalysisApp:
     handling order book data.
     """
     def __init__(self):
-        self.trading_mode = config.trading_config.trade_mode
+        # self.trading_mode = config.trading_config.trade_mode
+        self.trading_mode = config.trading_config.trade_mode if config.trading_config.trade_mode else determine_mode() 
         self.setup_based_on_mode()
     
     def setup_based_on_mode(self):
-        self.symbols = load_symbols(config.paths.symbols_path)
+        # config.symbols = config.symbols #config.symbols
         self.generator = AuthCodeGenerator()
         self._setup_authorization()
         self.scheduler = BackgroundScheduler() if self.trading_mode == 'LIVE' else None 
@@ -100,14 +102,14 @@ class MarketAnalysisApp:
         time.sleep(10)
         ## TODO Turn assert on 
         # assert (datetime.now() - self.last_data_collection_time).seconds < 60, 'Data Collection and Trading Excecution not in sync'
-        for symbol in self.symbols:
+        for symbol in config.symbols:
             data_agg = self.data_aggregator.aggregate_features(
                 self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
         pass
 
     def start_backtesting(self):
         ## TODO fill backtest logic
-        for symbol in self.symbols:
+        for symbol in config.symbols:
             data_agg = self.data_aggregator.aggregate_features(
                 self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
             

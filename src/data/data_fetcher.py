@@ -3,6 +3,7 @@ import time
 import pytz
 import json
 import requests
+from tqdm import tqdm
 from loguru import logger
 from fyers_apiv3 import fyersModel  # accessToken
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -43,14 +44,14 @@ class DataHandler:
 
         self.fyres = fyres_instance
         self.file_path: str = config.paths.ticker_filename
-        self.symbols: List[str] = load_symbols(config.paths.symbols_path)
-        self.data: Dict[str, pd.DataFrame] = {symbol: pd.DataFrame() for symbol in self.symbols}
+        # config.symbols: List[str] = config.symbols
+        self.data: Dict[str, pd.DataFrame] = {symbol: pd.DataFrame() for symbol in config.symbols}
         ## TODO:
         self.data_len: int = config.backtest_data_load.backtest_data_length_years * 12 * 30 * 24 * 60 * 60
         self.callback: Optional[Callable[[Dict[str, pd.DataFrame]], None]] = None
         self.scheduler = scheduler
 
-        for symbol in self.symbols:
+        for symbol in tqdm(config.symbols):
             self.load_or_initialize_data(symbol)
 
         if self.trading_mode == "BACKTEST":
@@ -123,6 +124,8 @@ class DataHandler:
                 return pd.DataFrame()
         else:
             df: pd.DataFrame = self.fetch_full_year_data(symbol)
+        
+        ## Block in
         self.update_data(symbol, df)
         self.data[symbol].to_csv(symbol_file, index=False)
         return self.data[symbol]
@@ -151,14 +154,15 @@ class DataHandler:
         """
         last_timestamp: float = df['epoch_time'].max() if not df.empty else 0
         now: float = datetime.now().timestamp()
-        # TODO: uncomment below condition for updating 
-        if (now - last_timestamp) > self.data_len:
-            df = self.fetch_full_year_data(symbol)
-        else:
-            missing_data: pd.DataFrame = self.fetch_data(symbol, last_timestamp, now)
-            df = pd.concat([df, missing_data]).drop_duplicates(
-                subset='epoch_time'
-            ).reset_index(drop=True)
+        # TODO: change update_missing_records  condition for updating missing records
+        if config.scheduler.update_missing_records:
+            if (now - last_timestamp) > self.data_len:
+                df = self.fetch_full_year_data(symbol)
+            else:
+                missing_data: pd.DataFrame = self.fetch_data(symbol, last_timestamp, now)
+                df = pd.concat([df, missing_data]).drop_duplicates(
+                    subset='epoch_time'
+                ).reset_index(drop=True)
 
         initial_time: float = now - self.data_len
         self.data[symbol] = df[df['epoch_time'] > initial_time]
@@ -207,12 +211,12 @@ class DataHandler:
                     )
                     total_data = pd.concat([total_data, df])
                     logger.info(
-                        f"time diff in seconds symbol {symbol}: {current_time - df[ticker_cols[0]].max()}"
+                        f"time diff in hours symbol {symbol}: {(current_time - df[ticker_cols[0]].max())//3600}"
                     )
                     break
                 except Exception as e:
                     if cs_data.get('code') == 429:
-                        logger.info(
+                        logger.debug(
                             f"Rate limit exceeded. Waiting {config.scheduler.wait_time_between_api_calls} seconds before retrying..."
                         )
                         time.sleep(config.scheduler.wait_time_between_api_calls)
@@ -268,7 +272,7 @@ class DataHandler:
             now: datetime = datetime.now(IST)
             logger.debug(f"Attempting data update at {now}")
             if _time(9, 0) <= now.time() <= _time(15, 0):
-                for symbol in self.symbols:
+                for symbol in config.symbols:
                     last_update: float = now.timestamp() - 5 * 60
                     self.update_data(symbol, self.data[symbol])
                 return self.data

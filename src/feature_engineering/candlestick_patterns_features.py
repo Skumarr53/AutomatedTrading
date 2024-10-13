@@ -74,7 +74,7 @@ class CandlestickPatternRecognizer:
 
         # Convert pattern indicators to DataFrame
         combined_patterns: Dict[str, List[int]] = {**engulf_patterns, **{k: (v > 0).astype(int).tolist() for k, v in patterns.items()}}
-        pattern_df: pd.DataFrame = pd.DataFrame(combined_patterns)
+        pattern_df: pd.DataFrame = pd.DataFrame(combined_patterns, index = df.index)
 
         return pattern_df
 

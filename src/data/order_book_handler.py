@@ -19,15 +19,15 @@ class OrderBookHandler:
         self.fyers = fyers_instance
         self.scheduler = scheduler
         self.transformer = OrderBookDataTransformer()  # Initialize once
-        self.symbols = load_symbols(config.paths.symbols_path)
+        # config.symbols = config.symbols
         self.path = config.paths.orderbook_filename
         self.callbacks = []
         if config.trading_config.trade_mode == "LIVE":
-            self.data = {symbol: pd.DataFrame() for symbol in self.symbols}
+            self.data = {symbol: pd.DataFrame() for symbol in config.symbols}
             self.initialize_scheduler()
         else:
             self.data = {symbol: self.load_existing_data(
-                symbol) for symbol in self.symbols}
+                symbol) for symbol in config.symbols}
 
     @staticmethod
     def extract_info_df(data: dict, symbol: str):
@@ -87,7 +87,7 @@ class OrderBookHandler:
             callback(self.data)
 
     def fetch_order_book_data(self):
-        for symbol in self.symbols:
+        for symbol in config.symbols:
             self.fetch_data_for_symbol(symbol)
         logger.info(
             f"fetching order book data for symbols completed")

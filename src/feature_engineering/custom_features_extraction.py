@@ -171,11 +171,12 @@ class FeatureExtraction:
         """
         if self.mode == "LIVE":
             data = data.iloc[-1:]
+        data_index = pd.to_datetime(data.index)
         features: pd.DataFrame = pd.DataFrame(index=data.index)
-        features['hour_of_day'] = data.index.hour
-        features['day_of_week'] = data.index.weekday
-        features['month_of_year'] = data.index.month
-        features['quarter_of_year'] = data.index.quarter
+        features['hour_of_day'] = data_index.hour
+        features['day_of_week'] = data_index.weekday
+        features['month_of_year'] = data_index.month
+        features['quarter_of_year'] = data_index.quarter
 
         return features
 

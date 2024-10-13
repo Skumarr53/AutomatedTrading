@@ -1,5 +1,6 @@
 # src/config/scheduler.yaml
 scheduler:
+  update_missing_records: False
   backup_interval_hours: 1  # Interval for backing up data
   data_fetch_cron_interval_min: 5  # Interval for data fetching jobs
   trade_run_interval_min: 5  # Interval for trade run jobs

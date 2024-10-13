@@ -87,7 +87,7 @@ class DataAggregator:
             order_book_data)
 
         # Merge ticker and order book data features
-        combined_data = pd.concat([*combined_ticker_data, *combined_order_book_data], axis=1,join='outer')
+        combined_data = pd.concat([*combined_ticker_data, *combined_order_book_data], axis=1,join='inner')
 
         return combined_data
 

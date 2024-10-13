@@ -3,7 +3,7 @@ import talib
 import sys
 import pandas as pd
 from typing import Dict, List, Any, Callable
-from src.config import config
+from src import config
 
 
 def rolling_pipe(dataframe: pd.DataFrame, window: int, fctn: Callable[[pd.DataFrame], pd.Series]) -> pd.DataFrame:

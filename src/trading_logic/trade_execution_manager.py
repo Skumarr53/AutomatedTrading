@@ -46,11 +46,11 @@ class TradeExecutionManager:
             trade_simulator (TradeSimulator): An instance of TradeSimulator for executing trades.
         """
         self.base_path: str = base_path
-        self.symbols: list = load_symbols(symbols_file)
+        # config.symbols: list = load_symbols(symbols_file)
         self.strategy_manager: StrategyManager = strategy_manager
         self.trade_simulator: TradeSimulator = trade_simulator
 
-        logger.info("TradeExecutionManager initialized with %d symbols.", len(self.symbols))
+        logger.info("TradeExecutionManager initialized with %d symbols.", len(config.symbols))
 
     def load_data(self) -> pd.DataFrame:
         """
@@ -70,7 +70,7 @@ class TradeExecutionManager:
         all_data = pd.DataFrame()
         data_loaded = False
 
-        for symbol in self.symbols:
+        for symbol in config.symbols:
             file_path = os.path.join(self.base_path, f"{symbol}_data.csv")
             if os.path.exists(file_path):
                 try:

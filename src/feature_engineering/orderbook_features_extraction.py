@@ -1,4 +1,5 @@
 # src/feature_engineering/orderbook_features_extraction.py
+import ast
 import pandas as pd
 import numpy as np
 from loguru import logger
@@ -32,10 +33,12 @@ class OrderBookDataTransformer:
                           and derived variables.
         """
         condensed_info_df: pd.DataFrame = self.add_condensed_order_book_info(data)
-        derived_variables_df: pd.DataFrame = self.add_derived_variables(condensed_info_df)
+        derived_variables_df: pd.DataFrame = self.add_derived_variables(
+            condensed_info_df
+        )
 
         return pd.concat([condensed_info_df, derived_variables_df], axis=1)
-
+    
     def add_condensed_order_book_info(self, data: Dict[str, Any]) -> pd.DataFrame:
         """
         Adds condensed information from bids and asks, including weighted prices,
@@ -47,20 +50,28 @@ class OrderBookDataTransformer:
         Returns:
             pd.DataFrame: DataFrame containing condensed order book information.
         """
-        bids: List[Dict[str, Any]] = data.get("bids", [])
-        asks: List[Dict[str, Any]] = data.get("asks", [])
+        clean_str2pyobj =  lambda bid: ast.literal_eval(bid.replace("'", '"').replace("\n", ','))
+                                     
+        bids: List[Dict[str, Any]] = data.get("bids", []).apply(clean_str2pyobj)
+        asks: List[Dict[str, Any]] = data.get("asks", []).apply(clean_str2pyobj)
 
-        weighted_bid_price, total_bid_volume = self.calculate_weighted_price_and_volume(bids)
-        weighted_ask_price, total_ask_volume = self.calculate_weighted_price_and_volume(asks)
+        weighted_bid_price, total_bid_volume = self.calculate_weighted_price_and_volume(
+            bids
+        )
+        weighted_ask_price, total_ask_volume = self.calculate_weighted_price_and_volume(
+            asks
+        )
         spread: float = weighted_ask_price - weighted_bid_price
 
-        condensed_info_df: pd.DataFrame = pd.DataFrame([{
-            'weighted_bid_price': weighted_bid_price,
-            'total_bid_volume': total_bid_volume,
-            'weighted_ask_price': weighted_ask_price,
-            'total_ask_volume': total_ask_volume,
-            'spread': spread
-        }])
+        condensed_info_df: pd.DataFrame = pd.DataFrame(
+                {
+                    "weighted_bid_price": weighted_bid_price,
+                    "total_bid_volume": total_bid_volume,
+                    "weighted_ask_price": weighted_ask_price,
+                    "total_ask_volume": total_ask_volume,
+                    "spread": spread,
+                }
+        )
 
         return condensed_info_df
 
@@ -75,14 +86,20 @@ class OrderBookDataTransformer:
         Returns:
             pd.Series: Series containing 'total_volume' and 'weighted_price'.
         """
-        volumes: np.ndarray = np.array([item['volume'] for item in order])
-        prices: np.ndarray = np.array([item['price'] for item in order])
+        volumes: np.ndarray = np.array([item["volume"] for item in order])
+        prices: np.ndarray = np.array([item["price"] for item in order])
         total_volume: float = volumes.sum()
-        weighted_price: float = np.dot(prices, volumes) / total_volume if total_volume else 0.0
+        weighted_price: float = (
+            np.dot(prices, volumes) / total_volume if total_volume else 0.0
+        )
 
-        return pd.Series([total_volume, weighted_price], index=['total_volume', 'weighted_price'])
+        return pd.Series(
+            [total_volume, weighted_price], index=["total_volume", "weighted_price"]
+        )
 
-    def calculate_weighted_price_and_volume(self, orders: List[Dict[str, Any]]) -> Tuple[float, float]:
+    def calculate_weighted_price_and_volume(
+        self, orders: List[Dict[str, Any]]
+    ) -> Tuple[float, float]:
         """
         Calculates the weighted price and total volume for a list of orders.
 
@@ -92,9 +109,12 @@ class OrderBookDataTransformer:
         Returns:
             Tuple[float, float]: A tuple containing weighted price and total volume.
         """
-        metrics_df: pd.DataFrame = pd.DataFrame([self.calculate_metrics(order) for order in orders])
-        weighted_price: float = metrics_df['weighted_price'].mean() if not metrics_df.empty else 0.0
-        total_volume: float = metrics_df['total_volume'].sum()
+        metrics_df: pd.DataFrame = pd.DataFrame(
+            [self.calculate_metrics(order) for order in orders]
+        )
+
+        weighted_price = metrics_df["weighted_price"]
+        total_volume = metrics_df["total_volume"]
 
         return weighted_price, total_volume
 
@@ -110,25 +130,43 @@ class OrderBookDataTransformer:
             pd.DataFrame: DataFrame containing derived variables.
         """
         derived_df: pd.DataFrame = pd.DataFrame(index=condensed_info_df.index)
-        derived_df['buy_sell_pressure_ratio'] = (
-            condensed_info_df['total_bid_volume'] / condensed_info_df['total_ask_volume']
-        ).replace([np.inf, -np.inf], np.nan).fillna(0)
+        derived_df["buy_sell_pressure_ratio"] = (
+            (
+                condensed_info_df["total_bid_volume"]
+                / condensed_info_df["total_ask_volume"]
+            )
+            .replace([np.inf, -np.inf], np.nan)
+            .fillna(0)
+        )
 
         # Assuming 'high' and 'low' are part of condensed_info_df or available from elsewhere
         # If not available, these need to be passed or calculated separately
         # For demonstration, we'll add dummy values
-        derived_df['intraday_price_range'] = (
-            condensed_info_df.get('high', pd.Series(0, index=condensed_info_df.index)) -
-            condensed_info_df.get('low', pd.Series(0, index=condensed_info_df.index))
-        )
+        derived_df["intraday_price_range"] = condensed_info_df.get(
+            "high", pd.Series(0, index=condensed_info_df.index)
+        ) - condensed_info_df.get("low", pd.Series(0, index=condensed_info_df.index))
 
         # Assuming 'open' and 'close' are part of condensed_info_df or available from elsewhere
         # If not available, these need to be passed or calculated separately
         # For demonstration, we'll add dummy values
-        derived_df['price_movement_open_close'] = (
-            (condensed_info_df.get('close', pd.Series(0, index=condensed_info_df.index)) -
-             condensed_info_df.get('open', pd.Series(0, index=condensed_info_df.index))) /
-            condensed_info_df.get('open', pd.Series(1, index=condensed_info_df.index))
-        ).replace([np.inf, -np.inf], np.nan).fillna(0)
+        
+
+        derived_df["price_movement_open_close"] = (
+            (
+                (
+                    condensed_info_df.get(
+                        "close", pd.Series(0, index=condensed_info_df.index)
+                    )
+                    - condensed_info_df.get(
+                        "open", pd.Series(0, index=condensed_info_df.index)
+                    )
+                )
+                / condensed_info_df.get(
+                    "open", pd.Series(1, index=condensed_info_df.index)
+                )
+            )
+            .replace([np.inf, -np.inf], np.nan)
+            .fillna(0)
+        )
 
         return derived_df
