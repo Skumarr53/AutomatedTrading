@@ -69,8 +69,9 @@ class OrderBookDataTransformer:
                     "total_bid_volume": total_bid_volume,
                     "weighted_ask_price": weighted_ask_price,
                     "total_ask_volume": total_ask_volume,
-                    "spread": spread,
+                    "spread": spread
                 }
+                , index = data.index
         )
 
         return condensed_info_df
@@ -113,8 +114,8 @@ class OrderBookDataTransformer:
             [self.calculate_metrics(order) for order in orders]
         )
 
-        weighted_price = metrics_df["weighted_price"]
-        total_volume = metrics_df["total_volume"]
+        weighted_price = metrics_df["weighted_price"].values
+        total_volume = metrics_df["total_volume"].values
 
         return weighted_price, total_volume
 

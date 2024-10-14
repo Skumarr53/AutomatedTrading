@@ -44,9 +44,9 @@ class MLPipelineBase:
         self.run_ids: Optional[List[str]] = None
         self.model: Optional[GridSearchCV] = None
         self.best_model_dict: Dict[str, Any] = (
-            {}
-            if config.trading_config.trade_mode == 'BACKTEST'
-            else self._load_models()
+            self._load_models()
+            if config.trading_config.trade_mode == 'LIVE'
+            else {}
         )
         self.mode: str = config.trading_config.trade_mode
         # self.define_pipeline()

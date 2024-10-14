@@ -79,7 +79,9 @@ class DataAggregator:
         Aggregate features from various components and combine them with the original data.
         """
         ticker_data.set_index('date', inplace = True)
+        ticker_data.index = pd.to_datetime(ticker_data.index)
         order_book_data.set_index('last_traded_time', inplace=True)
+        order_book_data = order_book_data[~order_book_data.index.duplicated(keep='first')]
         # Aggregate features based on ticker data
         combined_ticker_data = self._aggregate_ticker_data(ticker_data)
         # Aggregate features based on order book data
@@ -161,6 +163,8 @@ class DataAggregator:
         
         if config.trading_config.trade_mode == 'LIVE':
             order_book_data = order_book_data.iloc[-1:]
+        
+        order_book_data.index.rename('date', inplace=True)
 
         order_book_features = self.order_book_transformer.transform(
             order_book_data)

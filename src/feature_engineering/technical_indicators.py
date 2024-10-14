@@ -38,7 +38,7 @@ class TechnicalIndicators:
 
         # Initialize an empty DataFrame to store the results
         indicators_df = pd.DataFrame(
-            index=data.index if self.mode == 'BACKTEST' else data.index[-1:])
+            index=data.index[-1:] if self.mode == 'LIVE' else data.index)
 
         # Iterate over each indicator function, compute the indicator, and merge the results into the DataFrame
         for func in self.indicators_functions:

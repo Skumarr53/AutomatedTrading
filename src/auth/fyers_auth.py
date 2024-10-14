@@ -47,7 +47,7 @@ class AuthCodeGenerator:
             access_token = response["access_token"]
             fyers = fyersModel.FyersModel(
                 client_id=config.environment.app_settings.client_id, is_async=False, token=access_token, log_path=os.getcwd())
-            logger.info(fyers.get_profile())
+            logger.debug(fyers.get_profile())
             return fyers
         except Exception as e:
             logger.error(f"Error in initializing Fyers Model: {e}")
