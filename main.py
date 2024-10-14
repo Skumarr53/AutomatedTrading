@@ -46,7 +46,7 @@ class MarketAnalysisApp:
         self.data_aggregator = DataAggregator()
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
-        # self.custom_model = CustomModelPipeline(model_id = 'COMB')
+        self.custom_model = CustomModelPipeline()
         self.timezone = pytz.timezone(config.scheduler.timezone)
 
     def _setup_data_handling(self):
@@ -114,7 +114,7 @@ class MarketAnalysisApp:
                 self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
             
             ## Run Custom pipeline
-            self.custom_model.run()
+            self.custom_model.run(data_agg)
             
             
             

@@ -23,3 +23,12 @@ backtest_data_load:
   n_operations_days_weekly:  5
   orderbook_file_suffix: orderbook_data
   ticker_file_suffix: ticker_data
+
+model_settings:
+  model_type: COMB
+  run_ids:
+   - 5min
+   - 15min
+   - 30min
+   - 1h
+   - 3h

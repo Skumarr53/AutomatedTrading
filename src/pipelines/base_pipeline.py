@@ -41,7 +41,6 @@ class MLPipelineBase:
         self.model_id: Optional[str] = None
         self.features: Optional[List[str]] = None
         self.pipeline: Optional[Pipeline] = None
-        self.run_ids: Optional[List[str]] = None
         self.model: Optional[GridSearchCV] = None
         self.best_model_dict: Dict[str, Any] = (
             self._load_models()
@@ -58,9 +57,10 @@ class MLPipelineBase:
         In BACKTEST mode, it defines the model using GridSearchCV.
         In LIVE mode, it relies on pre-loaded models.
         """
+        self.define_pipeline()
         if self.mode != 'LIVE':
             self.model = self.define_model()
-        self.define_pipeline()
+        
 
     def define_model(self) -> GridSearchCV:
         """
@@ -141,13 +141,15 @@ class MLPipelineBase:
 
         if symbol not in self.best_model_dict and self.mode == 'LIVE':
             raise ValueError(f"No models found for symbol '{symbol}' in LIVE mode.")
+        
+        run_ids = config.model_settings.run_ids
 
         if self.mode == 'BACKTEST':
-            if not self.run_ids:
+            if not run_ids:
                 raise ValueError("run_ids must be set for BACKTEST mode.")
 
-            for run_id in self.run_ids:
-                y_trans = categorize_percent_change(X[CLOSE], run_id)
+            for run_id in run_ids:
+                y_trans = categorize_percent_change(X['close'], run_id)
                 y_filt = ~y_trans.isna()
                 X_trans, y_trans = X[y_filt], y_trans[y_filt]
 

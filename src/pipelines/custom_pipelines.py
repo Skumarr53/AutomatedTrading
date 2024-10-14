@@ -31,7 +31,7 @@ class CustomModelPipeline(MLPipelineBase):
             of transformations and the estimator.
     """
 
-    def __init__(self, model_id: str) -> None:
+    def __init__(self) -> None:
         """
         Initializes the CustomModelPipeline instance.
 
@@ -42,8 +42,7 @@ class CustomModelPipeline(MLPipelineBase):
             model_id (str): Identifier for the specific model configuration.
         """
         super().__init__()
-        self.model_id: str = model_id
-        self.features: List[str] = config.columns.custom_model_features[self.model_id]
+        self.features: List[str] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
         self.setup()
 
     def define_pipeline(self) -> None:

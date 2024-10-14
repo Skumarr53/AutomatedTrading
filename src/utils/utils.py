@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 import time
@@ -54,8 +55,27 @@ def epoch_to_ist(epoch_time):
         epoch_time, tz=ist_timezone)
     return ist_datetime
 
+def extract_window_size(run_id: str) -> int:
+    # Extract the number from the string
+    match = re.match(r'(\d+)(min|h)', run_id)
+    if not match:
+        raise ValueError(f"Invalid time string format: {run_id}")
+    
+    value, unit = match.groups()
+    window_size = int(value)
+    
+    # Convert hours to minutes if necessary
+    if unit == 'h':
+        window_size *= 60
+    
+    # Ensure the result is a multiple of 5
+    if window_size % 5 != 0:
+        window_size += (5 - window_size % 5)
+    
+    return window_size
 
-def categorize_percent_change(series: pd.Series, window_size: int) -> pd.Series:
+
+def categorize_percent_change(series: pd.Series, run_id: str) -> pd.Series:
     """
     Calculates the percent change of a series over a specified forward window size
     and categorizes the changes into buckets based on standard deviations from the mean.
@@ -69,6 +89,7 @@ def categorize_percent_change(series: pd.Series, window_size: int) -> pd.Series:
     """
 
     # Calculate forward percent change
+    window_size = extract_window_size(run_id)
     pct_change = series.pct_change(
         periods=window_size // 5).shift(-window_size // 5) * 100
 
