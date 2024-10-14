@@ -292,7 +292,7 @@ class DataHandler:
                 df.to_csv(
                     os.path.join(
                         # TODO:
-                        self.file_path, f"{symbol}_{config.TICKER_FILE_SUFF}.csv"
+                        self.file_path, f"{symbol}_{config.backtest_data_load.ticker_file_suffix}.csv"
                     ),
                     index=False
                 )
