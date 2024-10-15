@@ -1,5 +1,14 @@
 # src/config/columns/core_columns.yaml
 
+cs_api_data_cols:
+  - ${columns.common_columns.epoch_time}
+  - ${columns.common_columns.open}
+  - ${columns.common_columns.high}
+  - ${columns.common_columns.low}
+  - ${columns.common_columns.close}
+  - ${columns.common_columns.volume}
+
+
 ticker_cols:
   - ${columns.common_columns.epoch_time}
   - ${columns.common_columns.open}

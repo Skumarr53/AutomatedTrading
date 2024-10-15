@@ -73,15 +73,22 @@ class DataAggregator:
             ticker_agg_derived[symbol] = resampled_data
         
         return ticker_agg_derived
+    
+    @staticmethod
+    def df_cleaup_transform(ticker_data, order_book_data):
+        ticker_data.set_index('date', inplace = True)
+        ticker_data.index = pd.to_datetime(ticker_data.index)
+        order_book_data.set_index('last_traded_time', inplace=True)
+        order_book_data = order_book_data[~order_book_data.index.duplicated(keep='first')]
+        order_book_data = order_book_data.drop(columns = [col for col in config.columns.ticker_cols if col in order_book_data.columns])
+        return ticker_data, order_book_data
 
     def aggregate_features(self, ticker_data, order_book_data) -> Dict[str, pd.DataFrame]:
         """
         Aggregate features from various components and combine them with the original data.
         """
-        ticker_data.set_index('date', inplace = True)
-        ticker_data.index = pd.to_datetime(ticker_data.index)
-        order_book_data.set_index('last_traded_time', inplace=True)
-        order_book_data = order_book_data[~order_book_data.index.duplicated(keep='first')]
+
+        ticker_data,  order_book_data = self.df_cleaup_transform(ticker_data,  order_book_data)
         # Aggregate features based on ticker data
         combined_ticker_data = self._aggregate_ticker_data(ticker_data)
         # Aggregate features based on order book data

@@ -180,10 +180,9 @@ class DataHandler:
             pd.DataFrame: DataFrame containing the fetched trading data with columns defined in TICKER_COLS.
         """
         ONE_DAY_SECONDS: int = 86400
-        ticker_cols = config.columns.ticker_cols
         
         total_data: pd.DataFrame = pd.DataFrame()
-        date_col: str = ticker_cols[-1]
+        date_col: str = config.columns.common_columns.date
         IST = pytz.timezone(config.scheduler.timezone)
 
         while start_epoch_time < end_epoch_time:
@@ -207,11 +206,11 @@ class DataHandler:
                 try:
                     cs_data: Dict = self.fyres.history(inp_payload)
                     df: pd.DataFrame = pd.DataFrame(
-                        cs_data['candles'], columns=ticker_cols[:6]
+                        cs_data['candles'], columns=config.columns.cs_api_data_cols
                     )
                     total_data = pd.concat([total_data, df])
                     logger.info(
-                        f"time diff in hours symbol {symbol}: {(current_time - df[ticker_cols[0]].max())//3600}"
+                        f"time diff in hours symbol {symbol}: {(current_time - df[config.columns.common_columns.epoch_time].max())//3600}"
                     )
                     break
                 except Exception as e:
@@ -229,7 +228,7 @@ class DataHandler:
             start_epoch_time = chunk_end_time
 
             total_data[date_col] = pd.to_datetime(
-                total_data[ticker_cols[0]], unit='s'
+                total_data[config.columns.common_columns.epoch_time], unit='s'
             )
             total_data[date_col] = total_data[date_col].dt.tz_localize('UTC').dt.tz_convert(config.scheduler.timezone)
             total_data[date_col] = total_data[date_col].dt.tz_localize(None).dt.round('5min')
