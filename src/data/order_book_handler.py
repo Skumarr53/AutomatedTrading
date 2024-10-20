@@ -54,7 +54,7 @@ class OrderBookHandler:
             "average_traded_price": data.get("atp", 0),
             "lower_circuit": data.get("lower_ckt", 0),
             "upper_circuit": data.get("upper_ckt", 0),
-            "expiry": data.get("expiry", ""),
+            # "expiry": data.get("expiry", ""),
             "open_interest": data.get("oi", 0),
             "open_interest_flag": data.get("oiflag", False),
             "previous_day_open_interest": data.get("pdoi", 0),

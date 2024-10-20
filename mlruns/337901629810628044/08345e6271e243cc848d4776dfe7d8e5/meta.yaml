@@ -1,0 +1,15 @@
+artifact_uri: file:///home/skumar/DaatScience/AutomatedTrading/mlruns/337901629810628044/08345e6271e243cc848d4776dfe7d8e5/artifacts
+end_time: 1729405792176
+entry_point_name: ''
+experiment_id: '337901629810628044'
+lifecycle_stage: active
+run_id: 08345e6271e243cc848d4776dfe7d8e5
+run_name: ABB_5min_pct_change_20241020115755
+run_uuid: 08345e6271e243cc848d4776dfe7d8e5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729405714264
+status: 4
+tags: []
+user_id: skumar

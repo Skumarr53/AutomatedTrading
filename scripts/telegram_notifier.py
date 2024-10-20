@@ -50,8 +50,7 @@ def send_telegram_message(type: str, message: str) -> bool:
     except requests.exceptions.RequestException as e:
         # Log the error
         logger.error(f"Failed to send message: {e}")
-
-        return False
+        raise
 
 def format_grafana_alert(data: dict) -> str:
     """

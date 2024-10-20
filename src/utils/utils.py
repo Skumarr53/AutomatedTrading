@@ -1,9 +1,11 @@
+from src import config
 import re
 import numpy as np
 import pandas as pd
 import time
 import pytz
 from selenium.webdriver.chrome.options import Options
+from functools import partial
 from typing import List
 import datetime
 import yaml
@@ -14,21 +16,59 @@ def load_config(filename):
         return yaml.safe_load(file)
 
 
-def get_NSE_symbol(symbol):
+def get_NSE_symbol(symbol: str) -> str:
+    """
+    Constructs the NSE symbol format for a given stock symbol.
+
+    Args:
+        symbol (str): The stock symbol to be converted to NSE format.
+
+    Returns:
+        str: The NSE symbol in the format "NSE:{symbol}-INDEX" for NIFTY symbols, 
+        otherwise "NSE:{symbol}-EQ".
+    
+    Example:
+        >>> get_NSE_symbol('NIFTY50')
+        'NSE:NIFTY50-INDEX'
+        >>> get_NSE_symbol('RELIANCE')
+        'NSE:RELIANCE-EQ'
+    """
     return f"NSE:{symbol}-{'INDEX' if 'NIFTY' in symbol else 'EQ'}"
 
-def get_chrome_options():
+
+def get_chrome_options() -> Options:
+    """
+    Configures Chrome browser options for Selenium WebDriver.
+
+    Returns:
+        Options: Configured Chrome options for Selenium WebDriver.
+
+    Example:
+        >>> options = get_chrome_options()
+    """
     options = Options()
+    # Uncomment or add additional options as needed
     # options.add_argument("--headless")
-    # Add any other options you need here
     return options
 
  
 def load_symbols(symbols_file: str) -> List[str]:
     """
-    Load stock symbols from a file.
-    :param symbols_file: Path to the file containing stock symbols.
-    :return: List of stock symbols.
+    Loads stock symbols from a specified file, one per line.
+
+    Args:
+        symbols_file (str): Path to the file containing stock symbols.
+
+    Returns:
+        List[str]: A list of stock symbols from the file. 
+        Returns an empty list if the file is not found.
+
+    Example:
+        >>> load_symbols('symbols.txt')
+        ['RELIANCE', 'TCS', 'INFY']
+
+    Raises:
+        FileNotFoundError: If the specified file does not exist.
     """
     try:
         with open(symbols_file, 'r') as file:
@@ -38,9 +78,21 @@ def load_symbols(symbols_file: str) -> List[str]:
         return []
 
 
-def determine_mode():
+def determine_mode() -> str:
+    """
+    Determines the market mode based on the current time in the 'Asia/Kolkata' timezone.
+    
+    The function checks if the current time falls within the live market hours (Monday to Friday, 9 AM to 3 PM).
+    
+    Returns:
+        str: "LIVE" if the market is open, otherwise "BACKTEST".
+
+    Example:
+        >>> determine_mode()
+        'LIVE'  # If current time is during live market hours
+    """
     current_utc = datetime.datetime.now()
-    market_tz = pytz.timezone('Asia/Kolkata')
+    market_tz = pytz.timezone(config.scheduler.timezone)
     current_market_time = current_utc.astimezone(market_tz)
 
     if current_market_time.weekday() < 5 and 9 <= current_market_time.hour < 15:
@@ -48,71 +100,21 @@ def determine_mode():
     else:
         return "BACKTEST"
 
-def epoch_to_ist(epoch_time):
-    ist_timezone = datetime.timezone(datetime.timedelta(
-        hours=5, minutes=30))  # IST timezone offset
-    ist_datetime = datetime.datetime.fromtimestamp(
-        epoch_time, tz=ist_timezone)
-    return ist_datetime
-
-def extract_window_size(run_id: str) -> int:
-    # Extract the number from the string
-    match = re.match(r'(\d+)(min|h)', run_id)
-    if not match:
-        raise ValueError(f"Invalid time string format: {run_id}")
-    
-    value, unit = match.groups()
-    window_size = int(value)
-    
-    # Convert hours to minutes if necessary
-    if unit == 'h':
-        window_size *= 60
-    
-    # Ensure the result is a multiple of 5
-    if window_size % 5 != 0:
-        window_size += (5 - window_size % 5)
-    
-    return window_size
-
-
-def categorize_percent_change(series: pd.Series, run_id: str) -> pd.Series:
+def epoch_to_ist(epoch_time: float) -> datetime.datetime:
     """
-    Calculates the percent change of a series over a specified forward window size
-    and categorizes the changes into buckets based on standard deviations from the mean.
+    Converts a given epoch timestamp to IST (Indian Standard Time).
 
     Args:
-    series (pd.Series): Series of close prices captured at 5 min intervals.
-    window_size (int): Window size in minutes.
+        epoch_time (float): The epoch timestamp to convert.
 
     Returns:
-    pd.Series: A series containing the categories of percent change for each window.
+        datetime.datetime: The corresponding IST datetime.
+
+    Example:
+        >>> epoch_to_ist(1634832335)
+        datetime.datetime(2021, 10, 21, 18, 28, 55, tzinfo=datetime.timezone(datetime.timedelta(seconds=19800)))
+
     """
-
-    # Calculate forward percent change
-    window_size = extract_window_size(run_id)
-    pct_change = series.pct_change(
-        periods=window_size // 5).shift(-window_size // 5) * 100
-
-    # Compute mean and standard deviation
-    mu = pct_change.mean()
-    sigma = pct_change.std()
-
-    # Define buckets
-    def categorize(value):
-        if pd.isna(value):
-            return np.nan
-        elif value > mu + 1.5 * sigma:
-            return 'High'
-        elif mu + 0.5 * sigma < value <= mu + 1.5 * sigma:
-            return 'Medium High'
-        elif mu - 0.5 * sigma <= value <= mu + 0.5 * sigma:
-            return 'Neutral'
-        elif mu - 1.5 * sigma < value <= mu - 0.5 * sigma:
-            return 'Medium Low'
-        else:
-            return 'Low'
-
-    # Apply categorization
-    categories = pct_change.apply(categorize)
-
-    return categories
+    ist_timezone = datetime.timezone(datetime.timedelta(hours=5, minutes=30))  # IST timezone offset
+    ist_datetime = datetime.datetime.fromtimestamp(epoch_time, tz=ist_timezone)
+    return ist_datetime

@@ -1,35 +1,25 @@
 # src/pipelines/base_pipeline.py
 
-from typing import Any, Dict, Union, List, Optional
+from typing import Any, Dict, Union, List, Optional, Tuple
 import joblib
 import os
+import pandas as pd
+from datetime import datetime
 from loguru import logger
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.base import clone
 import pandas as pd
-from src.config import config
+import mlflow
+import mlflow.sklearn
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 from src.config.vars import CLOSE
 from src import config
-from src.utils.utils import categorize_percent_change
+from src.feature_engineering.custom_target_tranform import TargetTransform
+from src.utils.mlflow_utils import log_model_performance
 
 
 class MLPipelineBase:
-    """
-    Base class for machine learning pipelines used in trading strategies.
-
-    This class provides a foundational structure for defining and executing machine learning
-    pipelines tailored for trading applications. It manages model definition, pipeline
-    setup, parameter loading, and execution based on the operational mode (BACKTEST or LIVE).
-    
-    Attributes:
-        model_id (Optional[str]): Identifier for the model. Used for loading model parameters.
-        features (Optional[List[str]]): List of feature names used in the pipeline.
-        pipeline (Optional[Pipeline]): Scikit-learn Pipeline object containing the sequence of transformations and the estimator.
-        best_model_dict (Dict[str, Any]): Dictionary storing the best models per symbol and run ID. Loaded from persisted parameters in LIVE mode.
-        run_ids (Optional[List[str]]): List of run identifiers corresponding to different time windows or strategies.
-        model (Optional[GridSearchCV]): GridSearchCV object for hyperparameter tuning in BACKTEST mode.
-    """
 
     def __init__(self) -> None:
         """
@@ -38,7 +28,8 @@ class MLPipelineBase:
         Sets up the necessary attributes. In LIVE mode, it attempts to load pre-trained models.
         In BACKTEST mode, models are defined and trained during execution.
         """
-        self.model_id: Optional[str] = None
+
+        self.model_id: str = datetime.now().strftime('%Y%m%d%H%M%S')
         self.features: Optional[List[str]] = None
         self.pipeline: Optional[Pipeline] = None
         self.model: Optional[GridSearchCV] = None
@@ -48,6 +39,7 @@ class MLPipelineBase:
             else {}
         )
         self.mode: str = config.trading_config.trade_mode
+        self.target_transform = TargetTransform()
         # self.define_pipeline()
 
     def setup(self) -> None:
@@ -75,7 +67,7 @@ class MLPipelineBase:
         return GridSearchCV(
             self.pipeline,
             # TODO
-            param_grid=config.model.model_params,
+            param_grid=dict(config.model.model_params),
             scoring='f1_weighted',
             n_jobs=5,
             cv=5,
@@ -99,37 +91,36 @@ class MLPipelineBase:
 
     def _load_models(self) -> Dict[str, Any]:
         """
-        Loads pre-trained model parameters from a file based on the model ID.
-
-        This is primarily used in LIVE mode to load existing models.
+        Loads pre-trained models from MLflow Model Registry.
 
         Returns:
             Dict[str, Any]: A dictionary mapping symbols to their corresponding models and run IDs.
-
-        Raises:
-            FileNotFoundError: If the parameter file does not exist.
         """
-        if not self.model_id:
-            raise ValueError("model_id must be set before loading models.")
+        best_model_dict = {}
+        run_ids = config.model_settings.run_ids
 
-        param_pth = '{}_{}_pipeline_params_{}w.joblib'
-        params_filename = param_pth.format(
-            self.model_id, config.paths.custom_model_best_param_path
-        )
-        params_path = os.path.join(config.paths.model_param_path, params_filename)
+        for run_id in run_ids:
+            for symbol in config.symbols:
+                for target in config.model_settings.model_targets:
+                    registered_model_name = f"{symbol}_{run_id}_{target}"
+                    model_uri = f"models:/{registered_model_name}/Production"
 
-        if os.path.exists(params_path):
-            logger.info(f"Loading models from {params_path}")
-            return joblib.load(params_path)
-        else:
-            raise FileNotFoundError(f"Parameter file does not exist at {params_path}.")
+                    try:
+                        loaded_model = mlflow.sklearn.load_model(model_uri)
+                        if symbol not in best_model_dict:
+                            best_model_dict[symbol] = {}
+                        if run_id not in best_model_dict[symbol]:
+                            best_model_dict[symbol][run_id] = {}
+                        best_model_dict[symbol][run_id][target] = loaded_model
+                    except mlflow.exceptions.RestException as e:
+                        logger.error(f"Model {registered_model_name} not found in MLflow Model Registry.")
+                        raise e
 
+        return best_model_dict
+    
     def run(self, X: pd.DataFrame) -> None:
         """
         Executes the pipeline based on the operational mode (BACKTEST or LIVE).
-
-        In BACKTEST mode, it trains the model on the provided data.
-        In LIVE mode, it uses pre-loaded models to make predictions.
 
         Args:
             X (pd.DataFrame): Input DataFrame containing feature data and a 'symbol' column.
@@ -139,92 +130,157 @@ class MLPipelineBase:
 
         symbol = X['symbol'].iloc[0]
 
-        if symbol not in self.best_model_dict and self.mode == 'LIVE':
-            raise ValueError(f"No models found for symbol '{symbol}' in LIVE mode.")
-        
-        run_ids = config.model_settings.run_ids
-
-        if self.mode == 'BACKTEST':
-            if not run_ids:
-                raise ValueError("run_ids must be set for BACKTEST mode.")
-
-            for run_id in run_ids:
-                y_trans = categorize_percent_change(X['close'], run_id)
-                y_filt = ~y_trans.isna()
-                X_trans, y_trans = X[y_filt], y_trans[y_filt]
-
-                if self.model is None:
-                    raise ValueError("Model has not been defined. Call setup() before running.")
-
-                self.model.fit(X_trans, y_trans)
-
-                # Initialize dictionary for the symbol if not present
-                if symbol not in self.best_model_dict:
-                    self.best_model_dict[symbol] = {}
-
-                # Store the best estimator
-                self.best_model_dict[symbol][run_id] = clone(self.model.best_estimator_)
-        elif self.mode == 'LIVE':
-            model_fit_dict = self.best_model_dict.get(symbol, {})
-            if not model_fit_dict:
-                logger.warning(f"No models available for symbol '{symbol}' in LIVE mode.")
-                return
-
-            for run_id, model in model_fit_dict.items():
-                prediction = model.predict(X)
-                # Assume prediction or further processing happens here using loaded parameters
-                # For example, storing the prediction:
-                X.loc[:, f'prediction_{run_id}'] = prediction
-
-            # Further processing can be implemented as needed
+        if self.mode == 'LIVE':
+            if symbol not in self.best_model_dict:
+                raise ValueError(f"No models found for symbol '{symbol}' in LIVE mode.")
+            self.predict(X, symbol)
+        elif self.mode == 'BACKTEST':
+            self.train(X, symbol)
         else:
             raise ValueError(f"Unsupported mode '{self.mode}'. Supported modes are 'BACKTEST' and 'LIVE'.")
 
 
-# Example of setting up and using the MLPipelineBase class
-# Note: The following example is for demonstration purposes and assumes that subclasses are properly implemented.
 
-if __name__ == "__main__":
-    # Example subclass implementation
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.decomposition import PCA
-    from sklearn.neural_network import MLPClassifier
+    def train(self, X: pd.DataFrame, symbol: str) -> None:
+        """
+        Trains models for the given symbol using the provided data.
 
-    @dataclass
-    class ExamplePipeline(MLPipelineBase):
-        def define_pipeline(self) -> None:
-            """
-            Defines a sample pipeline with scaling, PCA, and MLPClassifier.
-            """
-            self.pipeline = Pipeline([
-                ('scaler', StandardScaler()),
-                ('pca', PCA(n_components=5)),
-                ('mlp', MLPClassifier(hidden_layer_sizes=(100,), activation='relu', solver='adam', max_iter=500))
-            ])
-            self.features = ['feature1', 'feature2', 'feature3', 'feature4', 'feature5']
+        Args:
+            X (pd.DataFrame): Input DataFrame containing feature data.
+            symbol (str): The stock symbol.
+        """
 
-    # Example data setup
-    example_data = pd.DataFrame({
-        'symbol': ['AAPL'] * 10,
-        'feature1': np.random.rand(10),
-        'feature2': np.random.rand(10),
-        'feature3': np.random.rand(10),
-        'feature4': np.random.rand(10),
-        'feature5': np.random.rand(10),
-        CLOSE: np.random.rand(10) * 100
-    })
+        experiment_name = f"TradingModels_{self.model_id}"
+        mlflow.set_experiment(experiment_name)
 
-    # Initialize and set up the pipeline
-    example_pipeline = ExamplePipeline()
-    example_pipeline.setup()
+        run_ids = config.model_settings.run_ids
+        if not run_ids:
+            raise ValueError("run_ids must be set for BACKTEST mode.")
+        for run_id in run_ids:
+            for target in config.model_settings.model_targets:
+                try:
+                    logger.info(f"Training model for {symbol} {run_id} {target}")
+                    with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
+                        mlflow.set_tag("mode", self.mode)
+                        mlflow.set_tag("model_id", self.model_id)
+                        mlflow.log_param("symbol", symbol)
+                        mlflow.log_param("run_id", run_id)
+                        mlflow.log_param("target", target)
 
-    # Define run_ids for BACKTEST mode
-    example_pipeline.run_ids = ['5min', '15min', '30min']
+                        # Prepare target variable
+                        y_trans = self.prepare_target(X, target, run_id)
 
-    # Execute the pipeline in BACKTEST mode
-    example_pipeline.run(example_data)
+                        if y_trans is None:
+                            logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
+                            continue
 
-    # For LIVE mode, ensure model_id is set and models are loaded appropriately
-    # example_pipeline.model_id = 'AAPL_model'
-    # example_pipeline.run_ids = ['5min']
-    # example_pipeline.run(example_data)
+                        X_trans, y_trans = self.prepare_features(X, y_trans)
+
+                        if self.model is None:
+                            raise ValueError("Model has not been defined. Call setup() before running.")
+                        
+                        ## drop expirt column
+                        if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
+
+                        rows_to_drop = X_trans.isna().any(axis=1)
+                        X_trans, y_trans = X_trans[~rows_to_drop], y_trans[~rows_to_drop]
+                         
+                        # Fit the model
+                        self.model.fit(X_trans, y_trans)
+
+                        # Log best parameters
+                        mlflow.log_params(self.model.best_params_)
+
+                        # Predict on training data
+                        y_pred = self.model.predict(X_trans)
+
+                        # Log performance metrics and artifacts
+                        log_model_performance(y_trans, y_pred, self.model.best_estimator_, X_trans)
+
+                        # Log the model
+                        registered_model_name = f"{symbol}_{run_id}_{target}"
+                        mlflow.sklearn.log_model(
+                            sk_model=self.model.best_estimator_,
+                            artifact_path="model",
+                            registered_model_name=registered_model_name
+                        )
+
+                        # Store the best estimator
+                        if symbol not in self.best_model_dict:
+                            self.best_model_dict[symbol] = {}
+                        if run_id not in self.best_model_dict[symbol]:
+                            self.best_model_dict[symbol][run_id] = {}
+                        self.best_model_dict[symbol][run_id][target] = clone(self.model.best_estimator_)
+                except Exception as e:
+                    mlflow.log_param("error", str(e))
+                    logger.error(f"Error encountered while training: {symbol}_{run_id}_{target}_{self.model_id}")
+                    raise e
+
+    def predict(self, X: pd.DataFrame, symbol: str) -> None:
+        """
+        Makes predictions using the pre-loaded models in LIVE mode.
+
+        Args:
+            X (pd.DataFrame): Input DataFrame containing feature data.
+            symbol (str): The stock symbol.
+        """
+        run_ids = config.model_settings.run_ids
+        model_fit_dict = self.best_model_dict.get(symbol, {})
+        if not model_fit_dict:
+            logger.warning(f"No models available for symbol '{symbol}' in LIVE mode.")
+            return
+
+        for run_id in run_ids:
+            for target in ['pct_change', 'atr']:
+                model = model_fit_dict.get(run_id, {}).get(target, None)
+                if model is None:
+                    logger.warning(f"No model found for {symbol} {run_id} {target}")
+                    continue
+                with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}_LIVE"):
+                    mlflow.set_tag("mode", self.mode)
+                    mlflow.log_param("symbol", symbol)
+                    mlflow.log_param("run_id", run_id)
+                    mlflow.log_param("target", target)
+
+                    prediction = model.predict(X)
+                    X.loc[:, f'prediction_{run_id}_{target}'] = prediction
+
+                    # Log prediction (optional)
+                    mlflow.log_metric("prediction", prediction[0])  # Logging first prediction as an example
+
+    def prepare_target(self, X: pd.DataFrame, target: str, run_id: str) -> Optional[pd.Series]:
+        """
+        Prepares the target variable based on the specified target type.
+
+        Args:
+            X (pd.DataFrame): Input DataFrame containing feature data.
+            target (str): The target type ('pct_change' or 'atr').
+            run_id (str): The run identifier.
+
+        Returns:
+            pd.Series or None: The prepared target variable or None if target is unknown.
+        """
+        if target == 'pct_change':
+            y_trans = self.target_transform.categorize_percent_change(X['close'], run_id)
+        elif target == 'atr':
+            y_trans = self.target_transform.categorize_atr(X['high'], X['low'], X['close'], run_id)
+        else:
+            logger.error(f"Unknown target '{target}'")
+            raise f"Unknown target '{target}'"
+        return y_trans
+
+    def prepare_features(self, X: pd.DataFrame, y_trans: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Filters out NaN targets and aligns features and target data.
+
+        Args:
+            X (pd.DataFrame): Input DataFrame containing feature data.
+            y_trans (pd.Series): The target variable.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.Series]: Filtered features and target.
+        """
+        y_filt = ~y_trans.isna()
+        X_trans = X[y_filt]
+        y_trans = y_trans[y_filt]
+        return X_trans, y_trans

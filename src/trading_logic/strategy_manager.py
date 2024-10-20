@@ -74,6 +74,7 @@ class StrategyManager:
             except Exception as e:
                 logger.error("Error applying technical strategy '%s': %s", strategy_name, e)
                 data_with_signals[strategy_name] = None  # Assign None or a default value in case of error
+                raise e
 
         # Apply additional strategies if any
         for strategy_name, strategy_func in self.additional_strategies.items():
@@ -84,6 +85,7 @@ class StrategyManager:
             except Exception as e:
                 logger.error("Error applying additional strategy '%s': %s", strategy_name, e)
                 data_with_signals[strategy_name] = None  # Assign None or a default value in case of error
+                raise e
 
         logger.info("All strategies applied successfully.")
         return data_with_signals

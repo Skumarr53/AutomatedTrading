@@ -25,6 +25,7 @@ backtest_data_load:
   ticker_file_suffix: ticker_data
 
 model_settings:
+  model_targets: ['pct_change', 'atr']
   model_type: COMB
   run_ids:
    - 5min

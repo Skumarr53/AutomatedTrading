@@ -1,76 +1,211 @@
-# src/feature_engineering/custom_target_tranform.py
-from typing import Dict, Any
-import pandas as pd
+# src/preprocessing/custom_target_transform.py
+
+from typing import Optional
+import re
 import numpy as np
-from loguru import logger
-from dataclasses import dataclass, field
-from src.config.config import setup_logging
+import pandas as pd
+from functools import partial
+from src import config
 
-
-
-
-@dataclass
-class FeatureExtractor:
-    ticker_data: Dict[str, pd.DataFrame] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
+class TargetTransform:
+    """
+    FeatureExtractor encapsulates the logic for target transformations, including 
+    categorizing ATR and percent changes based on statistical thresholds.
+    """
+    
+    def __init__(self) -> None:
         """
-        Post-initialization processing to validate the provided ticker data.
+        Initializes the FeatureExtractor instance.
         """
-        self.validate_data()
+        pass
 
-    def validate_data(self) -> None:
+    @staticmethod
+    def extract_window_size(run_id: str) -> int:
+        # Extract the number from the string
+        match = re.match(r'(\d+)(min|h)', run_id)
+        if not match:
+            raise ValueError(f"Invalid time string format: {run_id}")
+        
+        value, unit = match.groups()
+        window_size = int(value)
+        
+        # Convert hours to minutes if necessary
+        if unit == 'h':
+            window_size *= 60
+        
+        # Ensure the result is a multiple of 5
+        if window_size % 5 != 0:
+            window_size += (5 - window_size % 5)
+        
+        return window_size
+
+    def _categorize(self, mu: float, sigma: float, value: float) -> Optional[str]:
         """
-        Ensures that all DataFrames in ticker_data contain the 'close' column.
+        Categorizes a given value based on its distance from the mean (`mu`) in terms of standard deviations (`sigma`).
+
+        The function divides the values into five categories:
+        - 'High': Values greater than `mu + 1.5 * sigma`.
+        - 'Medium High': Values between `mu + 0.5 * sigma` and `mu + 1.5 * sigma`.
+        - 'Neutral': Values between `mu - 0.5 * sigma` and `mu + 0.5 * sigma`.
+        - 'Medium Low': Values between `mu - 1.5 * sigma` and `mu - 0.5 * sigma`.
+        - 'Low': Values less than `mu - 1.5 * sigma`.
+
+        Args:
+            mu (float): The mean of the values.
+            sigma (float): The standard deviation of the values.
+            value (float): The value to be categorized.
+
+        Returns:
+            Optional[str]: The category into which the value falls ('High', 'Medium High', 'Neutral', 'Medium Low', 'Low'),
+                           or None if the value is NaN.
+        """
+        if sigma == 0:
+            raise ValueError("Standard deviation (sigma) must be non-zero")
+
+        if pd.isna(value):
+            return None
+        elif value > mu + 1.5 * sigma:
+            return 'High'
+        elif mu + 0.5 * sigma < value <= mu + 1.5 * sigma:
+            return 'Medium High'
+        elif mu - 0.5 * sigma <= value <= mu + 0.5 * sigma:
+            return 'Neutral'
+        elif mu - 1.5 * sigma < value < mu - 0.5 * sigma:
+            return 'Medium Low'
+        else:
+            return 'Low'
+
+    def _calculate_window_max_percent_change(self, series: pd.Series, window_periods: int) -> pd.Series:
+        """
+        Computes the largest absolute percent change (either maximum or minimum) within a specified forward window size,
+        excluding the current time step (t=0), for each time step in the series.
+
+        This function calculates the percent change between the current value at time step t=0 and the largest 
+        or smallest value within a forward-looking window, but excludes the current time step (t=0) from this window. 
+        It returns the largest percent change, whether from the max or min value within the window.
+
+        Args:
+            series (pd.Series): Time series of prices captured at regular intervals (e.g., 5-minute intervals).
+            window_periods (int): Number of periods corresponding to the window size (e.g., 3 for a 15-minute window if the data is in 5-minute intervals).
+
+        Returns:
+            pd.Series: A series of the largest absolute percent change (max or min) within the window for each time step, 
+                       excluding the current step (t=0).
 
         Raises:
-            ValueError: If any DataFrame is missing the 'close' column.
+            ValueError: If `window_periods` is less than 1.
         """
-        for symbol, data in self.ticker_data.items():
-            if 'close' not in data.columns:
-                logger.error(f"Data for {symbol} is missing 'close' column.")
-                raise ValueError(f"Data for {symbol} is missing 'close' column.")
+        if window_periods < 1:
+            raise ValueError("window_periods must be greater than or equal to 1")
 
-    def extract_features(self, windows: Dict[str, pd.Timedelta]) -> Dict[str, pd.DataFrame]:
+        if window_periods > 1:
+            # Shift the series to exclude the current step (t=0) from the window
+            series_shifted = series.shift(-1)  # Forward looking window
+            rolling_max = series_shifted.rolling(window=window_periods, min_periods=1).max()
+            rolling_min = series_shifted.rolling(window=window_periods, min_periods=1).min()
+
+            # Calculate the percent changes for max and min
+            pct_change_max = ((rolling_max - series) / series) * 100
+            pct_change_min = ((rolling_min - series) / series) * 100
+
+            # Take the larger absolute percent change (max or min)
+            pct_change = pct_change_max.where(pct_change_max.abs() >= pct_change_min.abs(), pct_change_min)
+        else:
+            # If window_periods is 1, simply calculate the percent change with a forward shift
+            pct_change = series.pct_change(periods=-window_periods) * 100
+
+        return pct_change
+
+    def _calculate_atr(self, high: pd.Series, low: pd.Series, close: pd.Series, window_periods: int) -> pd.Series:
         """
-        Extracts high and low price features for specified window sizes.
+        Calculates the Average True Range (ATR) over a specified window size.
 
         Args:
-            windows (Dict[str, pd.Timedelta]): 
-                A dictionary of window sizes with keys as identifiers and pd.Timedelta as values.
+            high (pd.Series): Series of high prices.
+            low (pd.Series): Series of low prices.
+            close (pd.Series): Series of closing prices.
+            window_periods (int): Number of periods over which to calculate the ATR.
 
         Returns:
-            Dict[str, pd.DataFrame]: 
-                A dictionary with the same keys as ticker_data, each containing a DataFrame of extracted features.
+            pd.Series: The ATR values.
         """
-        features: Dict[str, pd.DataFrame] = {}
-        for symbol, data in self.ticker_data.items():
-            features[symbol] = self._calculate_features_for_symbol(data, windows)
-        return features
+        # Calculate True Range (TR)
+        prev_close = close.shift(1)
+        tr = pd.concat([
+            (high - low).abs(),
+            (high - prev_close).abs(),
+            (low - prev_close).abs()
+        ], axis=1).max(axis=1)
 
-    def _calculate_features_for_symbol(
-        self, 
-        data: pd.DataFrame, 
-        windows: Dict[str, pd.Timedelta]
-    ) -> pd.DataFrame:
+        # Calculate ATR
+        atr = tr.rolling(window=window_periods, min_periods=1).mean()
+
+        return atr
+
+    def categorize_percent_change(self, series: pd.Series, run_id: str) -> pd.Series:
         """
-        Calculates high and low prices for a single symbol over specified window sizes.
+        Computes the largest absolute percent change (either maximum or minimum) within a specified forward window size 
+        for each time step, then categorizes the changes into buckets based on standard deviations from the mean.
+
+        The function first extracts the window size from the provided `run_id` and determines the largest absolute percent 
+        change within that window (either the max or min price). It then categorizes the percent change values into 'High', 
+        'Medium High', 'Neutral', 'Medium Low', or 'Low' based on the number of standard deviations from the mean.
 
         Args:
-            data (pd.DataFrame): 
-                DataFrame containing ticker data for a symbol. Must include a 'close' column.
-            windows (Dict[str, pd.Timedelta]): 
-                A dictionary of window sizes with keys as identifiers and pd.Timedelta as values.
+            series (pd.Series): Time series of close prices captured at 5-minute intervals.
+            run_id (str): Unique identifier that contains the window size information (in minutes).
 
         Returns:
-            pd.DataFrame: 
-                DataFrame with extracted high and low price features for each specified window.
+            pd.Series: A series containing categorized labels ('High', 'Medium High', 'Neutral', 'Medium Low', 'Low') 
+                       based on the largest forward absolute percent change (max or min) within the specified window.
         """
-        feature_data: pd.DataFrame = pd.DataFrame(index=data.index)
-        for window_name, window_size in windows.items():
-            rolling_window = data['close'].rolling(
-                window=window_size, closed='both'
-            )
-            feature_data[f'{window_name}_high'] = rolling_window.max()
-            feature_data[f'{window_name}_low'] = rolling_window.min()
-        return feature_data
+        # Extract window_size from run_id
+        window_size = self.extract_window_size(run_id)  # in minutes
+
+        # Number of periods corresponding to the window size (since data is at 5 min intervals)
+        window_periods = window_size // config.scheduler.data_fetch_cron_interval_min
+
+        pct_change = self._calculate_window_max_percent_change(series, window_periods)
+
+        # Compute mean and standard deviation of the percent changes
+        mu = pct_change.mean()
+        sigma = pct_change.std()
+
+        get_categories = partial(self._categorize, mu, sigma)
+
+        # Apply categorization to the percent changes
+        categories = pct_change.apply(get_categories)
+
+        return categories
+
+    def categorize_atr(self, high: pd.Series, low: pd.Series, close: pd.Series, run_id: str) -> pd.Series:
+        """
+        Calculates the ATR over a specified window size and categorizes the ATR values.
+
+        Args:
+            high (pd.Series): Series of high prices.
+            low (pd.Series): Series of low prices.
+            close (pd.Series): Series of closing prices.
+            run_id (str): Unique identifier that contains the window size information (in minutes).
+
+        Returns:
+            pd.Series: A series containing categorized ATR values.
+        """
+        # Extract window_size from run_id
+        window_size = extract_window_size(run_id)  # in minutes
+
+        # Number of periods corresponding to the window size (since data is at 5 min intervals)
+        window_periods = window_size // config.scheduler.data_fetch_cron_interval_min
+
+        # Calculate ATR
+        atr = self._calculate_atr(high, low, close, window_periods)
+
+        # Compute mean and standard deviation of the ATR
+        mu = atr.mean()
+        sigma = atr.std()
+
+        # Categorize ATR values
+        get_categories = partial(self._categorize, mu, sigma)
+        categories = atr.apply(get_categories)
+
+        return categories

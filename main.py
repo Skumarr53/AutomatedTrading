@@ -16,7 +16,7 @@ from src.pipelines.custom_pipelines import CustomModelPipeline
 from src.utils.utils import determine_mode
 
 
-
+print(1)
 
 ## TODO: use the following snippet for alert across 
 # send_telegram_message(

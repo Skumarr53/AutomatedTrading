@@ -13,9 +13,9 @@ def get_config() -> DictConfig:
     # if _config is None:
     try:
         with hydra.initialize(config_path="."):
-            _config = hydra.compose(config_name="config.yaml")
+            _config = hydra.compose(config_name="config.yaml") #version_base="1.1"
+        return _config
     except Exception as e:
         raise f"Error loading configuration: {e}"
-    return _config
 
 

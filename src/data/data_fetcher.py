@@ -121,7 +121,7 @@ class DataHandler:
                     )
             except Exception as e:
                 logger.error(f"Error loading data for {symbol}: {e}")
-                return pd.DataFrame()
+                raise
         else:
             df: pd.DataFrame = self.fetch_full_year_data(symbol)
         
