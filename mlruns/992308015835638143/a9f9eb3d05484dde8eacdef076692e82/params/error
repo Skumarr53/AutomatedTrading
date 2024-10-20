@@ -1,1 +1,0 @@
-The 'param_grid' parameter of GridSearchCV must be an instance of 'dict' or an instance of 'list'. Got {'feature_selection__n_features': [10, 25, 50, 'None'], 'Model_fit__n_estimators': [10, 50, 100, 200], 'Model_fit__max_depth': [3, 5, 10], 'Model_fit__min_samples_split': [20, 50, 100], 'Model_fit__min_samples_leaf': [10, 20, 50]} instead.
