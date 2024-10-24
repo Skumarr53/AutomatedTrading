@@ -1,8 +1,8 @@
 symbols:
-  - ABB
-  - ADANIENSOL
-  - ADANIENT
-  - ADANIGREEN
+  # - ABB
+  # - ADANIENSOL
+  # - ADANIENT
+  # - ADANIGREEN
   # - ADANIPORTS
   # - ATGL
   # - AWL
@@ -70,7 +70,7 @@ symbols:
   # - PIDILITIND
   # - POWERGRID
   # - PGHH
-  # - PNB
+  - PNB
   # - RELIANCE
   # - SBICARD
   # - SBILIFE
