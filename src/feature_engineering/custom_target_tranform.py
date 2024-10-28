@@ -19,6 +19,29 @@ class TargetTransform:
         """
         self.interval_min = config.scheduler.data_fetch_cron_interval_min
 
+
+    @staticmethod
+    def drop_nulls(df: pd.DataFrame, categories: pd.Series) -> tuple:
+        """
+        Drops rows from the DataFrame and corresponding null values from the Series based on null indices in the Series.
+
+        Parameters:
+        - df (pd.DataFrame): The DataFrame from which to drop rows.
+        - categories (pd.Series): The Series from which to drop null values.
+
+        Returns:
+        - tuple: A tuple containing the cleaned DataFrame and the cleaned Series.
+        """
+        # Step 1: Identify null indices and drop them from the DataFrame and Series in one go
+        null_indices = categories.index[categories.isnull()]
+
+        # Step 2: Drop the rows from the DataFrame and clean the Series
+        df_cleaned = df.drop(index=null_indices)
+        categories_cleaned = categories.dropna()
+
+        return df_cleaned, categories_cleaned
+
+
     @staticmethod
     def extract_window_size(run_id: str) -> int:
         # Extract the number from the string
@@ -131,7 +154,8 @@ class TargetTransform:
             pct_change = pct_change_max.where(pct_change_max.abs() >= pct_change_min.abs(), pct_change_min)
         else:
             # If window_periods is 1, simply calculate the percent change with a forward shift
-            pct_change = series.pct_change(periods=-window_periods) * 100
+            pct_change = series.pct_change(periods=window_periods) * 100
+            pct_change.replace({0.0: np.nan}, inplace=True)
 
         return pct_change
 
@@ -148,8 +172,9 @@ class TargetTransform:
         Returns:
             pd.Series: The ATR values.
         """
+        high, low, close = high.iloc[::-1], low.iloc[::-1], close.iloc[::-1]
         # Calculate True Range (TR)
-        prev_close = close.shift(1)
+        prev_close = close.shift(-1)
         tr = pd.concat([
             (high - low).abs(),
             (high - prev_close).abs(),
@@ -159,7 +184,7 @@ class TargetTransform:
         # Calculate ATR
         atr = tr.rolling(window=window_periods, min_periods=1).mean()
 
-        return atr
+        return atr.iloc[::-1]
 
     def categorize_percent_change(self, df: pd.DataFrame, run_id: str) -> pd.Series:
         """
@@ -197,6 +222,8 @@ class TargetTransform:
 
         get_categories = partial(self._categorize, mu, sigma)
 
+        df, pct_change = self.drop_nulls(df, pct_change)
+
         # Apply categorization to the percent changes
         categories = pct_change.apply(get_categories)
 
@@ -233,6 +260,8 @@ class TargetTransform:
         # Compute mean and standard deviation of the ATR
         mu = atr.mean()
         sigma = atr.std()
+
+        df, atr = self.drop_nulls(df, atr)
 
         # Categorize ATR values
         get_categories = partial(self._categorize, mu, sigma)
