@@ -38,8 +38,8 @@ def log_model_performance(y_true, y_pred, model, X_trans):
     plt.title('Confusion Matrix')
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
-    plt.savefig('mlflow_reports/confusion_matrix.png')
-    mlflow.log_artifact('mlflow_reports/confusion_matrix.png')
+    plt.savefig('WeeklyReports/mlflow_reports/confusion_matrix.png')
+    mlflow.log_artifact('WeeklyReports/mlflow_reports/confusion_matrix.png')
     plt.close()
 
     # Feature importance
@@ -51,5 +51,5 @@ def log_model_performance(y_true, y_pred, model, X_trans):
             'importance': feature_importances
         })
         importance_df.sort_values(by='importance', ascending=False, inplace=True)
-        importance_df.to_csv('mlflow_reports/feature_importance.csv', index=False)
-        mlflow.log_artifact('mlflow_reports/feature_importance.csv')
+        importance_df.to_csv('WeeklyReports/mlflow_reports/feature_importance.csv', index=False)
+        mlflow.log_artifact('WeeklyReports/mlflow_reports/feature_importance.csv')

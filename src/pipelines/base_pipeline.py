@@ -168,13 +168,11 @@ class MLPipelineBase:
                         mlflow.log_param("target", target)
 
                         # Prepare target variable
-                        y_trans = self.prepare_target(X, target, run_id)
+                        X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
 
                         if y_trans is None:
                             logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
                             continue
-
-                        X_trans, y_trans = self.prepare_features(X, y_trans)
 
                         if self.model is None:
                             raise ValueError("Model has not been defined. Call setup() before running.")
@@ -248,7 +246,7 @@ class MLPipelineBase:
                     # Log prediction (optional)
                     mlflow.log_metric("prediction", prediction[0])  # Logging first prediction as an example
 
-    def prepare_target(self, X: pd.DataFrame, target: str, run_id: str) -> Optional[pd.Series]:
+    def prepare_input_and_target(self, X: pd.DataFrame, target: str, run_id: str) -> Optional[pd.Series]:
         """
         Prepares the target variable based on the specified target type.
 
@@ -261,26 +259,10 @@ class MLPipelineBase:
             pd.Series or None: The prepared target variable or None if target is unknown.
         """
         if target == 'pct_change':
-            y_trans = self.target_transform.categorize_percent_change(X['close'], run_id)
+            x_trans, y_trans = self.target_transform.categorize_percent_change(X, run_id)
         elif target == 'atr':
-            y_trans = self.target_transform.categorize_atr(X['high'], X['low'], X['close'], run_id)
+            x_trans, y_trans = self.target_transform.categorize_atr(X, run_id)
         else:
             logger.error(f"Unknown target '{target}'")
             raise f"Unknown target '{target}'"
-        return y_trans
-
-    def prepare_features(self, X: pd.DataFrame, y_trans: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Filters out NaN targets and aligns features and target data.
-
-        Args:
-            X (pd.DataFrame): Input DataFrame containing feature data.
-            y_trans (pd.Series): The target variable.
-
-        Returns:
-            Tuple[pd.DataFrame, pd.Series]: Filtered features and target.
-        """
-        y_filt = ~y_trans.isna()
-        X_trans = X[y_filt]
-        y_trans = y_trans[y_filt]
-        return X_trans, y_trans
+        return x_trans, y_trans

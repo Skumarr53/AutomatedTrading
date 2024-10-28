@@ -17,7 +17,7 @@ class TargetTransform:
         """
         Initializes the FeatureExtractor instance.
         """
-        pass
+        self.interval_min = config.scheduler.data_fetch_cron_interval_min
 
     @staticmethod
     def extract_window_size(run_id: str) -> int:
@@ -38,6 +38,24 @@ class TargetTransform:
             window_size += (5 - window_size % 5)
         
         return window_size
+    
+    def fill_missing_timestamps(self, df: pd.DataFrame) -> None:
+        """
+        Fills missing dates in the DataFrame with NaN values.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to fill missing dates in.
+        """
+        min_date = df.index.min()
+        max_date = df.index.max()
+
+        # Create a date range with a 5-minute frequency
+        colmplete_date_range = pd.date_range(start=min_date, end=max_date, freq=f'{self.interval_min}T')
+
+        df_filled = df.reindex(colmplete_date_range)
+
+        df_filled.index = pd.to_datetime(df_filled.index)
+        return df_filled
 
     def _categorize(self, mu: float, sigma: float, value: float) -> Optional[str]:
         """
@@ -100,9 +118,10 @@ class TargetTransform:
 
         if window_periods > 1:
             # Shift the series to exclude the current step (t=0) from the window
-            series_shifted = series.shift(-1)  # Forward looking window
-            rolling_max = series_shifted.rolling(window=window_periods, min_periods=1).max()
-            rolling_min = series_shifted.rolling(window=window_periods, min_periods=1).min()
+            reversed_series = series.iloc[::-1]
+            series_shifted = reversed_series.shift(1)  # Forward looking window
+            rolling_max = series_shifted.rolling(window=window_periods, min_periods=window_periods).max().iloc[::-1]
+            rolling_min = series_shifted.rolling(window=window_periods, min_periods=window_periods).min().iloc[::-1]
 
             # Calculate the percent changes for max and min
             pct_change_max = ((rolling_max - series) / series) * 100
@@ -142,7 +161,7 @@ class TargetTransform:
 
         return atr
 
-    def categorize_percent_change(self, series: pd.Series, run_id: str) -> pd.Series:
+    def categorize_percent_change(self, df: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Computes the largest absolute percent change (either maximum or minimum) within a specified forward window size 
         for each time step, then categorizes the changes into buckets based on standard deviations from the mean.
@@ -163,9 +182,14 @@ class TargetTransform:
         window_size = self.extract_window_size(run_id)  # in minutes
 
         # Number of periods corresponding to the window size (since data is at 5 min intervals)
-        window_periods = window_size // config.scheduler.data_fetch_cron_interval_min
+        window_periods = window_size // self.interval_min
 
-        pct_change = self._calculate_window_max_percent_change(series, window_periods)
+
+        df = self.fill_missing_timestamps(df)
+
+        target = df['close']
+
+        pct_change = self._calculate_window_max_percent_change(target, window_periods)
 
         # Compute mean and standard deviation of the percent changes
         mu = pct_change.mean()
@@ -178,7 +202,7 @@ class TargetTransform:
 
         return categories
 
-    def categorize_atr(self, high: pd.Series, low: pd.Series, close: pd.Series, run_id: str) -> pd.Series:
+    def categorize_atr(self, df: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Calculates the ATR over a specified window size and categorizes the ATR values.
 
@@ -191,11 +215,17 @@ class TargetTransform:
         Returns:
             pd.Series: A series containing categorized ATR values.
         """
+        columns_names_config = config.columns.common_columns
+
         # Extract window_size from run_id
-        window_size = extract_window_size(run_id)  # in minutes
+        window_size = self.extract_window_size(run_id)  # in minutes
 
         # Number of periods corresponding to the window size (since data is at 5 min intervals)
-        window_periods = window_size // config.scheduler.data_fetch_cron_interval_min
+        window_periods = window_size // self.interval_min
+
+        df = self.fill_missing_timestamps(df)
+
+        high, low, close = df[columns_names_config.high], df[columns_names_config.low], df[columns_names_config.close]
 
         # Calculate ATR
         atr = self._calculate_atr(high, low, close, window_periods)
