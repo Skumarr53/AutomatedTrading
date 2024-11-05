@@ -2,6 +2,7 @@ defaults:
   - environment: development      # Loads environment/development
   - scheduler          # Loads scheduler directly
   - model/params                 # Loads model/params directly
+  - model/pipeline_config
   - paths                  # Loads paths directly
   - custom
   - symbols

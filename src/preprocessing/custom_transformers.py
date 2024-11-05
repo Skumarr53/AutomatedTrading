@@ -568,3 +568,82 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
         if self.feature_importances_ is None:
             raise NotFittedError("Feature selector has not been fitted yet.")
         return self.feature_importances_
+
+
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.combine import SMOTETomek, SMOTEENN
+from typing import Optional
+import pandas as pd
+import numpy as np
+
+class ImbalanceHandler(BaseEstimator, TransformerMixin):
+    """
+    A custom transformer to handle imbalanced datasets using resampling techniques such as SMOTE and Random Oversampling.
+
+    Attributes:
+        technique (str): The resampling technique to use ('smote', 'random', 'smote_tomek', 'smote_enn').
+        sampler: The imbalanced-learn sampler object used for resampling.
+    """
+
+    def __init__(self, technique: str = 'smote') -> None:
+        """
+        Initializes the ImbalanceHandler transformer.
+
+        Args:
+            technique (str, optional): The resampling technique to use. 
+                Options: 'smote' (default), 'random', 'smote_tomek', 'smote_enn'.
+        """
+        self.technique = technique.lower()
+        self.sampler = None
+
+        if self.technique == 'smote':
+            self.sampler = SMOTE()
+        elif self.technique == 'random':
+            self.sampler = RandomOverSampler()
+        elif self.technique == 'smote_tomek':
+            self.sampler = SMOTETomek()
+        elif self.technique == 'smote_enn':
+            self.sampler = SMOTEENN()
+        else:
+            raise ValueError("Invalid technique. Choose from 'smote', 'random', 'smote_tomek', or 'smote_enn'.")
+
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> 'ImbalanceHandler':
+        """
+        Fits the sampler on the data.
+
+        Args:
+            X (pd.DataFrame): Input feature DataFrame.
+            y (pd.Series): Target variable Series.
+
+        Returns:
+            ImbalanceHandler: Fitted transformer.
+        """
+        # Fit the sampler on X, y if necessary
+        if self.sampler is not None:
+            self.sampler.fit_resample(X, y)
+        return self
+
+    def transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Transforms the data by applying the selected resampling technique to balance classes.
+
+        Args:
+            X (pd.DataFrame): Input feature DataFrame.
+            y (Optional[pd.Series]): Target variable Series. Required for resampling.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.Series]: Resampled features and target.
+        """
+        if y is None:
+            raise ValueError("The target variable 'y' is required for resampling.")
+
+        # Apply the selected resampling technique
+        X_resampled, y_resampled = self.sampler.fit_resample(X, y)
+
+        # Log the resampling results
+        logger.debug(f"Resampling technique '{self.technique}' applied.")
+        logger.debug(f"Original dataset size: {len(X)}, Resampled dataset size: {len(X_resampled)}")
+        
+        return pd.DataFrame(X_resampled, columns=X.columns), pd.Series(y_resampled, name=y.name)

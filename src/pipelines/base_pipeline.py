@@ -1,6 +1,7 @@
 # src/pipelines/base_pipeline.py
 
 from typing import Any, Dict, Union, List, Optional, Tuple
+from src.config import pipeline_configs 
 import joblib
 import os
 import pandas as pd
@@ -17,6 +18,7 @@ from src.config.vars import CLOSE
 from src import config
 from src.feature_engineering.custom_target_tranform import TargetTransform
 from src.utils.mlflow_utils import log_model_performance
+from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
 
 
 class MLPipelineBase:
@@ -30,8 +32,8 @@ class MLPipelineBase:
         """
 
         self.model_id: str = datetime.now().strftime('%Y%m%d%H%M%S')
-        self.features: Optional[List[str]] = None
-        self.pipeline: Optional[Pipeline] = None
+        self.features: Optional[List[str]] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
+        self.pipelines: Optional[Pipeline] =  []
         self.model: Optional[GridSearchCV] = None
         self.best_model_dict: Dict[str, Any] = (
             self._load_models()
@@ -40,7 +42,7 @@ class MLPipelineBase:
         )
         self.mode: str = config.trading_config.trade_mode
         self.target_transform = TargetTransform()
-        # self.define_pipeline()
+        self.setup_all_pipelines() 
 
     def setup(self) -> None:
         """

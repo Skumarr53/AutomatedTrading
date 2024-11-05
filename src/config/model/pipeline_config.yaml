@@ -1,0 +1,17 @@
+pipeline_configs:
+  Pipeline_1:
+    feature_config:
+      short_numerics: false
+      long_numerics: false
+      cat_cols: false
+    feature_selector: SHAP
+    model: GBC
+
+
+  Pipeline_2:
+    feature_config:
+      short_numerics: true
+      long_numerics: true
+      cat_cols: true
+    feature_selector: SHAP
+    model: MLP
