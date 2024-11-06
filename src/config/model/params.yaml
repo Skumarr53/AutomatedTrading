@@ -1,10 +1,28 @@
 # src/config/model/params.yaml
-model_params:
+pipeline_params:
   feature_selection__n_features: [10, 25, 50]
-  model_fit__n_estimators: [10, 50, 100]  # Hyperparameters for models
-  model_fit__max_depth: [3, 5]
-  model_fit__min_samples_split: [20, 50]
-  model_fit__min_samples_leaf: [10, 20, 50]
+
+model_params:
+  GBC:
+    model_fit__n_estimators: [10, 50, 100]  # Hyperparameters for models
+    model_fit__max_depth: [3, 5]
+    model_fit__min_samples_split: [20, 50]
+    model_fit__min_samples_leaf: [10, 20, 50]
+  RFC:
+    model_fit__n_estimators: [10, 50, 100]  # Hyperparameters for models
+    model_fit__max_depth: [3, 5]
+    model_fit__min_samples_split: [20, 50]
+    model_fit__min_samples_leaf: [10, 20, 50]
+  MLP:
+    model_fit__hidden_layer_sizes: [(100,), (50, 50)]
+    model_fit__activation: ['relu']
+    model_fit__solver: ['adam', 'sgd']
+    model_fit__alpha: [0.0001, 0.001, 0.01]
+    model_fit__learning_rate: ['adaptive']
+  KNN:
+    model_fit__n_neighbors: [5, 10, 15]
+    model_fit__weights: ['uniform', 'distance']
+  
 
 
 technical_indicators_params:

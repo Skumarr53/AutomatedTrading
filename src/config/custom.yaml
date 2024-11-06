@@ -27,6 +27,7 @@ backtest_data_load:
 model_settings:
   model_targets: ['pct_change', 'atr']
   model_type: COMB
+  shuffle: true
   run_ids:
    - 5min
    - 15min

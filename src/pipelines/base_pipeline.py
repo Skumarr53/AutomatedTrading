@@ -42,7 +42,16 @@ class MLPipelineBase:
         )
         self.mode: str = config.trading_config.trade_mode
         self.target_transform = TargetTransform()
-        self.setup_all_pipelines() 
+        self.setup_all_pipelines()
+
+    def setup_all_pipelines(self) -> None:
+        """
+        Sets up multiple pipelines based on the provided configurations.
+        """
+        for p_config in self.pipeline_configs:
+            pipeline = CustomModelPipeline(**p_config)
+            pipeline.define_pipeline()
+            self.pipelines.append(pipeline)
 
     def setup(self) -> None:
         """
@@ -140,8 +149,23 @@ class MLPipelineBase:
             self.train(X, symbol)
         else:
             raise ValueError(f"Unsupported mode '{self.mode}'. Supported modes are 'BACKTEST' and 'LIVE'.")
+        
+    @staticmethod
+    def shuffle_training_inputs(X, Y):
+        """
+        Shuffles the input data and target labels.
 
+        Args:
+            X (pd.DataFrame): Input DataFrame containing feature data.
+            Y (pd.DataFrame): Input DataFrame containing target labels.
 
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame]: Shuffled input data and target labels.
+        """
+        shuffled_df = X.sample(frac=1, random_state=42).reset_index(drop=True)
+        shuffled_target = Y.sample(frac=1, random_state=42).reset_index(drop=True)
+
+        return shuffled_df, shuffled_target
 
     def train(self, X: pd.DataFrame, symbol: str) -> None:
         """
@@ -172,6 +196,9 @@ class MLPipelineBase:
                         # Prepare target variable
                         X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
 
+                        if config.model_settings.shuffle:
+                            X_trans, y_trans = self.shuffle_training_inputs(X_trans, y_trans)
+
                         if y_trans is None:
                             logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
                             continue
@@ -179,7 +206,8 @@ class MLPipelineBase:
                         if self.model is None:
                             raise ValueError("Model has not been defined. Call setup() before running.")
                         
-                        ## drop expirt column
+                        ## drop expirt column\
+                        
                         if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
 
                         rows_to_drop = X_trans.isna().any(axis=1)

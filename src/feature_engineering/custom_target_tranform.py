@@ -186,7 +186,7 @@ class TargetTransform:
 
         return atr.iloc[::-1]
 
-    def categorize_percent_change(self, df: pd.DataFrame, run_id: str) -> pd.Series:
+    def categorize_percent_change(self, data: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Computes the largest absolute percent change (either maximum or minimum) within a specified forward window size 
         for each time step, then categorizes the changes into buckets based on standard deviations from the mean.
@@ -203,6 +203,8 @@ class TargetTransform:
             pd.Series: A series containing categorized labels ('High', 'Medium High', 'Neutral', 'Medium Low', 'Low') 
                        based on the largest forward absolute percent change (max or min) within the specified window.
         """
+        df = data.copy()
+
         # Extract window_size from run_id
         window_size = self.extract_window_size(run_id)  # in minutes
 
@@ -227,9 +229,9 @@ class TargetTransform:
         # Apply categorization to the percent changes
         categories = pct_change.apply(get_categories)
 
-        return categories
+        return df, categories
 
-    def categorize_atr(self, df: pd.DataFrame, run_id: str) -> pd.Series:
+    def categorize_atr(self, data: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Calculates the ATR over a specified window size and categorizes the ATR values.
 
@@ -242,6 +244,8 @@ class TargetTransform:
         Returns:
             pd.Series: A series containing categorized ATR values.
         """
+        df = data.copy()
+
         columns_names_config = config.columns.common_columns
 
         # Extract window_size from run_id
@@ -267,4 +271,4 @@ class TargetTransform:
         get_categories = partial(self._categorize, mu, sigma)
         categories = atr.apply(get_categories)
 
-        return categories
+        return df, categories

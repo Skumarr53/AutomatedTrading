@@ -1,17 +1,12 @@
 pipeline_configs:
   Pipeline_1:
-    feature_config:
-      short_numerics: false
-      long_numerics: false
-      cat_cols: false
+    std_scale: true
     feature_selector: SHAP
+    imbalance_technique: SMOTE
     model: GBC
 
-
   Pipeline_2:
-    feature_config:
-      short_numerics: true
-      long_numerics: true
-      cat_cols: true
+    std_scale: true
     feature_selector: SHAP
+    imbalance_technique: SMOTE
     model: MLP

@@ -30,8 +30,6 @@ ImbalanceHandler_mapping = {
 }
 
 
-
-
 ModelType_mapping = {
     'SVC': SVC,
     'KNN': KNeighborsClassifier,

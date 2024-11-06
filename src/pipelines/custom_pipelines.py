@@ -3,6 +3,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from src.pipelines.base_pipeline import MLPipelineBase
 from src import config
+from src.config import (FeatSelect_mapping,
+                        ImbalanceHandler_mapping,
+                        ModelType_mapping)
 from src.preprocessing.custom_transformers import (
     DFFeatureUnion,
     ColumnExtractor,
@@ -16,9 +19,7 @@ from src.preprocessing.custom_transformers import (
 
 class CustomModelPipeline():
 
-    def __init__(self, feature_config: Optional[Dict[str, bool]] = None,
-                 feature_selector: Optional[str] = None, model: Any = None, 
-                imbalance_technique: Optional[str] = None) -> None:
+    def __init__(self, feature_config: Optional[Dict[str, bool]] = None) -> None:
         """
         Initializes the CustomModelPipeline instance.
 
@@ -32,15 +33,16 @@ class CustomModelPipeline():
         """
         super().__init__()
         self.features: List[str] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
-        self.feature_config = feature_config or {
-            'short_numerics': True,
-            'long_numerics': True,
-            'cat_cols': True
-        }
-        self.feature_selector = feature_selector
-        self.model = model if model else RandomForestClassifier()
-        self.imbalance_technique = imbalance_technique
-        self.setup()
+        self.feature_config = feature_config
+        self.params = {} #or {
+        #     'short_numerics': True,
+        #     'long_numerics': True,
+        #     'cat_cols': True
+        # }
+        # self.feature_selector = feature_selector
+        # self.model = model if model else RandomForestClassifier()
+        # self.imbalance_technique = imbalance_technique
+    
 
     def define_pipeline(self) -> None:
         """
@@ -59,7 +61,7 @@ class CustomModelPipeline():
         feature_union = []
 
         # Dynamically add feature groups based on configuration
-        if self.feature_config.get('short_numerics', False):
+        if self.feature_config.get('std_scale', False):
             feature_union.append(('short_numerics', Pipeline([
                 ('extract', ColumnExtractor(
                     [col for col in self.features if col in config.columns.short_num_cols]
@@ -67,7 +69,6 @@ class CustomModelPipeline():
                 ('normalize', ShortTermNormalizer())
             ])))
         
-        if self.feature_config.get('long_numerics', False):
             feature_union.append(('long_numerics', Pipeline([
                 ('extract', ColumnExtractor(
                     [col for col in self.features if col in config.columns.long_num_cols]
@@ -75,7 +76,6 @@ class CustomModelPipeline():
                 ('normalize', LongTermNormalizer())
             ])))
         
-        if self.feature_config.get('cat_cols', False):
             feature_union.append(('cat_cols', Pipeline([
                 ('extract', ColumnExtractor(
                     [col for col in self.features if col in config.columns.cat_cols]
@@ -89,21 +89,29 @@ class CustomModelPipeline():
         steps = []
 
         # Optional imbalance handling
-        if self.imbalance_technique:
-            steps.append(('imbalance_handler', ImbalanceHandler(technique=self.imbalance_technique)))
+        imb_technique = self.feature_config.get('imbalance_technique', None)
+        if imb_technique:
+            steps.append(('imbalance_handler', ImbalanceHandler(technique=imb_technique)))
 
         # Add feature extraction
         steps.append(('features', DFFeatureUnion(feature_union)))
         
         # Optional feature selection
-        if self.feature_selector:
-            if self.feature_selector == 'RFE':
+        feature_selector = self.feature_config.get('imbalance_technique', None)
+
+        model_type = self.feature_config.get('model', None)
+        model = ModelType_mapping.get(model_type, RandomForestClassifier)
+
+        if feature_selector:
+            self.params = {**self.params, **config.model.pipeline_params}
+            feature_selector = FeatSelect_mapping.get(feature_selector, None)
                 steps.append(('feature_selection', DFRecursiveFeatureSelector()))
-            elif self.feature_selector == 'SHAP':
-                steps.append(('feature_selection', DFShapFeatureSelector(self.model)))
+            elif feature_selector == 'SHAP':
+                steps.append(('feature_selection', DFShapFeatureSelector(model())))
 
         # Add the model as the final step
-        steps.append(('model_fit', self.model))
+        steps.append(('model_fit', model()))
+        self.params = {**self.params, **config.model.model_params.get()}
 
         # Define the pipeline with the configured steps
         self.pipeline = Pipeline(steps)
