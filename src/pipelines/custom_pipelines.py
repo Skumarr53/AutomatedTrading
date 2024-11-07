@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from src.pipelines.base_pipeline import MLPipelineBase
+# from src.pipelines.base_pipeline import MLPipelineBase
 from src import config
 from src.config import (FeatSelect_mapping,
                         ImbalanceHandler_mapping,
@@ -97,7 +97,7 @@ class CustomModelPipeline():
         steps.append(('features', DFFeatureUnion(feature_union)))
         
         # Optional feature selection
-        feature_selector = self.feature_config.get('imbalance_technique', None)
+        feature_selector = self.feature_config.get('feature_selector', None)
 
         model_type = self.feature_config.get('model', None)
         model = ModelType_mapping.get(model_type, RandomForestClassifier)
@@ -105,13 +105,11 @@ class CustomModelPipeline():
         if feature_selector:
             self.params = {**self.params, **config.model.pipeline_params}
             feature_selector = FeatSelect_mapping.get(feature_selector, None)
-                steps.append(('feature_selection', DFRecursiveFeatureSelector()))
-            elif feature_selector == 'SHAP':
-                steps.append(('feature_selection', DFShapFeatureSelector(model())))
+            steps.append(('feature_selection', DFRecursiveFeatureSelector()))
 
         # Add the model as the final step
         steps.append(('model_fit', model()))
-        self.params = {**self.params, **config.model.model_params.get()}
+        self.params = {**self.params, **config.model.model_params.get(model_type, 'RFC')}
 
         # Define the pipeline with the configured steps
         self.pipeline = Pipeline(steps)

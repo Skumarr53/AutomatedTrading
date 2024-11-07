@@ -12,7 +12,7 @@ from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.financial_analysis.trading_strategies import TradingStrategies
 from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
-from src.pipelines.custom_pipelines import CustomModelPipeline
+from src.pipelines.base_pipeline import MLPipelineBase
 from src.utils.utils import determine_mode
 
 
@@ -46,7 +46,7 @@ class MarketAnalysisApp:
         self.data_aggregator = DataAggregator()
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
-        self.custom_model = CustomModelPipeline()
+        self.custom_model = MLPipelineBase()
         self.timezone = pytz.timezone(config.scheduler.timezone)
 
     def _setup_data_handling(self):

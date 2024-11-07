@@ -15,6 +15,9 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.feature_selection import SelectKBest, mutual_info_regression, RFE, RFECV
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.exceptions import NotFittedError
+from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.combine import SMOTETomek, SMOTEENN
+
 
 from src import config
 
@@ -571,13 +574,6 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
 
 
 
-from sklearn.base import BaseEstimator, TransformerMixin
-from imblearn.over_sampling import SMOTE, RandomOverSampler
-from imblearn.combine import SMOTETomek, SMOTEENN
-from typing import Optional
-import pandas as pd
-import numpy as np
-
 class ImbalanceHandler(BaseEstimator, TransformerMixin):
     """
     A custom transformer to handle imbalanced datasets using resampling techniques such as SMOTE and Random Oversampling.
@@ -587,7 +583,7 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
         sampler: The imbalanced-learn sampler object used for resampling.
     """
 
-    def __init__(self, technique: str = 'smote') -> None:
+    def __init__(self, technique: str = 'smote', **kwargs: Any) -> None:
         """
         Initializes the ImbalanceHandler transformer.
 
@@ -596,16 +592,18 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
                 Options: 'smote' (default), 'random', 'smote_tomek', 'smote_enn'.
         """
         self.technique = technique.lower()
-        self.sampler = None
+        self.kwargs = kwargs
+        self.sampler = self._initialize_sampler()
 
+    def _initialize_sampler(self):
         if self.technique == 'smote':
-            self.sampler = SMOTE()
+            return SMOTE(**self.kwargs)
         elif self.technique == 'random':
-            self.sampler = RandomOverSampler()
+            return RandomOverSampler(**self.kwargs)
         elif self.technique == 'smote_tomek':
-            self.sampler = SMOTETomek()
+            return SMOTETomek(**self.kwargs)
         elif self.technique == 'smote_enn':
-            self.sampler = SMOTEENN()
+            return SMOTEENN(**self.kwargs)
         else:
             raise ValueError("Invalid technique. Choose from 'smote', 'random', 'smote_tomek', or 'smote_enn'.")
 
@@ -621,8 +619,10 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
             ImbalanceHandler: Fitted transformer.
         """
         # Fit the sampler on X, y if necessary
-        if self.sampler is not None:
-            self.sampler.fit_resample(X, y)
+        # Some samplers may require fitting, others do not
+        if hasattr(self.sampler, 'fit'):
+            self.sampler.fit(X, y)
+            logger.debug(f"Sampler '{self.technique}' fitted.")
         return self
 
     def transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Tuple[pd.DataFrame, pd.Series]:

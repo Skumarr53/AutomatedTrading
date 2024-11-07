@@ -22,7 +22,6 @@ FeatSelect_mapping = {
 }
 
 ImbalanceHandler_mapping = {
-
     'SMOTE': ImbalanceHandler(technique='smote'),
     'RANDOM': ImbalanceHandler(technique='random'),
     'SMOTE_TOMEK': ImbalanceHandler(technique='smote_tomek'),

@@ -1,7 +1,6 @@
 # src/pipelines/base_pipeline.py
 
 from typing import Any, Dict, Union, List, Optional, Tuple
-from src.config import pipeline_configs 
 import joblib
 import os
 import pandas as pd
@@ -15,7 +14,7 @@ import mlflow
 import mlflow.sklearn
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 from src.config.vars import CLOSE
-from src import config
+from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
 from src.utils.mlflow_utils import log_model_performance
 from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
@@ -48,8 +47,8 @@ class MLPipelineBase:
         """
         Sets up multiple pipelines based on the provided configurations.
         """
-        for p_config in self.pipeline_configs:
-            pipeline = CustomModelPipeline(**p_config)
+        for pp_name, p_config in config.model.pipeline_configs.items():
+            pipeline = CustomModelPipeline(p_config)
             pipeline.define_pipeline()
             self.pipelines.append(pipeline)
 
@@ -65,20 +64,19 @@ class MLPipelineBase:
             self.model = self.define_model()
         
 
-    def define_model(self) -> GridSearchCV:
+    def define_model(self, pipeline: Pipeline) -> GridSearchCV:
         """
         Defines the machine learning model using GridSearchCV for hyperparameter tuning.
 
         Returns:
             GridSearchCV: An instance of GridSearchCV configured with the pipeline and parameter grid.
         """
-        if not self.pipeline:
+        if not pipeline:
             raise ValueError("Pipeline must be defined before defining the model.")
 
         return GridSearchCV(
-            self.pipeline,
-            # TODO
-            param_grid=dict(config.model.model_params),
+            pipeline.pipeline,
+            param_grid=pipeline.params,
             scoring='f1_weighted',
             n_jobs=5,
             cv=5,
@@ -182,67 +180,72 @@ class MLPipelineBase:
         run_ids = config.model_settings.run_ids
         if not run_ids:
             raise ValueError("run_ids must be set for BACKTEST mode.")
-        for run_id in run_ids:
-            for target in config.model_settings.model_targets:
-                try:
-                    logger.info(f"Training model for {symbol} {run_id} {target}")
-                    with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
-                        mlflow.set_tag("mode", self.mode)
-                        mlflow.set_tag("model_id", self.model_id)
-                        mlflow.log_param("symbol", symbol)
-                        mlflow.log_param("run_id", run_id)
-                        mlflow.log_param("target", target)
+        
+        
+        for pipeline in self.pipelines:
+            for run_id in run_ids:
+                for target in config.model_settings.model_targets:
+                    try:
+                        self.model = self.define_model(pipeline)
+                        logger.info(f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}")
+                        with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
+                            mlflow.set_tag("mode", self.mode)
+                            mlflow.set_tag("model_id", self.model_id)
+                            mlflow.log_params(pipeline.params) 
+                            mlflow.log_param("symbol", symbol)
+                            mlflow.log_param("run_id", run_id)
+                            mlflow.log_param("target", target)
 
-                        # Prepare target variable
-                        X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
+                            # Prepare target variable
+                            X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
 
-                        if config.model_settings.shuffle:
-                            X_trans, y_trans = self.shuffle_training_inputs(X_trans, y_trans)
+                            if config.model_settings.shuffle:
+                                X_trans, y_trans = self.shuffle_training_inputs(X_trans, y_trans)
 
-                        if y_trans is None:
-                            logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
-                            continue
+                            if y_trans is None:
+                                logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
+                                continue
 
-                        if self.model is None:
-                            raise ValueError("Model has not been defined. Call setup() before running.")
-                        
-                        ## drop expirt column\
-                        
-                        if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
+                            if self.model is None:
+                                raise ValueError("Model has not been defined. Call setup() before running.")
+                            
+                            ## drop expirt column\
+                            
+                            if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
 
-                        rows_to_drop = X_trans.isna().any(axis=1)
-                        X_trans, y_trans = X_trans[~rows_to_drop], y_trans[~rows_to_drop]
-                         
-                        # Fit the model
-                        self.model.fit(X_trans, y_trans)
+                            rows_to_drop = X_trans.isna().any(axis=1)
+                            X_trans, y_trans = X_trans[~rows_to_drop], y_trans[~rows_to_drop]
+                            
+                            # Fit the model
+                            self.model.fit(X_trans, y_trans)
 
-                        # Log best parameters
-                        mlflow.log_params(self.model.best_params_)
+                            # Log best parameters
+                            mlflow.log_params(self.model.best_params_)
 
-                        # Predict on training data
-                        y_pred = self.model.predict(X_trans)
+                            # Predict on training data
+                            y_pred = self.model.predict(X_trans)
 
-                        # Log performance metrics and artifacts
-                        log_model_performance(y_trans, y_pred, self.model.best_estimator_, X_trans)
+                            # Log performance metrics and artifacts
+                            log_model_performance(y_trans, y_pred, self.model.best_estimator_, X_trans)
 
-                        # Log the model
-                        registered_model_name = f"{symbol}_{run_id}_{target}"
-                        mlflow.sklearn.log_model(
-                            sk_model=self.model.best_estimator_,
-                            artifact_path="model",
-                            registered_model_name=registered_model_name
-                        )
+                            # Log the model
+                            registered_model_name = f"{symbol}_{run_id}_{target}"
+                            mlflow.sklearn.log_model(
+                                sk_model=self.model.best_estimator_,
+                                artifact_path="model",
+                                registered_model_name=registered_model_name
+                            )
 
-                        # Store the best estimator
-                        if symbol not in self.best_model_dict:
-                            self.best_model_dict[symbol] = {}
-                        if run_id not in self.best_model_dict[symbol]:
-                            self.best_model_dict[symbol][run_id] = {}
-                        self.best_model_dict[symbol][run_id][target] = clone(self.model.best_estimator_)
-                except Exception as e:
-                    mlflow.log_param("error", str(e))
-                    logger.error(f"Error encountered while training: {symbol}_{run_id}_{target}_{self.model_id}")
-                    raise e
+                            # Store the best estimator
+                            if symbol not in self.best_model_dict:
+                                self.best_model_dict[symbol] = {}
+                            if run_id not in self.best_model_dict[symbol]:
+                                self.best_model_dict[symbol][run_id] = {}
+                            self.best_model_dict[symbol][run_id][target] = clone(self.model.best_estimator_)
+                    except Exception as e:
+                        mlflow.log_param("error", str(e))
+                        logger.error(f"Error encountered while training: {symbol}_{run_id}_{target}_{self.model_id} \n {str(e)}")
+                        raise e
 
     def predict(self, X: pd.DataFrame, symbol: str) -> None:
         """
