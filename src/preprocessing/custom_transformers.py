@@ -591,18 +591,19 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
             technique (str, optional): The resampling technique to use. 
                 Options: 'smote' (default), 'random', 'smote_tomek', 'smote_enn'.
         """
-        self.technique = technique.lower()
+        self.technique = technique
         self.kwargs = kwargs
-        self.sampler = self._initialize_sampler()
+        self.sampler = None #self._initialize_sampler()
 
     def _initialize_sampler(self):
-        if self.technique == 'smote':
+        technique = self.technique.lower()
+        if technique == 'smote':
             return SMOTE(**self.kwargs)
-        elif self.technique == 'random':
+        elif technique == 'random':
             return RandomOverSampler(**self.kwargs)
-        elif self.technique == 'smote_tomek':
+        elif technique == 'smote_tomek':
             return SMOTETomek(**self.kwargs)
-        elif self.technique == 'smote_enn':
+        elif technique == 'smote_enn':
             return SMOTEENN(**self.kwargs)
         else:
             raise ValueError("Invalid technique. Choose from 'smote', 'random', 'smote_tomek', or 'smote_enn'.")
@@ -619,7 +620,8 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
             ImbalanceHandler: Fitted transformer.
         """
         # Fit the sampler on X, y if necessary
-        # Some samplers may require fitting, others do not
+        self.sampler = self._initialize_sampler()
+
         if hasattr(self.sampler, 'fit'):
             self.sampler.fit(X, y)
             logger.debug(f"Sampler '{self.technique}' fitted.")
