@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 from loguru import logger
 from sklearn.model_selection import GridSearchCV
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
 from sklearn.base import clone
 import pandas as pd
 import mlflow
@@ -33,7 +33,6 @@ class MLPipelineBase:
         self.model_id: str = datetime.now().strftime('%Y%m%d%H%M%S')
         self.features: Optional[List[str]] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
         self.pipelines: Optional[Pipeline] =  []
-        self.model: Optional[GridSearchCV] = None
         self.best_model_dict: Dict[str, Any] = (
             self._load_models()
             if config.trading_config.trade_mode == 'LIVE'
@@ -49,40 +48,20 @@ class MLPipelineBase:
         """
         for pp_name, p_config in config.model.pipeline_configs.items():
             pipeline = CustomModelPipeline(p_config)
-            pipeline.define_pipeline()
+            pipeline.define_model()
             self.pipelines.append(pipeline)
 
-    def setup(self) -> None:
-        """
-        Sets up the pipeline by defining the model and pipeline components.
+    # def setup(self) -> None:
+    #     """
+    #     Sets up the pipeline by defining the model and pipeline components.
 
-        In BACKTEST mode, it defines the model using GridSearchCV.
-        In LIVE mode, it relies on pre-loaded models.
-        """
-        self.define_pipeline()
-        if self.mode != 'LIVE':
-            self.model = self.define_model()
+    #     In BACKTEST mode, it defines the model using GridSearchCV.
+    #     In LIVE mode, it relies on pre-loaded models.
+    #     """
+    #     self.define_pipeline()
+    #     if self.mode != 'LIVE':
+    #         self.model = self.define_model()
         
-
-    def define_model(self, pipeline: Pipeline) -> GridSearchCV:
-        """
-        Defines the machine learning model using GridSearchCV for hyperparameter tuning.
-
-        Returns:
-            GridSearchCV: An instance of GridSearchCV configured with the pipeline and parameter grid.
-        """
-        if not pipeline:
-            raise ValueError("Pipeline must be defined before defining the model.")
-
-        return GridSearchCV(
-            pipeline.pipeline,
-            param_grid=pipeline.params,
-            scoring='f1_weighted',
-            n_jobs=5,
-            cv=5,
-            verbose=1,
-            return_train_score=True
-        )
 
     def define_pipeline(self) -> None:
         """
@@ -185,67 +164,71 @@ class MLPipelineBase:
         for pipeline in self.pipelines:
             for run_id in run_ids:
                 for target in config.model_settings.model_targets:
-                    try:
-                        self.model = self.define_model(pipeline)
-                        logger.info(f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}")
-                        with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
-                            mlflow.set_tag("mode", self.mode)
-                            mlflow.set_tag("model_id", self.model_id)
-                            mlflow.log_params(pipeline.params) 
-                            mlflow.log_param("symbol", symbol)
-                            mlflow.log_param("run_id", run_id)
-                            mlflow.log_param("target", target)
+                    # try:
+                    #self.model = self.define_model(pipeline)
+                    logger.info(f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}")
+                    with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
+                        mlflow.set_tag("mode", self.mode)
+                        mlflow.set_tag("model_id", self.model_id)
+                        mlflow.log_params(pipeline.params) 
+                        mlflow.log_param("symbol", symbol)
+                        mlflow.log_param("run_id", run_id)
+                        mlflow.log_param("target", target)
 
-                            # Prepare target variable
-                            X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
+                        # Prepare target variable
+                        X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
 
-                            if config.model_settings.shuffle:
-                                X_trans, y_trans = self.shuffle_training_inputs(X_trans, y_trans)
+                        if config.model_settings.shuffle:
+                            X_trans, y_trans = self.shuffle_training_inputs(X_trans, y_trans)
 
-                            if y_trans is None:
-                                logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
-                                continue
+                        if y_trans is None:
+                            logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
+                            continue
 
-                            if self.model is None:
-                                raise ValueError("Model has not been defined. Call setup() before running.")
-                            
-                            ## drop expirt column\
-                            
-                            if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
+                        if pipeline.model is None:
+                            raise ValueError("Model has not been defined. Call setup() before running.")
+                        
+                        ## drop expirt column\
+                        
+                        if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
+                        if 'symbol' in X_trans: X_trans = X_trans.drop(['symbol'], axis=1)
 
-                            rows_to_drop = X_trans.isna().any(axis=1)
-                            X_trans, y_trans = X_trans[~rows_to_drop], y_trans[~rows_to_drop]
-                            
-                            # Fit the model
-                            self.model.fit(X_trans, y_trans)
+                        rows_to_drop = X_trans.isna().any(axis=1)
+                        X_trans, y_trans = X_trans[~rows_to_drop], y_trans[~rows_to_drop]
+                        
+                        # Fit the model
+                        pipeline.model.fit(X_trans, y_trans)
 
-                            # Log best parameters
-                            mlflow.log_params(self.model.best_params_)
 
-                            # Predict on training data
-                            y_pred = self.model.predict(X_trans)
 
-                            # Log performance metrics and artifacts
-                            log_model_performance(y_trans, y_pred, self.model.best_estimator_, X_trans)
 
-                            # Log the model
-                            registered_model_name = f"{symbol}_{run_id}_{target}"
-                            mlflow.sklearn.log_model(
-                                sk_model=self.model.best_estimator_,
-                                artifact_path="model",
-                                registered_model_name=registered_model_name
-                            )
+                        # Log best parameters
+                        mlflow.log_params(pipeline.model.best_params_)
 
-                            # Store the best estimator
-                            if symbol not in self.best_model_dict:
-                                self.best_model_dict[symbol] = {}
-                            if run_id not in self.best_model_dict[symbol]:
-                                self.best_model_dict[symbol][run_id] = {}
-                            self.best_model_dict[symbol][run_id][target] = clone(self.model.best_estimator_)
-                    except Exception as e:
-                        mlflow.log_param("error", str(e))
-                        logger.error(f"Error encountered while training: {symbol}_{run_id}_{target}_{self.model_id} \n {str(e)}")
-                        raise e
+                        # Predict on training data
+                        y_pred = pipeline.model.predict(X_trans)
+
+                        # Log performance metrics and artifacts
+                        log_model_performance(y_trans, y_pred, pipeline.model.best_estimator_, X_trans)
+
+                        # Log the model
+                        registered_model_name = f"{symbol}_{run_id}_{target}"
+                        mlflow.sklearn.log_model(
+                            sk_model=pipeline.model.best_estimator_,
+                            artifact_path="model",
+                            registered_model_name=registered_model_name
+                        )
+
+                        # Store the best estimator
+                        if symbol not in self.best_model_dict:
+                            self.best_model_dict[symbol] = {}
+                        if run_id not in self.best_model_dict[symbol]:
+                            self.best_model_dict[symbol][run_id] = {}
+                        self.best_model_dict[symbol][run_id][target] = clone(pipeline.model.best_estimator_)
+                    # except Exception as e:
+                    #     mlflow.log_param("error", str(e))
+                    #     logger.error(f"Error encountered while training: {symbol}_{run_id}_{target}_{self.model_id} \n {str(e)}")
+                    #     raise e
 
     def predict(self, X: pd.DataFrame, symbol: str) -> None:
         """

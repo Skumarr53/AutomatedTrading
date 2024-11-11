@@ -45,13 +45,13 @@ class CsvValidator:
         custom_bd = CustomBusinessDay(holidays=self.indian_holidays)
         return pd.bdate_range(start=current_week_monday, end=today, freq=custom_bd)
 
-    #EDITED: Updated heatmap generation to include missing percentages alongside day labels
+    # EDITED: Updated heatmap generation to include missing percentages alongside day labels
     def _generate_heatmap(self, validation_matrix: np.ndarray, missing_percentage: List[float], file_name: str) -> None:
         """Generate and save a heatmap for missing intervals."""
-        
+
         # Combine day names with their missing percentages
         yticklabels = [f"{day.strftime('%A')} ({perc:.0f}%)" for day, perc in zip(self.trading_days, missing_percentage)]
-        
+
         plt.figure(figsize=(12, 7))  # Slightly increase the size for better readability
         sns.heatmap(validation_matrix, cmap='coolwarm_r', cbar=False,  # Reverse the colormap
                     yticklabels=yticklabels,
@@ -63,32 +63,35 @@ class CsvValidator:
         plt.title(f"Missing Time Slots for {Path(file_name).stem}", fontsize=16, weight='bold')
         plt.xlabel('Time Intervals', fontsize=12)
         plt.ylabel('Day of the Week', fontsize=12)
-        
+
         plt.xticks(rotation=90)  # Rotate x-ticks for better readability
         plt.yticks(rotation=0)  # Keep y-ticks horizontal
-        
-        #EDITED: Removed the previous percentage text annotation
+
+        # EDITED: Removed the previous percentage text annotation
         # plt.figtext(...) line removed
-        
+
         # Save the heatmap
         heatmap_file = os.path.join(self.config.output_directory, f"{Path(file_name).stem}_heatmap.png")
         plt.savefig(heatmap_file, bbox_inches='tight', dpi=300)  # Increase DPI for better quality
         plt.close()
         logger.info(f"Heatmap generated: {heatmap_file}")
 
-    #EDITED: Removed combined heatmap generation as it's not required
+    # EDITED: Removed combined heatmap generation as it's not required
     # If needed, similar changes can be applied to the combined heatmap method
 
     def _validate_file(self, file_path: str, combined_missing: np.ndarray) -> None:
         """Validate a single csv file for missing intervals."""
         print(file_path)
         try:
+
             df = pd.read_csv(
-                        file_path,
-                        on_bad_lines="skip",
-                        engine="python",
-                    )
-            df['last_traded_time'] = pd.to_datetime(df['last_traded_time'])
+                file_path,
+                parse_dates=["last_traded_time"],
+                date_parser=lambda x: pd.to_datetime(x, format="%Y-%m-%d %H:%M:%S"),
+                on_bad_lines="skip",
+                engine="python",
+            )
+            df['last_traded_time'] = pd.to_datetime(df['last_traded_time'],  errors='coerce')
         except Exception as e:
             logger.error(f"Failed to process file {file_path}: {e}")
             return
@@ -123,13 +126,13 @@ class CsvValidator:
             logger.warning(f"No csv files found in directory {self.config.input_directory}")
             return
 
-        #EDITED: Initialize combined missing data array (if combined heatmap is needed)
+        # EDITED: Initialize combined missing data array (if combined heatmap is needed)
         combined_missing = np.zeros(len(self.intervals))
 
         for file_path in files:
             self._validate_file(file_path, combined_missing)
 
-        #EDITED: Removed combined heatmap generation as per latest requirement
+        # EDITED: Removed combined heatmap generation as per latest requirement
         # If needed, calculate combined_percentage and generate combined_heatmap
 
 def main() -> None:

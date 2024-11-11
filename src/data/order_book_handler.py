@@ -73,13 +73,15 @@ class OrderBookHandler:
                         on_bad_lines="skip",
                         engine="python",
                     )
-                df['last_traded_time'] = pd.to_datetime(
-                    df['last_traded_time']).dt.round('5min')
+                df['last_traded_time'] = pd.to_datetime(df['last_traded_time'], errors='coerce')
+                df = df.dropna(subset=['last_traded_time'])
+                df['last_traded_time'] = df['last_traded_time'].dt.round('5min')
                 return df
         except Exception as e:
             return pd.DataFrame()
 
     def register_callback(self, callback):
+        
         self.callbacks.append(callback)
 
     def execute_callbacks(self):

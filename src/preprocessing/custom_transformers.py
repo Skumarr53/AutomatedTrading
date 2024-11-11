@@ -17,9 +17,55 @@ from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.exceptions import NotFittedError
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.combine import SMOTETomek, SMOTEENN
-
+from sklearn.preprocessing import LabelEncoder
 
 from src import config
+
+
+
+class TargetLabelEncoder(BaseEstimator, TransformerMixin):
+    """
+    Custom transformer for label encoding the target variable.
+    """
+    def __init__(self):
+        self.label_encoder = LabelEncoder()
+
+    def fit(self, y: pd.Series) -> 'TargetLabelEncoder':
+        """
+        Fits the label encoder to the target variable.
+
+        Args:
+            y (pd.Series): Target variable to encode.
+
+        Returns:
+            TargetLabelEncoder: Fitted transformer.
+        """
+        self.label_encoder.fit(y)
+        return self
+
+    def transform(self, y: pd.Series) -> pd.Series:
+        """
+        Transforms the target variable by encoding labels to numeric values.
+
+        Args:
+            y (pd.Series): Target variable to encode.
+
+        Returns:
+            pd.Series: Encoded target variable.
+        """
+        return pd.Series(self.label_encoder.transform(y), index=y.index)
+
+    def inverse_transform(self, y: pd.Series) -> pd.Series:
+        """
+        Transforms the numeric encoded labels back to original labels.
+
+        Args:
+            y (pd.Series): Encoded target variable.
+
+        Returns:
+            pd.Series: Original target variable labels.
+        """
+        return pd.Series(self.label_encoder.inverse_transform(y), index=y.index)
 
 
 class ColumnExtractor(BaseEstimator, TransformerMixin):
@@ -237,54 +283,54 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         return X_scaled
     
 
-class CategoricalPreprocessor(BaseEstimator, TransformerMixin):
-    """
-    Encodes categorical features using One-Hot Encoding.
+# class CategoricalPreprocessor(BaseEstimator, TransformerMixin):
+#     """
+#     Encodes categorical features using One-Hot Encoding.
 
-    Attributes:
-        columns (List[str]): List of categorical columns to encode.
-    """
+#     Attributes:
+#         columns (List[str]): List of categorical columns to encode.
+#     """
 
-    def __init__(self, columns: List[str]) -> None:
-        """
-        Initializes the CategoricalPreprocessor.
+#     def __init__(self, columns: List[str]) -> None:
+#         """
+#         Initializes the CategoricalPreprocessor.
 
-        Args:
-            columns (List[str]): List of categorical columns to encode.
-        """
-        self.columns = columns
-        self.encoder_ = OneHotEncoder(sparse=False, drop='if_binary', handle_unknown='ignore')
+#         Args:
+#             columns (List[str]): List of categorical columns to encode.
+#         """
+#         self.columns = columns
+#         self.encoder_ = OneHotEncoder(sparse=False, drop='if_binary', handle_unknown='ignore')
 
-    def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'CategoricalPreprocessor':
-        """
-        Fits the OneHotEncoder to the specified categorical columns.
+#     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'CategoricalPreprocessor':
+#         """
+#         Fits the OneHotEncoder to the specified categorical columns.
 
-        Args:
-            X (pd.DataFrame): Input DataFrame.
-            y (Optional[pd.Series]): Optional target variable.
+#         Args:
+#             X (pd.DataFrame): Input DataFrame.
+#             y (Optional[pd.Series]): Optional target variable.
 
-        Returns:
-            CategoricalPreprocessor: Fitted preprocessor.
-        """
-        self.encoder_.fit(X[self.columns])
-        logger.debug(f"Fitted OneHotEncoder on columns: {self.columns}")
-        return self
+#         Returns:
+#             CategoricalPreprocessor: Fitted preprocessor.
+#         """
+#         self.encoder_.fit(X[self.columns])
+#         logger.debug(f"Fitted OneHotEncoder on columns: {self.columns}")
+#         return self
 
-    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transforms the input DataFrame by encoding the specified categorical columns.
+#     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+#         """
+#         Transforms the input DataFrame by encoding the specified categorical columns.
 
-        Args:
-            X (pd.DataFrame): Input DataFrame.
+#         Args:
+#             X (pd.DataFrame): Input DataFrame.
 
-        Returns:
-            pd.DataFrame: DataFrame with encoded categorical features.
-        """
-        encoded_array = self.encoder_.transform(X[self.columns])
-        encoded_columns = self.encoder_.get_feature_names_out(input_features=self.columns)
-        encoded_df = pd.DataFrame(encoded_array, columns=encoded_columns, index=X.index)
-        logger.debug(f"Transformed categorical columns: {self.columns}")
-        return encoded_df
+#         Returns:
+#             pd.DataFrame: DataFrame with encoded categorical features.
+#         """
+#         encoded_array = self.encoder_.transform(X[self.columns])
+#         encoded_columns = self.encoder_.get_feature_names_out(input_features=self.columns)
+#         encoded_df = pd.DataFrame(encoded_array, columns=encoded_columns, index=X.index)
+#         logger.debug(f"Transformed categorical columns: {self.columns}")
+#         return encoded_df
 
 
 class DFRecursiveFeatureSelector(BaseEstimator, TransformerMixin):
@@ -583,19 +629,13 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
         sampler: The imbalanced-learn sampler object used for resampling.
     """
 
-    def __init__(self, technique: str = 'smote', **kwargs: Any) -> None:
-        """
-        Initializes the ImbalanceHandler transformer.
-
-        Args:
-            technique (str, optional): The resampling technique to use. 
-                Options: 'smote' (default), 'random', 'smote_tomek', 'smote_enn'.
-        """
+    def __init__(self, technique: str = 'smote', **kwargs) -> None:
         self.technique = technique
         self.kwargs = kwargs
-        self.sampler = None #self._initialize_sampler()
+        self.sampler = None  # Sampler will be initialized in fit_transform
 
     def _initialize_sampler(self):
+        """Initializes the sampler based on the specified technique."""
         technique = self.technique.lower()
         if technique == 'smote':
             return SMOTE(**self.kwargs)
@@ -608,40 +648,22 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
         else:
             raise ValueError("Invalid technique. Choose from 'smote', 'random', 'smote_tomek', or 'smote_enn'.")
 
-    def fit(self, X: pd.DataFrame, y: pd.Series) -> 'ImbalanceHandler':
+    def fit_transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        Fits the sampler on the data.
+        Resamples the data by applying the selected technique to balance classes.
 
         Args:
             X (pd.DataFrame): Input feature DataFrame.
             y (pd.Series): Target variable Series.
 
         Returns:
-            ImbalanceHandler: Fitted transformer.
-        """
-        # Fit the sampler on X, y if necessary
-        self.sampler = self._initialize_sampler()
-
-        if hasattr(self.sampler, 'fit'):
-            self.sampler.fit(X, y)
-            logger.debug(f"Sampler '{self.technique}' fitted.")
-        return self
-
-    def transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Transforms the data by applying the selected resampling technique to balance classes.
-
-        Args:
-            X (pd.DataFrame): Input feature DataFrame.
-            y (Optional[pd.Series]): Target variable Series. Required for resampling.
-
-        Returns:
             Tuple[pd.DataFrame, pd.Series]: Resampled features and target.
         """
         if y is None:
             raise ValueError("The target variable 'y' is required for resampling.")
-
-        # Apply the selected resampling technique
+        
+        # Initialize the sampler and apply fit_resample
+        self.sampler = self._initialize_sampler()
         X_resampled, y_resampled = self.sampler.fit_resample(X, y)
 
         # Log the resampling results
@@ -649,3 +671,28 @@ class ImbalanceHandler(BaseEstimator, TransformerMixin):
         logger.debug(f"Original dataset size: {len(X)}, Resampled dataset size: {len(X_resampled)}")
         
         return pd.DataFrame(X_resampled, columns=X.columns), pd.Series(y_resampled, name=y.name)
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Returns the input features without resampling for inference.
+
+        Args:
+            X (pd.DataFrame): Input feature DataFrame.
+
+        Returns:
+            pd.DataFrame: Original (unmodified) input features.
+        """
+        # No resampling during inference, just return X as-is
+        return X
+
+    # def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+    #     """
+    #     The transform method, allowing the ImbalanceHandler to pass data through unmodified during inference or testing.
+
+    #     Args:
+    #         X (pd.DataFrame): Input feature DataFrame.
+
+    #     Returns:
+    #         pd.DataFrame: Unmodified input DataFrame.
+    #     """
+    #     return X

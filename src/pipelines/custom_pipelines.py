@@ -1,12 +1,14 @@
+import pandas as pd
 from typing import Any, Dict, List, Optional
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-# from src.pipelines.base_pipeline import MLPipelineBase
+from sklearn.model_selection import GridSearchCV
 from src import config
 from src.config import (FeatSelect_mapping,
                         ImbalanceHandler_mapping,
                         ModelType_mapping)
 from src.preprocessing.custom_transformers import (
+    TargetLabelEncoder,
     DFFeatureUnion,
     ColumnExtractor,
     ShortTermNormalizer,
@@ -34,15 +36,10 @@ class CustomModelPipeline():
         super().__init__()
         self.features: List[str] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
         self.feature_config = feature_config
-        self.params = {} #or {
-        #     'short_numerics': True,
-        #     'long_numerics': True,
-        #     'cat_cols': True
-        # }
-        # self.feature_selector = feature_selector
-        # self.model = model if model else RandomForestClassifier()
-        # self.imbalance_technique = imbalance_technique
-    
+        self.params = {} 
+        self.target_encoder = TargetLabelEncoder()  # Initialize TargetLabelEncoder
+        self.model = None
+
 
     def define_pipeline(self) -> None:
         """
@@ -62,32 +59,26 @@ class CustomModelPipeline():
 
         # Dynamically add feature groups based on configuration
         if self.feature_config.get('std_scale', False):
-            feature_union.append(('short_numerics', Pipeline([
-                ('extract', ColumnExtractor(
-                    [col for col in self.features if col in config.columns.short_num_cols]
-                )),
-                ('normalize', ShortTermNormalizer())
-            ])))
-        
-            feature_union.append(('long_numerics', Pipeline([
-                ('extract', ColumnExtractor(
-                    [col for col in self.features if col in config.columns.long_num_cols]
-                )),
-                ('normalize', LongTermNormalizer())
-            ])))
-        
-            feature_union.append(('cat_cols', Pipeline([
-                ('extract', ColumnExtractor(
-                    [col for col in self.features if col in config.columns.cat_cols]
-                )),
-                ('normalize', CategoricalPreprocessor(
-                    [col for col in self.features if col in config.columns.cat_cols]
-                ))
-            ])))
+            # Flattened structure without additional Pipeline wrapping
+            feature_union.append(('short_numerics', ColumnExtractor(
+                [col for col in self.features if col in config.columns.short_num_cols]
+            )))
+            feature_union.append(('short_normalize', ShortTermNormalizer()))
 
+            feature_union.append(('long_numerics', ColumnExtractor(
+                [col for col in self.features if col in config.columns.long_num_cols]
+            )))
+            feature_union.append(('long_normalize', LongTermNormalizer()))
+        
         # Build pipeline steps dynamically
         steps = []
 
+        steps.append(('cat_extract', ColumnExtractor(
+            [col for col in self.features if col in config.columns.cat_cols]
+        )))
+        steps.append(('cat_normalize', CategoricalPreprocessor(
+            [col for col in self.features if col in config.columns.cat_cols]
+        )))
         # Optional imbalance handling
         imb_technique = self.feature_config.get('imbalance_technique', None)
         if imb_technique:
@@ -98,18 +89,64 @@ class CustomModelPipeline():
         
         # Optional feature selection
         feature_selector = self.feature_config.get('feature_selector', None)
-
-        model_type = self.feature_config.get('model', None)
-        model = ModelType_mapping.get(model_type, RandomForestClassifier)
-
         if feature_selector:
             self.params = {**self.params, **config.model.pipeline_params}
             feature_selector = FeatSelect_mapping.get(feature_selector, None)
             steps.append(('feature_selection', DFRecursiveFeatureSelector()))
 
+        model_type = self.feature_config.get('model', None)
+        model_class = ModelType_mapping.get(model_type, RandomForestClassifier)
         # Add the model as the final step
-        steps.append(('model_fit', model()))
+        steps.append(('model_fit', model_class()))
         self.params = {**self.params, **config.model.model_params.get(model_type, 'RFC')}
 
         # Define the pipeline with the configured steps
         self.pipeline = Pipeline(steps)
+
+    def define_model(self) -> GridSearchCV:
+        """
+        Defines the machine learning model using GridSearchCV for hyperparameter tuning.
+
+        Returns:
+            GridSearchCV: An instance of GridSearchCV configured with the pipeline and parameter grid.
+        """
+        self.define_pipeline()
+
+        self.model = GridSearchCV(
+            self.pipeline,
+            param_grid=self.params,
+            scoring='f1_weighted',
+            n_jobs=5,
+            cv=5,
+            verbose=1,
+            return_train_score=True,
+            error_score='raise'
+        )
+
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+        """
+        Fits the pipeline to the data, including label encoding for the target variable.
+
+        Args:
+            X (pd.DataFrame): Input feature data.
+            y (pd.Series): Target variable.
+        """
+        # Encode the target variable
+        y_encoded = self.target_encoder.fit_transform(y)
+        
+        # Fit the pipeline
+        self.model.fit(X, y_encoded)
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Predicts the target variable using the fitted pipeline and decodes predictions.
+
+        Args:
+            X (pd.DataFrame): Input feature data.
+
+        Returns:
+            pd.Series: Decoded predictions.
+        """
+        # Predict and decode target
+        y_pred_encoded = self.model.predict(X)
+        return self.target_encoder.inverse_transform(y_pred_encoded)
