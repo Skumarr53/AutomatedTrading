@@ -9,7 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def log_model_performance(y_true, y_pred, model, X_trans):
+def log_model_performance(y_true, y_pred, model):
     """
     Logs model performance metrics, confusion matrix, and feature importance to MLflow.
 
@@ -43,13 +43,13 @@ def log_model_performance(y_true, y_pred, model, X_trans):
     plt.close()
 
     # Feature importance
-    if hasattr(model.named_steps['model_fit'], 'feature_importances_'):
-        feature_importances = model.named_steps['model_fit'].feature_importances_
-        feature_names = model.named_steps['feature_selection'].selector_.get_feature_names_out()
-        importance_df = pd.DataFrame({
-            'feature': feature_names,
-            'importance': feature_importances
-        })
-        importance_df.sort_values(by='importance', ascending=False, inplace=True)
-        importance_df.to_csv('WeeklyReports/mlflow_reports/feature_importance.csv', index=False)
-        mlflow.log_artifact('WeeklyReports/mlflow_reports/feature_importance.csv')
+    # if hasattr(model.named_steps['model_fit'], 'feature_importances_'):
+    #     feature_importances = model.named_steps['model_fit'].feature_importances_
+    #     feature_names = model.named_steps['feature_selection'].selector_.get_feature_names_out()
+    #     importance_df = pd.DataFrame({
+    #         'feature': feature_names,
+    #         'importance': feature_importances
+    #     })
+    #     importance_df.sort_values(by='importance', ascending=False, inplace=True)
+    #     importance_df.to_csv('WeeklyReports/mlflow_reports/feature_importance.csv', index=False)
+    #     mlflow.log_artifact('WeeklyReports/mlflow_reports/feature_importance.csv')

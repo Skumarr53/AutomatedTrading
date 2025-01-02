@@ -6,18 +6,25 @@ import os
 import pandas as pd
 from datetime import datetime
 from loguru import logger
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 from imblearn.pipeline import Pipeline
 from sklearn.base import clone
 import pandas as pd
 import mlflow
 import mlflow.sklearn
+from imblearn.over_sampling import SMOTE
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 from src.config.vars import CLOSE
+from joblib import Memory  # NEW: Import Memory for caching
 from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
 from src.utils.mlflow_utils import log_model_performance
 from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
+
+cache_dir = './pipeline_cache'
+if not os.path.exists(cache_dir):
+    os.makedirs(cache_dir)
+memory = Memory(location=cache_dir, verbose=0) 
 
 
 class MLPipelineBase:
@@ -30,7 +37,7 @@ class MLPipelineBase:
         In BACKTEST mode, models are defined and trained during execution.
         """
 
-        self.model_id: str = datetime.now().strftime('%Y%m%d%H%M%S')
+        self.model_id: str = datetime.now().strftime('%Y%m%d')
         self.features: Optional[List[str]] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
         self.pipelines: Optional[Pipeline] =  []
         self.best_model_dict: Dict[str, Any] = (
@@ -48,7 +55,7 @@ class MLPipelineBase:
         """
         for pp_name, p_config in config.model.pipeline_configs.items():
             pipeline = CustomModelPipeline(p_config)
-            pipeline.define_model()
+            pipeline.define_model(memory)
             self.pipelines.append(pipeline)
 
     # def setup(self) -> None:
@@ -128,21 +135,59 @@ class MLPipelineBase:
             raise ValueError(f"Unsupported mode '{self.mode}'. Supported modes are 'BACKTEST' and 'LIVE'.")
         
     @staticmethod
-    def shuffle_training_inputs(X, Y):
-        """
-        Shuffles the input data and target labels.
+    def get_cleaned_data(df: pd.DataFrame, target: pd.Series) -> pd.DataFrame:
 
-        Args:
-            X (pd.DataFrame): Input DataFrame containing feature data.
-            Y (pd.DataFrame): Input DataFrame containing target labels.
+        # Drop unnecessary columns if present
+        drop_cols = [col for col in ['expiry', 'symbol','open_interest_flag'] if col in df.columns]
+        df = df.drop(columns=drop_cols, errors='ignore')
+
+        # Remove rows with any NaN values
+        rows_to_drop = df.isna().any(axis=1)
+        df, target = df[~rows_to_drop], target[~rows_to_drop]
+        df = df.infer_objects()
+        df = df.replace({True: 1, False: 0})
+        
+        
+        # cat_cols = list(getattr(config.columns, 'cat_cols', []))
+        # if cat_cols:
+        #     df[cat_cols] = df[cat_cols].astype(int, errors='ignore')
+        obj_cols = df.columns[df.dtypes=='object']
+        df[obj_cols] = df[obj_cols].astype('float')
+        return df, target
+
+    def transform_and_split(self, 
+                    X: pd.DataFrame, 
+                    target: pd.Series, 
+                    run_id: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+        """
+        Transform input data by preparing target variables, handling missing data, 
+        encoding categorical features, applying optional shuffling, splitting into 
+        train/test sets, and addressing class imbalance with SMOTE.
+
+        Parameters:
+        - X (pd.DataFrame): Input features.
+        - target (pd.Series): Target variable.
+        - run_id (str): Identifier for the current run.
 
         Returns:
-            Tuple[pd.DataFrame, pd.DataFrame]: Shuffled input data and target labels.
+        - X_train (pd.DataFrame): Training features after transformation.
+        - X_test (pd.DataFrame): Test features after transformation.
+        - y_train (pd.Series): Training targets after transformation.
+        - y_test (pd.Series): Test targets after transformation.
         """
-        shuffled_df = X.sample(frac=1, random_state=42).reset_index(drop=True)
-        shuffled_target = Y.sample(frac=1, random_state=42).reset_index(drop=True)
+        # Prepare input and target
+        X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
 
-        return shuffled_df, shuffled_target
+        X_trans, y_trans = self.get_cleaned_data(X_trans, y_trans)
+
+
+        # Train/test split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_trans, y_trans, test_size=0.2, random_state=42
+        )
+
+        return X_train, X_test, y_train, y_test
+
 
     def train(self, X: pd.DataFrame, symbol: str) -> None:
         """
@@ -170,46 +215,31 @@ class MLPipelineBase:
                     with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
                         mlflow.set_tag("mode", self.mode)
                         mlflow.set_tag("model_id", self.model_id)
-                        mlflow.log_params(pipeline.params) 
+                        # mlflow.log_params(pipeline.params) 
                         mlflow.log_param("symbol", symbol)
                         mlflow.log_param("run_id", run_id)
                         mlflow.log_param("target", target)
 
-                        # Prepare target variable
-                        X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
+                        X_train, X_test, y_train, y_test = self.transform_and_split(X, target, run_id)
 
-                        if config.model_settings.shuffle:
-                            X_trans, y_trans = self.shuffle_training_inputs(X_trans, y_trans)
-
-                        if y_trans is None:
+                        if y_train is None:
                             logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
                             continue
 
                         if pipeline.model is None:
                             raise ValueError("Model has not been defined. Call setup() before running.")
                         
-                        ## drop expirt column\
-                        
-                        if 'expiry' in X_trans: X_trans = X_trans.drop(['expiry'], axis=1)
-                        if 'symbol' in X_trans: X_trans = X_trans.drop(['symbol'], axis=1)
-
-                        rows_to_drop = X_trans.isna().any(axis=1)
-                        X_trans, y_trans = X_trans[~rows_to_drop], y_trans[~rows_to_drop]
-                        
                         # Fit the model
-                        pipeline.model.fit(X_trans, y_trans)
-
-
-
+                        pipeline.model.fit(X_train, y_train)
 
                         # Log best parameters
                         mlflow.log_params(pipeline.model.best_params_)
 
                         # Predict on training data
-                        y_pred = pipeline.model.predict(X_trans)
+                        y_pred = pipeline.model.predict(X_test)
 
                         # Log performance metrics and artifacts
-                        log_model_performance(y_trans, y_pred, pipeline.model.best_estimator_, X_trans)
+                        log_model_performance(y_test, y_pred, pipeline.model.best_estimator_)
 
                         # Log the model
                         registered_model_name = f"{symbol}_{run_id}_{target}"

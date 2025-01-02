@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Optional
 from imblearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+from joblib import Memory  # Add this import
+
 from src import config
 from src.config import (FeatSelect_mapping,
                         ImbalanceHandler_mapping,
@@ -14,9 +16,8 @@ from src.preprocessing.custom_transformers import (
     ShortTermNormalizer,
     LongTermNormalizer,
     CategoricalPreprocessor,
-    DFRecursiveFeatureSelector,
-    DFShapFeatureSelector,
-    ImbalanceHandler  # Assuming ImbalanceHandler is defined in custom transformers
+    ResamplerTransformer
+ # Assuming ImbalanceHandler is defined in custom transformers
 )
 
 class CustomModelPipeline():
@@ -39,7 +40,83 @@ class CustomModelPipeline():
         self.params = {} 
         self.target_encoder = TargetLabelEncoder()  # Initialize TargetLabelEncoder
         self.model = None
+        self.steps = None
+        self.input_columns_prep()
 
+    def input_columns_prep(self):
+        self.short_numeric_cols = [col for col in self.features if col in config.columns.short_num_cols]
+        self.long_numeric_cols = [col for col in self.features if col in config.columns.long_num_cols]
+        self.cat_cols = [col for col in self.features if col in config.columns.cat_cols]
+
+    def empty_pipeline_and_params(self):
+        self.steps = []
+        self.params = {}
+
+    def get_prepocessed_numeric_features(self):
+
+        # Dynamically add feature groups based on configuration
+        numeric_feature_transformers = []
+        if self.feature_config.get('std_scale', False):
+            # If standard scaling is enabled, extract and normalize numerics
+            numeric_feature_transformers.append(('short_numerics', ColumnExtractor(self.short_numeric_cols)))
+            numeric_feature_transformers.append(('short_normalize', ShortTermNormalizer()))
+            numeric_feature_transformers.append(('long_numerics', ColumnExtractor(self.long_numeric_cols)))
+            numeric_feature_transformers.append(('long_normalize', LongTermNormalizer()))
+        else:
+            # If standard scaling is disabled, just extract numerics without normalization
+            numeric_feature_transformers.append(('short_numerics', ColumnExtractor(self.short_numeric_cols)))
+            numeric_feature_transformers.append(('long_numerics', ColumnExtractor(self.long_numeric_cols)))
+
+        # self.steps.append(('features', DFFeatureUnion(numeric_feature_transformers)))
+        return numeric_feature_transformers
+
+    def get_prepocessed_categorical_features(self):
+
+        cat_feature_transformers = []
+        cat_feature_transformers.append(('cat_extract', ColumnExtractor(self.cat_cols)))
+        if self.feature_config.get('cat_encode', False):
+            cat_feature_transformers.append(('cat_normalize', CategoricalPreprocessor(self.cat_cols)))
+        return cat_feature_transformers
+
+    def add_combined_preprocessed_features(self):
+        self.steps.append(
+            (
+                "features",
+                DFFeatureUnion(
+                    self.get_prepocessed_numeric_features()
+                    + self.get_prepocessed_categorical_features()
+                ),
+            )
+        )
+    
+    def update_resampling_pipeline(self):
+        """
+        Adds the resampling step to the pipeline if imbalance handling is enabled.
+        """
+        imbalance_technique = self.feature_config.get('imbalance_technique', None)
+        if imbalance_technique:
+            sampler = ImbalanceHandler_mapping.get(imbalance_technique, 'smote')
+            if sampler is None:
+                raise ValueError(f"Imbalance technique '{imbalance_technique}' is not supported.")
+            self.steps.append(('resample', ResamplerTransformer(
+                sampler=sampler(),
+                shuffle=True,
+                random_state=42  # You can make this configurable
+            )))
+
+    def update_feature_selection_pipeline(self):
+        feature_selector = self.feature_config.get('feature_selector', None)
+        if feature_selector:
+            self.params = {**self.params, **config.model.pipeline_params}
+            feature_selector = FeatSelect_mapping.get(feature_selector, None)
+            self.steps.append(('feature_selection', feature_selector()))
+
+    def update_model_pipeline(self):
+        model_type = self.feature_config.get('model', None)
+        model_class = ModelType_mapping.get(model_type, RandomForestClassifier)
+        # Add the model as the final step
+        self.steps.append(('model_fit', model_class()))
+        self.params = {**self.params, **config.model.model_params.get(model_type, 'RFC')}
 
     def define_pipeline(self) -> None:
         """
@@ -54,56 +131,20 @@ class CustomModelPipeline():
         """
         if not self.features:
             raise ValueError("Features must be set before defining the pipeline.")
-        
-        feature_union = []
 
-        # Dynamically add feature groups based on configuration
-        if self.feature_config.get('std_scale', False):
-            # Flattened structure without additional Pipeline wrapping
-            feature_union.append(('short_numerics', ColumnExtractor(
-                [col for col in self.features if col in config.columns.short_num_cols]
-            )))
-            feature_union.append(('short_normalize', ShortTermNormalizer()))
+        ## Reset pipeline
+        self.empty_pipeline_and_params()
 
-            feature_union.append(('long_numerics', ColumnExtractor(
-                [col for col in self.features if col in config.columns.long_num_cols]
-            )))
-            feature_union.append(('long_normalize', LongTermNormalizer()))
-        
-        # Build pipeline steps dynamically
-        steps = []
-
-        steps.append(('cat_extract', ColumnExtractor(
-            [col for col in self.features if col in config.columns.cat_cols]
-        )))
-        steps.append(('cat_normalize', CategoricalPreprocessor(
-            [col for col in self.features if col in config.columns.cat_cols]
-        )))
-        # Optional imbalance handling
-        imb_technique = self.feature_config.get('imbalance_technique', None)
-        if imb_technique:
-            steps.append(('imbalance_handler', ImbalanceHandler(technique=imb_technique)))
-
-        # Add feature extraction
-        steps.append(('features', DFFeatureUnion(feature_union)))
-        
-        # Optional feature selection
-        feature_selector = self.feature_config.get('feature_selector', None)
-        if feature_selector:
-            self.params = {**self.params, **config.model.pipeline_params}
-            feature_selector = FeatSelect_mapping.get(feature_selector, None)
-            steps.append(('feature_selection', DFRecursiveFeatureSelector()))
-
-        model_type = self.feature_config.get('model', None)
-        model_class = ModelType_mapping.get(model_type, RandomForestClassifier)
-        # Add the model as the final step
-        steps.append(('model_fit', model_class()))
-        self.params = {**self.params, **config.model.model_params.get(model_type, 'RFC')}
+        ## Define pipliene steps
+        self.add_combined_preprocessed_features()
+        self.update_resampling_pipeline()
+        self.update_feature_selection_pipeline()
+        self.update_model_pipeline()
 
         # Define the pipeline with the configured steps
-        self.pipeline = Pipeline(steps)
+        self.pipeline = Pipeline(self.steps)
 
-    def define_model(self) -> GridSearchCV:
+    def define_model(self,memory: Memory = None) -> GridSearchCV:
         """
         Defines the machine learning model using GridSearchCV for hyperparameter tuning.
 
@@ -111,13 +152,15 @@ class CustomModelPipeline():
             GridSearchCV: An instance of GridSearchCV configured with the pipeline and parameter grid.
         """
         self.define_pipeline()
+        if memory:
+            self.pipeline.memory = memory
 
         self.model = GridSearchCV(
             self.pipeline,
             param_grid=self.params,
-            scoring='f1_weighted',
-            n_jobs=5,
-            cv=5,
+            scoring='accuracy',
+            n_jobs=4,
+            cv=3,
             verbose=1,
             return_train_score=True,
             error_score='raise'
@@ -133,7 +176,7 @@ class CustomModelPipeline():
         """
         # Encode the target variable
         y_encoded = self.target_encoder.fit_transform(y)
-        
+
         # Fit the pipeline
         self.model.fit(X, y_encoded)
 

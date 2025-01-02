@@ -16,6 +16,7 @@ from sklearn.feature_selection import SelectKBest, mutual_info_regression, RFE, 
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.exceptions import NotFittedError
 from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.base import BaseSampler
 from imblearn.combine import SMOTETomek, SMOTEENN
 from sklearn.preprocessing import LabelEncoder
 
@@ -115,6 +116,85 @@ class ColumnExtractor(BaseEstimator, TransformerMixin):
             raise ValueError(f"The following columns are missing in the input DataFrame: {missing_cols}")
         return X[self.cols]
 
+class ResamplerTransformer(BaseEstimator, TransformerMixin):
+    """
+    Custom transformer that applies resampling and shuffling to X and y.
+    """
+    def __init__(
+        self, 
+        sampler: BaseSampler, 
+        shuffle: bool = True, 
+        random_state: Optional[int] = 42
+    ) -> None:
+        """
+        Initializes the ResamplerTransformer.
+
+        Args:
+            sampler (BaseSampler): An imblearn sampler, e.g., SMOTE().
+            shuffle (bool): Whether to shuffle after resampling.
+            random_state (Optional[int]): Seed for reproducibility.
+        """
+        self.sampler = sampler
+        self.shuffle = shuffle
+        self.random_state = random_state
+
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> 'ResamplerTransformer':
+        """
+        Fit the sampler.
+
+        Args:
+            X (pd.DataFrame): Feature data.
+            y (pd.Series): Target data.
+
+        Returns:
+            ResamplerTransformer
+        """
+        logger.debug("Fitting the sampler.")
+        self.sampler.fit(X, y)
+    
+    def fit_transform(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
+        self.fit(X, y) 
+        X,y = self.sampler.fit_resample(X, y)
+        # if self.shuffle:
+        #     logger.debug("Shuffling the resampled data.")
+        #     X, y = self._shuffle(X, y)
+        return X, y #.values.reshape(-1, 1)
+
+    def transform(
+        self, 
+        X: pd.DataFrame, 
+    ) -> pd.DataFrame:
+        """
+        Resample and optionally shuffle the data.
+
+        Args:
+            X (pd.DataFrame): Feature data.
+            y (pd.Series): Target data.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.Series]: Resampled and optionally shuffled X and y.
+        """
+        return X
+
+
+    def _shuffle(
+        self, 
+        X: pd.DataFrame, 
+        y: pd.Series
+    ) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Shuffles X and y in unison.
+
+        Args:
+            X (pd.DataFrame): Feature data.
+            y (pd.Series): Target data.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.Series]
+        """
+        shuffled = X.sample(frac=1, random_state=self.random_state).reset_index(drop=True)
+        y_shuffled = y.loc[shuffled.index].reset_index(drop=True)
+        return shuffled, y_shuffled
 
 class DFFeatureUnion(BaseEstimator, TransformerMixin):
     """
@@ -127,14 +207,19 @@ class DFFeatureUnion(BaseEstimator, TransformerMixin):
         transformer_list (List[Tuple[str, TransformerMixin]]): List of (name, transformer) tuples.
     """
 
-    def __init__(self, transformer_list: List[Tuple[str, TransformerMixin]]) -> None:
+    def __init__(
+        self, 
+        transformer_list: List[Tuple[str, TransformerMixin]]
+    ) -> None:        
         """
         Initializes the DFFeatureUnion with a list of transformers.
 
         Args:
             transformer_list (List[Tuple[str, TransformerMixin]]): List of (name, transformer) tuples.
         """
+
         self.transformer_list = transformer_list
+
 
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'DFFeatureUnion':
         """
@@ -152,7 +237,7 @@ class DFFeatureUnion(BaseEstimator, TransformerMixin):
             transformer.fit(X, y)
         return self
 
-    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> pd.DataFrame:
         """
         Transforms the input DataFrame using all transformers and merges the results.
 
@@ -169,7 +254,12 @@ class DFFeatureUnion(BaseEstimator, TransformerMixin):
             transformed_dfs.append(transformed_df)
         if not transformed_dfs:
             raise ValueError("No transformers provided to DFFeatureUnion.")
+        
         X_union = pd.concat(transformed_dfs, axis=1)
+
+        # if y is not None:
+        #     return self.shuffle_training_inputs(X_union, y)
+
         return X_union
 
 
@@ -190,7 +280,7 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
             look_back_days (int, optional): Number of days to look back for rolling calculations. Defaults to 5.
         """
         self.look_back_days = look_back_days
-        self.look_back_period = look_back_days * 24  # Assuming 24 operations per day; adjust as needed.
+        self.look_back_period = look_back_days * 6  # Assuming 24 operations per day; adjust as needed.
 
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'ShortTermNormalizer':
         """
@@ -224,17 +314,19 @@ class ShortTermNormalizer(BaseEstimator, TransformerMixin):
         Returns:
             pd.DataFrame: Normalized DataFrame.
         """
-        X_normalized = pd.DataFrame(index=X.index)
+        normalized_data = {}
+        
         for column in self.columns_:
             if column not in X.columns:
                 raise ValueError(f"Column '{column}' not found in input DataFrame during transform.")
             mean = self.means_[column]
             std = self.stds_[column]
-            X_normalized[column] = (X[column] - mean) / std
-            #logger.debug(f"Normalized column '{column}': mean={mean}, std={std}")
+            normalized_data[column] = (X[column] - mean) / std
+
+        # Concatenate all normalized columns into a DataFrame
+        X_normalized = pd.DataFrame(normalized_data, index=X.index)
         logger.info("Transformed short-term normalizer.")
         return X_normalized
-
 
 class LongTermNormalizer(BaseEstimator, TransformerMixin):
     """
@@ -484,7 +576,7 @@ class CategoricalPreprocessor(BaseEstimator, TransformerMixin):
         Returns:
             CategoricalPreprocessor: Fitted preprocessor.
         """
-        self.encoder = OneHotEncoder(sparse=False, drop='if_binary')
+        self.encoder = OneHotEncoder(handle_unknown='ignore', sparse=False, drop='if_binary')
         self.encoder.fit(X[self.columns])
         return self
 

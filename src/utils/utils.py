@@ -99,6 +99,8 @@ def determine_mode() -> str:
         return "LIVE"
     else:
         return "BACKTEST"
+    
+
 
 def epoch_to_ist(epoch_time: float) -> datetime.datetime:
     """

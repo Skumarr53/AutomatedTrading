@@ -2,6 +2,7 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
+from imblearn.over_sampling import SMOTE, RandomOverSampler
 from src.preprocessing.custom_transformers import (
     DFFeatureUnion,
     ColumnExtractor,
@@ -22,10 +23,8 @@ FeatSelect_mapping = {
 }
 
 ImbalanceHandler_mapping = {
-    'SMOTE': ImbalanceHandler(technique='smote'),
-    'RANDOM': ImbalanceHandler(technique='random'),
-    'SMOTE_TOMEK': ImbalanceHandler(technique='smote_tomek'),
-    'SMOTE_ENN': ImbalanceHandler(technique='smote_enn')
+    'smote': SMOTE,
+    'random': RandomOverSampler  
 }
 
 

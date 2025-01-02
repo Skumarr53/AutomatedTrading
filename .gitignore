@@ -4,13 +4,18 @@
 outputs
 
 __pycache__/
+pipeline_cache/
+scripts/pipeline/
 *.pyo
 *.pyd
 
+logs/
+docs/
 mocked/
 backups/
 .databricks
 mlruns
+mlflow.db
 
 WeeklyReports/
 

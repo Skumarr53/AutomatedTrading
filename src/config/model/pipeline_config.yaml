@@ -1,12 +1,18 @@
 pipeline_configs:
   Pipeline_1:
     std_scale: false
-    feature_selector: SHAP
-    imbalance_technique: SMOTE
+    cat_encode: false
+    imbalance_technique: smote
     model: GBC
 
   Pipeline_2:
     std_scale: true
-    feature_selector: SHAP
-    imbalance_technique: SMOTE
+    cat_encode: true
+    imbalance_technique: smote
+    model: MLP
+  
+  Pipeline_3:
+    std_scale: false
+    cat_encode: true
+    imbalance_technique: smote
     model: MLP

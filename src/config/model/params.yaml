@@ -14,7 +14,7 @@ model_params:
     model_fit__min_samples_split: [20, 50]
     model_fit__min_samples_leaf: [10, 20, 50]
   MLP:
-    model_fit__hidden_layer_sizes: [(100,), (50, 50)]
+    model_fit__hidden_layer_sizes: [[100], [50, 50]]
     model_fit__activation: ['relu']
     model_fit__solver: ['adam', 'sgd']
     model_fit__alpha: [0.0001, 0.001, 0.01]
