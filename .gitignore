@@ -2,6 +2,11 @@
 *.pyc
 
 outputs
+logs
+mlflow.db
+mlruns
+pipeline_cache
+scripts
 
 __pycache__/
 *.pyo
