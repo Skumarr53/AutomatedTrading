@@ -312,9 +312,9 @@ class MLPipelineBase:
         Returns:
             pd.Series or None: The prepared target variable or None if target is unknown.
         """
-        if target == 'pct_change':
+        if target == 'PctChange':
             x_trans, y_trans = self.target_transform.categorize_percent_change(X, run_id)
-        elif target == 'atr':
+        elif target == 'ATR':
             x_trans, y_trans = self.target_transform.categorize_atr(X, run_id)
         else:
             logger.error(f"Unknown target '{target}'")
