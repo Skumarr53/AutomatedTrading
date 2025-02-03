@@ -13,14 +13,10 @@ import yaml
 from functools import lru_cache
 
 
-
-
-
-
 class ModelCache:
     """Custom model cache for efficient model reuse."""
     
-    def __init__(self, max_cache_size: int = 10):
+    def __init__(self, max_cache_size: int = 500):
         # Cache the most recent 10 models
         self.cache = {}
         self.max_cache_size = max_cache_size
@@ -42,14 +38,13 @@ class ModelCache:
 class MLflowModelLoader:
     """Class to load models from MLflow for given stock, time period, and metric."""
 
-    def __init__(self, experiment_name: str, config: dict, model_cache: ModelCache):
-        self.experiment_name = experiment_name
+    def __init__(self, config: dict, model_cache: ModelCache):
         self.config = config
         self.model_cache = model_cache
 
     def _get_model_name(self, stock_symbol: str, time_period: str, metric: str) -> str:
         """Generate model name based on stock symbol, time period, and metric."""
-        return f"{stock_symbol}_{time_period}_{metric}_{self.experiment_name}"
+        return f"{stock_symbol}_{time_period}_{metric}"
 
     def _get_latest_experiment(self):
         """Get the latest experiment from MLflow."""
@@ -68,8 +63,8 @@ class MLflowModelLoader:
             return cached_model
 
         # If cache miss, load the model from MLflow
-        experiment = self._get_latest_experiment()
-        logging.info(f"Loading model: {model_name}")
+        # experiment = self._get_latest_experiment()
+        # logging.info(f"Loading model: {model_name}")
         
         # Load the pipeline model from MLflow
         model_uri = f"models:/{model_name}/latest"
@@ -123,7 +118,7 @@ class PredictionExecutor:
 # Example usage
 def main(config_path: str):
     # Load configuration
-    config = load_config(config_path)
+    # config = load_config(config_path)
 
     # Stock symbols, time periods, and metrics are now sourced from config
     stock_symbols = ["PNB", "IND"]

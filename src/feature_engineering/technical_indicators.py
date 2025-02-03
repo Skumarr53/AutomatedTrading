@@ -14,7 +14,8 @@ class TechnicalIndicators:
             ind.bollinger_bands, ind.rsi, ind.macd, ind.stochastic_oscillator,
             ind.adx, ind.ema, ind.vwap, ind.atr,
             ind.obv, ind.sar, ind.cci, ind.ichimoku_cloud
-    ]  # ind.fibonacci_retracements
+    ]  # 
+    ind.fibonacci_retracements
 
     def get_stock_indicators(self, all_stock_data: Dict[str, pd.DataFrame]) -> None:
         indicators_data = {symbol: self._compute_indicators(data)
@@ -53,9 +54,3 @@ class TechnicalIndicators:
 
         return indicators_df 
 
-
-# Example of setting up and using the TechnicalIndicators class
-# if __name__ == "__main__":
-#     ti = TechnicalIndicators(mode="BACKTEST")
-#     stock_data = {...}  # Assume stock_data is populated with symbol: DataFrame pairs
-#     ti.get_stock_indicators(stock_data)

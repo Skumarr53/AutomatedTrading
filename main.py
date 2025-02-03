@@ -3,6 +3,7 @@ import time, pytz
 from scripts.telegram_notifier import send_telegram_message
 from datetime import datetime
 from loguru import logger
+import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
@@ -15,6 +16,7 @@ from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.base_pipeline import MLPipelineBase
 from src.utils.utils import determine_mode
+from src.mlflow_utils.model_loader import ModelCache, MLflowModelLoader
 
 
 print(1)
@@ -49,6 +51,45 @@ class MarketAnalysisApp:
         self.last_data_collection_time = None
         self.custom_model = MLPipelineBase()
         self.timezone = pytz.timezone(config.scheduler.timezone)
+
+        # Add model loading components for LIVE mode
+        if self.trading_mode == 'LIVE':
+            self.model_cache = ModelCache(max_cache_size=500)
+            self.model_loader = MLflowModelLoader(
+                config=config,
+                model_cache=self.model_cache
+            )
+
+    def generate_live_predictions(self, data_agg: pd.DataFrame, symbol: str) -> dict:
+        """Generate predictions using loaded models."""
+        try:
+            prediction_executor = PredictionExecutor(
+                model_loader=self.model_loader,
+                data=data_agg
+            )
+            return prediction_executor.run_predictions(
+                stock_symbols=[symbol],
+                time_periods=config.model_settings.run_ids,
+                metrics=config.model_settings.model_targets
+            )
+        except Exception as e:
+            logger.error(f"Prediction failed for {symbol}: {str(e)}")
+            raise
+    
+    def execute_strategies(self, indicators_data: dict, predictions: dict) -> None:
+        """Execute trading strategies combining indicators and model predictions."""
+        try:
+            # Merge technical indicators with model predictions
+            enhanced_data = {
+                **indicators_data,
+                'model_predictions': predictions
+            } 
+            
+            strategy_decisions = self.strategy_module.execute_technical_strategy(enhanced_data)
+            self._execute_trades_based_on_decisions(strategy_decisions)
+        except Exception as e:
+            logger.error("Strategy execution failed")
+            raise
 
     def _setup_data_handling(self):
         self.indicators = TechnicalIndicators()
@@ -95,17 +136,22 @@ class MarketAnalysisApp:
 
     def data_collection(self):
         self.order_data_handler.fetch_order_book_data()
-        time.sleep(5)
-        # self.ticker_data_handler.update_data_regularly()
+        self.ticker_data_handler.update_data_regularly()
         self.last_data_collection_time = datetime.now()
+        self.start_live_trading()
 
     def start_live_trading(self):
         time.sleep(10)
         ## TODO Turn assert on 
         # assert (datetime.now() - self.last_data_collection_time).seconds < 60, 'Data Collection and Trading Excecution not in sync'
         for symbol in config.symbols:
-            data_agg = self.data_aggregator.aggregate_features(
-                self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
+            ticker_data = self.ticker_data_handler.data[symbol].iloc[-1,:]
+            order_book_data = self.order_data_handler.data[symbol].iloc[-1,:]
+            
+            # Aggregate features
+            data_agg = self.data_aggregator.aggregate_features(ticker_data, order_book_data)
+            
+            predictions = self.generate_live_predictions(data_agg, symbol)
         pass
 
     def start_backtesting(self):

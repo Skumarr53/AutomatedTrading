@@ -12,6 +12,8 @@ from sklearn.base import clone
 from joblib import Parallel, delayed
 import mlflow
 import mlflow.sklearn
+from mlflow import MlflowClient
+
 from joblib import Memory  # NEW: Import Memory for caching
 from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
@@ -37,11 +39,13 @@ class MLPipelineBase:
         self.model_id: str = datetime.now().strftime('%Y%m%d')
         self.features: Optional[List[str]] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
         self.pipelines: Optional[Pipeline] =  []
-        self.best_model_dict: Dict[str, Any] = (
-            self._load_models()
-            if config.trading_config.trade_mode == 'LIVE'
-            else {}
-        )
+        self.mlflow_client = MlflowClient()
+
+        # self.best_model_dict: Dict[str, Any] = (
+        #     self._load_models()
+        #     if config.trading_config.trade_mode == 'LIVE'
+        #     else {}
+        # )
         self.mode: str = config.trading_config.trade_mode
         self.target_transform = TargetTransform()
         self.setup_all_pipelines()
@@ -195,6 +199,63 @@ class MLPipelineBase:
         )
 
         return X_train, X_test, y_train, y_test
+    
+    def log_and_register_model(self, X_test, y_test, pipeline, symbol, run_id, target):
+        """
+        Logs model performance, logs the model, and registers it in the production stage.
+
+        Parameters:
+        - y_test: Actual target values for the test set.
+        - y_pred: Predicted target values from the model.
+        - best_estimator: The best estimator from the model pipeline.
+        - symbol: A symbol or identifier for the model.
+        - run_id: Unique run identifier.
+        - target: The target variable name.
+
+        Returns:
+        - registered_model_name: The name of the registered model.
+        """
+        # Log model performance (assumed to be defined elsewhere)
+        mlflow.log_params(pipeline.model.best_params_)
+        
+        # Predict on training data
+        y_pred = pipeline.model.predict(X_test)
+
+        # Log performance metrics and artifacts
+        log_model_performance(y_test, y_pred, pipeline.model.best_estimator_)
+
+        # Create the registered model name
+        registered_model_name = f"{symbol}_{run_id}_{target}"
+
+        # Log the model
+        mlflow.sklearn.log_model(
+            sk_model=pipeline.model.best_estimator_,
+            artifact_path="model",
+            registered_model_name=registered_model_name,
+        )
+
+        latest_model_versions = self.mlflow_client.get_latest_versions(registered_model_name, stages=["None"])
+
+        if latest_model_versions:
+            latest_version = latest_model_versions[0].version
+        else:
+            raise ValueError(f"No versions found for model '{registered_model_name}'.")
+
+        # Register the model in the production stage
+        model_uri = f"models:/{registered_model_name}/{latest_version}"  # Adjust the version accordingly
+        mlflow.register_model(
+            model_uri=model_uri,
+            name=registered_model_name,
+            tags={"stage": "Production"}
+        )
+        self.mlflow_client.transition_model_version_stage(
+            name=registered_model_name,
+            version=latest_version,
+            stage="Production",
+            archive_existing_versions=True
+        )
+
+        return registered_model_name
 
 
     def train(self, X: pd.DataFrame, symbol: str) -> None:
