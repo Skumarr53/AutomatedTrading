@@ -175,61 +175,64 @@ class DataHandler:
         Returns:
             pd.DataFrame: DataFrame containing the fetched trading data with columns defined in TICKER_COLS.
         """
-        ONE_DAY_SECONDS: int = 86400
-        ticker_cols = config.columns.ticker_cols
-        
-        total_data: pd.DataFrame = pd.DataFrame()
-        date_col: str = ticker_cols[-1]
-        IST = pytz.timezone(config.scheduler.timezone)
+        try:
+            ONE_DAY_SECONDS: int = 86400
+            ticker_cols = config.columns.ticker_cols
+            
+            total_data: pd.DataFrame = pd.DataFrame()
+            date_col: str = ticker_cols[-1]
+            IST = pytz.timezone(config.scheduler.timezone)
 
-        while start_epoch_time < end_epoch_time:
-            attempt: int = 0
-            current_time: float = datetime.now(IST).timestamp()
-            chunk_end_time: float = min(
-                start_epoch_time + config.scheduler.chunk_size_days * ONE_DAY_SECONDS, end_epoch_time
-            )
-            inp_payload: Dict[str, str] = {
-                key: value.format(
-                    symbol=get_NSE_symbol(symbol),
-                    interval=config.scheduler.data_fetch_cron_interval_min,
-                    start_epoch_time=int(start_epoch_time),
-                    end_epoch_time=int(chunk_end_time)
+            while start_epoch_time < end_epoch_time:
+                attempt: int = 0
+                current_time: float = datetime.now(IST).timestamp()
+                chunk_end_time: float = min(
+                    start_epoch_time + config.scheduler.chunk_size_days * ONE_DAY_SECONDS, end_epoch_time
                 )
-                for key, value in config.base_payload_args.items()
-            }
+                inp_payload: Dict[str, str] = {
+                    key: value.format(
+                        symbol=get_NSE_symbol(symbol),
+                        interval=config.scheduler.data_fetch_cron_interval_min,
+                        start_epoch_time=int(start_epoch_time),
+                        end_epoch_time=int(chunk_end_time)
+                    )
+                    for key, value in config.base_payload_args.items()
+                }
 
-            ## API call to fetch data
-            while attempt < config.scheduler.max_api_call_attempts:
-                try:
-                    cs_data: Dict = self.fyres.history(inp_payload)
-                    df: pd.DataFrame = pd.DataFrame(
-                        cs_data['candles'], columns=ticker_cols[:6]
-                    )
-                    total_data = pd.concat([total_data, df])
-                    logging.info(
-                        f"time diff in seconds symbol {symbol}: {current_time - df[ticker_cols[0]].max()}"
-                    )
-                    break
-                except Exception as e:
-                    if cs_data.get('code') == 429:
-                        logging.info(
-                            f"Rate limit exceeded. Waiting {config.scheduler.wait_time_between_api_calls} seconds before retrying..."
+                ## API call to fetch data
+                while attempt < config.scheduler.max_api_call_attempts:
+                    try:
+                        cs_data: Dict = self.fyres.history(inp_payload)
+                        df: pd.DataFrame = pd.DataFrame(
+                            cs_data['candles'], columns=ticker_cols[:6]
                         )
-                        time.sleep(config.scheduler.wait_time_between_api_calls)
-                        attempt += 1
-                    else:
-                        logging.exception(
-                            f"Error fetching data for {symbol}: {e}"
+                        total_data = pd.concat([total_data, df])
+                        logging.info(
+                            f"time diff in seconds symbol {symbol}: {current_time - df[ticker_cols[0]].max()}"
                         )
                         break
-            start_epoch_time = chunk_end_time
+                    except Exception as e:
+                        if cs_data.get('code') == 429:
+                            logging.info(
+                                f"Rate limit exceeded. Waiting {config.scheduler.wait_time_between_api_calls} seconds before retrying..."
+                            )
+                            time.sleep(config.scheduler.wait_time_between_api_calls)
+                            attempt += 1
+                        else:
+                            logging.exception(
+                                f"Error fetching data for {symbol}: {e}"
+                            )
+                            break
+                start_epoch_time = chunk_end_time
 
-            total_data[date_col] = pd.to_datetime(
-                total_data[ticker_cols[0]], unit='s'
-            )
-            total_data[date_col] = total_data[date_col].dt.tz_localize('UTC').dt.tz_convert(config.scheduler.timezone)
-            total_data[date_col] = total_data[date_col].dt.tz_localize(None).dt.round('5min')
-        return total_data
+                total_data[date_col] = pd.to_datetime(
+                    total_data[ticker_cols[0]], unit='s'
+                )
+                total_data[date_col] = total_data[date_col].dt.tz_localize('UTC').dt.tz_convert(config.scheduler.timezone)
+                total_data[date_col] = total_data[date_col].dt.tz_localize(None).dt.round('5min')
+            return total_data
+        except Exception as e:
+            logging.exception(f"Error fetching data for {symbol}: {e}")
 
     def schedule_data_updates(self) -> None:
         """
