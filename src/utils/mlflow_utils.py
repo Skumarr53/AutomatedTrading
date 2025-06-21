@@ -2,14 +2,18 @@
 
 import mlflow
 import mlflow.sklearn
-from sklearn.metrics import (f1_score, accuracy_score, 
-                             precision_score, recall_score, 
-                             confusion_matrix)
-import pandas as pd
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    confusion_matrix,
+    roc_auc_score,
+)
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def log_model_performance(y_true, y_pred, model):
+def log_model_performance(y_true, y_pred, model, X_test=None):
     """
     Logs model performance metrics, confusion matrix, and feature importance to MLflow.
 
@@ -25,11 +29,24 @@ def log_model_performance(y_true, y_pred, model):
     precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
     recall = recall_score(y_true, y_pred, average='weighted', zero_division=0)
 
+    roc_auc = None
+    if X_test is not None and hasattr(model, "predict_proba"):
+        try:
+            y_proba = model.predict_proba(X_test)
+            roc_auc = roc_auc_score(y_true, y_proba, multi_class='ovr')
+        except Exception:
+            roc_auc = None
+
     # Log metrics
     mlflow.log_metric("f1_score", f1)
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
     mlflow.log_metric("recall", recall)
+    if roc_auc is not None:
+        mlflow.log_metric("roc_auc", roc_auc)
+    if hasattr(model, "cv_results_"):
+        cv_score = model.cv_results_["mean_test_score"][model.best_index_]
+        mlflow.log_metric("cv_mean_score", cv_score)
 
     # Confusion matrix
     cm = confusion_matrix(y_true, y_pred)

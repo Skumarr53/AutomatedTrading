@@ -1,8 +1,8 @@
 import pandas as pd
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from imblearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from joblib import Memory  # Add this import
 
 from src import config
@@ -144,23 +144,25 @@ class CustomModelPipeline():
         # Define the pipeline with the configured steps
         self.pipeline = Pipeline(self.steps)
 
-    def define_model(self,memory: Memory = None) -> GridSearchCV:
+    def define_model(self, memory: Memory = None) -> RandomizedSearchCV:
         """
-        Defines the machine learning model using GridSearchCV for hyperparameter tuning.
+        Defines the machine learning model using RandomizedSearchCV for hyperparameter tuning.
 
         Returns:
-            GridSearchCV: An instance of GridSearchCV configured with the pipeline and parameter grid.
+            RandomizedSearchCV: Configured search instance.
         """
         self.define_pipeline()
         if memory:
             self.pipeline.memory = memory
 
-        self.model = GridSearchCV(
+        self.model = RandomizedSearchCV(
             self.pipeline,
-            param_grid=self.params,
+            param_distributions=self.params,
+            n_iter=20,
             scoring='accuracy',
             n_jobs=4,
             cv=3,
+            random_state=42,
             verbose=1,
             return_train_score=True,
             error_score='raise'
