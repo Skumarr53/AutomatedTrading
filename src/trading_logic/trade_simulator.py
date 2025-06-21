@@ -5,6 +5,8 @@ import os
 from loguru import logger
 from typing import Any, Dict, Optional, List
 
+from .transaction_tracker import TransactionTracker
+
 import pandas as pd
 from src import config
 
@@ -25,19 +27,22 @@ class TradeSimulator:
         trade_history (List[Dict[str, Any]]): List recording the history of executed trades.
     """
 
-    def __init__(self, initial_capital: float = 10000.0, transaction_cost: float = 20.0) -> None:
+    def __init__(self, initial_capital: float = 10000.0, transaction_cost: float = 20.0,
+                 tracker: Optional['TransactionTracker'] = None) -> None:
         """
         Initializes the TradeSimulator with capital and transaction cost settings.
 
         Args:
             initial_capital (float, optional): Starting capital for trading. Defaults to 10000.0.
             transaction_cost (float, optional): Fixed cost per transaction. Defaults to 20.0.
+            tracker (TransactionTracker, optional): Tracker to record executed transactions.
         """
         self.mode: str = config.trading_config.trade_mode
         self.initial_capital: float = initial_capital
         self.transaction_cost: float = transaction_cost
         self.positions: Dict[str, Dict[str, Any]] = self.load_positions() if self.mode == 'LIVE' else {}
         self.trade_history: List[Dict[str, Any]] = []
+        self.tracker = tracker
         self.positions_file_path = config.paths.positions_file_path
         logger.info("TradeSimulator initialized in '%s' mode with initial capital: %.2f and transaction cost: %.2f",
                      self.mode, self.initial_capital, self.transaction_cost)
@@ -140,6 +145,9 @@ class TradeSimulator:
         logger.debug("Opening %s position for %s at price %.2f on %s", position_type, symbol, price, date)
         shares: int = self.calculate_shares(price, position_type)
         cost: float = shares * price + self.transaction_cost
+        if self.tracker and not self.tracker.can_invest(symbol, shares * price):
+            logger.warning("Investment cap reached for %s", symbol)
+            return
 
         if self.initial_capital >= cost:
             self.initial_capital -= cost
@@ -311,6 +319,8 @@ class TradeSimulator:
             'holding_time': holding_time
         }
         self.trade_history.append(trade)
+        if self.tracker is not None:
+            self.tracker.record(action if action != 'CLOSE' else position_type.upper(), symbol, shares, price, pd.to_datetime(date))
         logger.debug("Recorded trade: %s", trade)
         # TODO: Store trade history in local storage or database for later analysis
 

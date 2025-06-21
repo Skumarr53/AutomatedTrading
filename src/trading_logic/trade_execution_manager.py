@@ -9,6 +9,7 @@ import pandas as pd
 from src.utils.utils import load_symbols
 from src.trading_logic.strategy_manager import StrategyManager
 from src.trading_logic.trade_simulator import TradeSimulator
+from src.trading_logic.trading_decision import TradingDecision
 
 
 class TradeExecutionManager:
@@ -26,6 +27,7 @@ class TradeExecutionManager:
         symbols (List[str]): List of stock symbols to process.
         strategy_manager (StrategyManager): Instance responsible for applying trading strategies.
         trade_simulator (TradeSimulator): Instance responsible for simulating trade executions.
+        decision_maker (TradingDecision): Component that determines BUY/SELL/HOLD signals.
     """
 
     def __init__(
@@ -33,7 +35,8 @@ class TradeExecutionManager:
         base_path: str,
         symbols_file: str,
         strategy_manager: StrategyManager,
-        trade_simulator: TradeSimulator
+        trade_simulator: TradeSimulator,
+        decision_maker: TradingDecision,
     ) -> None:
         """
         Initializes the TradeExecutionManager with data loading, strategy execution,
@@ -49,6 +52,7 @@ class TradeExecutionManager:
         # config.symbols: list = load_symbols(symbols_file)
         self.strategy_manager: StrategyManager = strategy_manager
         self.trade_simulator: TradeSimulator = trade_simulator
+        self.decision_maker: TradingDecision = decision_maker
 
         logger.info("TradeExecutionManager initialized with %d symbols.", len(config.symbols))
 
@@ -118,10 +122,12 @@ class TradeExecutionManager:
             raise KeyError(f"Missing required columns in data: {missing}")
 
         data_with_signals: pd.DataFrame = self.strategy_manager.apply_strategies(historical_data)
+        decisions = self.decision_maker.generate_decisions(data_with_signals)
+        data_with_signals['decision'] = decisions
 
         # Iterate over each row to execute trades
         for index, row in data_with_signals.iterrows():
-            signal: str = row['Majority_Vote_Strategy']
+            signal: str = row['decision']
             symbol: str = row['symbol']
             close_price: float = row['close']
             trade_date: pd.Timestamp = row['date']
