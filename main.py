@@ -7,6 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
 from src.utils.utils import load_symbols
+import pandas as pd
 from typing import Callable
 from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.financial_analysis.trading_strategies import TradingStrategies
@@ -108,17 +109,27 @@ class MarketAnalysisApp:
         pass
 
     def start_backtesting(self):
-        ## TODO fill backtest logic
-        for symbol in config.symbols:
-            data_agg = self.data_aggregator.aggregate_features(
-                self.ticker_data_handler.data[symbol], self.order_data_handler.data[symbol])
-            
-            ## Run Custom pipeline
-            self.custom_model.run(data_agg)
-            
-            
-            
-        pass
+        """Run backtesting for all configured symbols."""
+        if getattr(config.training, 'combine_all_symbols', False):
+            combined = []
+            for symbol in config.symbols:
+                data_agg = self.data_aggregator.aggregate_features(
+                    self.ticker_data_handler.data[symbol],
+                    self.order_data_handler.data[symbol]
+                )
+                data_agg['symbol'] = symbol
+                combined.append(data_agg)
+
+            if combined:
+                combined_df = pd.concat(combined, ignore_index=True)
+                self.custom_model.train(combined_df, 'ALL_SYMBOLS')
+        else:
+            for symbol in config.symbols:
+                data_agg = self.data_aggregator.aggregate_features(
+                    self.ticker_data_handler.data[symbol],
+                    self.order_data_handler.data[symbol]
+                )
+                self.custom_model.train(data_agg, symbol)
     
     def _setup_authorization(self):
         """

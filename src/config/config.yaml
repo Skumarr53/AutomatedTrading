@@ -5,6 +5,7 @@ defaults:
   - model/pipeline_config
   - paths                  # Loads paths directly
   - custom
+  - trading
   - symbols
   - columns/common_column_defs    # Loads common_column_defs for shared column names
   - columns/numerical_columns

@@ -29,8 +29,13 @@ model_settings:
   model_type: COMB
   shuffle: true
   run_ids:
-   - 5min
-   - 15min
-   - 30min
-   - 1h
-   - 3h
+    - 5min
+    - 15min
+    - 30min
+    - 1h
+    - 3h
+
+# New setting to control whether training combines
+# data across all symbols or trains models per symbol.
+training:
+  combine_all_symbols: false
