@@ -21,7 +21,8 @@ class TradeSimulator:
     
     Attributes:
         mode (str): Operational mode ('BACKTEST' or 'LIVE').
-        initial_capital (float): Starting capital for trading.
+        starting_capital (float): Starting capital for trading.
+        initial_capital (float): Current available capital.
         transaction_cost (float): Fixed cost per transaction.
         positions (Dict[str, Dict[str, Any]]): Dictionary tracking current positions per symbol.
         trade_history (List[Dict[str, Any]]): List recording the history of executed trades.
@@ -38,6 +39,8 @@ class TradeSimulator:
             tracker (TransactionTracker, optional): Tracker to record executed transactions.
         """
         self.mode: str = config.trading_config.trade_mode
+        # Track starting capital separately for performance metrics
+        self.starting_capital: float = initial_capital
         self.initial_capital: float = initial_capital
         self.transaction_cost: float = transaction_cost
         self.positions: Dict[str, Dict[str, Any]] = self.load_positions() if self.mode == 'LIVE' else {}
@@ -190,7 +193,7 @@ class TradeSimulator:
 
             net_profit_loss: float = profit_loss - self.transaction_cost
             self.initial_capital += net_profit_loss
-            self.record_trade('CLOSE', position['type'], symbol, price, position['shares'], date, position['entry_date'])
+            self.record_trade('CLOSE', position['type'], symbol, price, position['shares'], date, position['entry_date'], net_profit_loss)
             self.update_positions_file()
             logger.info("Closed %s position for %s: %d shares at %.2f on %s. P/L: %.2f",
                          position['type'].upper(), symbol, position['shares'], price, date, net_profit_loss)
@@ -294,7 +297,7 @@ class TradeSimulator:
             logger.warning("No open position found for symbol '%s' to check trailing stop loss.", symbol)
 
     def record_trade(self, action: str, position_type: str, symbol: str, price: float, shares: int,
-                    date: str, entry_date: Optional[str] = None) -> None:
+                    date: str, entry_date: Optional[str] = None, net_profit_loss: float = 0.0) -> None:
         """
         Records a trade action in the trade history.
 
@@ -316,7 +319,9 @@ class TradeSimulator:
             'shares': shares,
             'date': date,
             'balance_after_trade': self.initial_capital,
-            'holding_time': holding_time
+            'holding_time': holding_time,
+            'net_profit_loss': net_profit_loss,
+            'transaction_cost': self.transaction_cost,
         }
         self.trade_history.append(trade)
         if self.tracker is not None:
