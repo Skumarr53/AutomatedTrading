@@ -1,20 +1,17 @@
 # src/pipelines/base_pipeline.py
 
-from typing import Any, Dict, Union, List, Optional, Tuple
-import joblib
+from typing import Any, Dict, List, Optional, Tuple
 import os
 import pandas as pd
 from datetime import datetime
 from loguru import logger
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 from imblearn.pipeline import Pipeline
 from sklearn.base import clone
-import pandas as pd
+from joblib import Parallel, delayed
 import mlflow
 import mlflow.sklearn
-from imblearn.over_sampling import SMOTE
-from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
-from src.config.vars import CLOSE
 from joblib import Memory  # NEW: Import Memory for caching
 from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
@@ -141,11 +138,22 @@ class MLPipelineBase:
         drop_cols = [col for col in ['expiry', 'symbol','open_interest_flag'] if col in df.columns]
         df = df.drop(columns=drop_cols, errors='ignore')
 
-        # Remove rows with any NaN values
-        rows_to_drop = df.isna().any(axis=1)
+        # Remove rows where target is NaN
+        rows_to_drop = target.isna()
         df, target = df[~rows_to_drop], target[~rows_to_drop]
+
         df = df.infer_objects()
         df = df.replace({True: 1, False: 0})
+
+        # Impute missing values instead of dropping rows
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        cat_cols = df.select_dtypes(exclude=['number']).columns
+        if len(numeric_cols) > 0:
+            num_imputer = SimpleImputer(strategy='median')
+            df[numeric_cols] = num_imputer.fit_transform(df[numeric_cols])
+        if len(cat_cols) > 0:
+            cat_imputer = SimpleImputer(strategy='most_frequent')
+            df[cat_cols] = cat_imputer.fit_transform(df[cat_cols])
         
         
         # cat_cols = list(getattr(config.columns, 'cat_cols', []))
@@ -207,60 +215,52 @@ class MLPipelineBase:
         
         
         for pipeline in self.pipelines:
-            for run_id in run_ids:
-                for target in config.model_settings.model_targets:
-                    # try:
-                    #self.model = self.define_model(pipeline)
-                    logger.info(f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}")
-                    with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
-                        mlflow.set_tag("mode", self.mode)
-                        mlflow.set_tag("model_id", self.model_id)
-                        # mlflow.log_params(pipeline.params) 
-                        mlflow.log_param("symbol", symbol)
-                        mlflow.log_param("run_id", run_id)
-                        mlflow.log_param("target", target)
+            Parallel(n_jobs=-1)(
+                delayed(self._train_single)(pipeline, run_id, target, X, symbol)
+                for run_id in run_ids
+                for target in config.model_settings.model_targets
+            )
 
-                        X_train, X_test, y_train, y_test = self.transform_and_split(X, target, run_id)
+    def _train_single(self, pipeline: CustomModelPipeline, run_id: str, target: str, X: pd.DataFrame, symbol: str) -> None:
+        logger.info(
+            f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}"
+        )
+        with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
+            mlflow.set_tag("mode", self.mode)
+            mlflow.set_tag("model_id", self.model_id)
+            mlflow.log_param("symbol", symbol)
+            mlflow.log_param("run_id", run_id)
+            mlflow.log_param("target", target)
 
-                        if y_train is None:
-                            logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
-                            continue
+            X_train, X_test, y_train, y_test = self.transform_and_split(X, target, run_id)
 
-                        if pipeline.model is None:
-                            raise ValueError("Model has not been defined. Call setup() before running.")
-                        
-                        # Fit the model
-                        pipeline.model.fit(X_train, y_train)
+            if y_train is None:
+                logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
+                return
 
-                        # Log best parameters
-                        mlflow.log_params(pipeline.model.best_params_)
+            if pipeline.model is None:
+                raise ValueError("Model has not been defined. Call setup() before running.")
 
-                        # Predict on training data
-                        y_pred = pipeline.model.predict(X_test)
+            pipeline.model.fit(X_train, y_train)
+            mlflow.log_params(pipeline.model.best_params_)
+            y_pred = pipeline.model.predict(X_test)
 
-                        # Log performance metrics and artifacts
-                        log_model_performance(y_test, y_pred, pipeline.model.best_estimator_)
+            log_model_performance(y_test, y_pred, pipeline.model.best_estimator_, X_test)
 
-                        # Log the model
-                        registered_model_name = f"{symbol}_{run_id}_{target}"
-                        mlflow.sklearn.log_model(
-                            sk_model=pipeline.model.best_estimator_,
-                            artifact_path="model",
-                            registered_model_name=registered_model_name
-                        )
+            registered_model_name = f"{symbol}_{run_id}_{target}"
+            mlflow.sklearn.log_model(
+                sk_model=pipeline.model.best_estimator_,
+                artifact_path="model",
+                registered_model_name=registered_model_name,
+            )
 
-                        # Store the best estimator
-                        if symbol not in self.best_model_dict:
-                            self.best_model_dict[symbol] = {}
-                        if run_id not in self.best_model_dict[symbol]:
-                            self.best_model_dict[symbol][run_id] = {}
-                        self.best_model_dict[symbol][run_id][target] = clone(pipeline.model.best_estimator_)
-                    # except Exception as e:
-                    #     mlflow.log_param("error", str(e))
-                    #     logger.error(f"Error encountered while training: {symbol}_{run_id}_{target}_{self.model_id} \n {str(e)}")
-                    #     raise e
+            if symbol not in self.best_model_dict:
+                self.best_model_dict[symbol] = {}
+            if run_id not in self.best_model_dict[symbol]:
+                self.best_model_dict[symbol][run_id] = {}
+            self.best_model_dict[symbol][run_id][target] = clone(pipeline.model.best_estimator_)
 
-    def predict(self, X: pd.DataFrame, symbol: str) -> None:
+    def predict(self, X: pd.DataFrame, symbol: str) -> pd.DataFrame:
         """
         Makes predictions using the pre-loaded models in LIVE mode.
 
@@ -269,13 +269,14 @@ class MLPipelineBase:
             symbol (str): The stock symbol.
         """
         run_ids = config.model_settings.run_ids
+        targets = config.model_settings.model_targets
         model_fit_dict = self.best_model_dict.get(symbol, {})
         if not model_fit_dict:
             logger.warning(f"No models available for symbol '{symbol}' in LIVE mode.")
-            return
+            return X
 
         for run_id in run_ids:
-            for target in ['pct_change', 'atr']:
+            for target in targets:
                 model = model_fit_dict.get(run_id, {}).get(target, None)
                 if model is None:
                     logger.warning(f"No model found for {symbol} {run_id} {target}")
@@ -289,8 +290,15 @@ class MLPipelineBase:
                     prediction = model.predict(X)
                     X.loc[:, f'prediction_{run_id}_{target}'] = prediction
 
+                    if hasattr(model, "predict_proba"):
+                        probas = model.predict_proba(X)
+                        for idx, class_label in enumerate(model.classes_):
+                            X.loc[:, f'prob_{run_id}_{target}_{class_label}'] = probas[:, idx]
+
                     # Log prediction (optional)
                     mlflow.log_metric("prediction", prediction[0])  # Logging first prediction as an example
+
+        return X
 
     def prepare_input_and_target(self, X: pd.DataFrame, target: str, run_id: str) -> Optional[pd.Series]:
         """

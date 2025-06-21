@@ -5,7 +5,11 @@ import re
 import numpy as np
 import pandas as pd
 from functools import partial
+from joblib import Memory
 from src import config
+
+cache_dir = './pipeline_cache'
+memory = Memory(location=cache_dir, verbose=0)
 
 class TargetTransform:
     """
@@ -186,6 +190,7 @@ class TargetTransform:
 
         return atr.iloc[::-1]
 
+    @memory.cache
     def categorize_percent_change(self, data: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Computes the largest absolute percent change (either maximum or minimum) within a specified forward window size 
@@ -231,6 +236,7 @@ class TargetTransform:
 
         return df, categories
 
+    @memory.cache
     def categorize_atr(self, data: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Calculates the ATR over a specified window size and categorizes the ATR values.
