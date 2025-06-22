@@ -3,8 +3,7 @@ import pandas as pd
 import talib
 from typing import Dict, List
 from src import config
-
-
+from src.utils.utils import get_trunc_output
 
 class CandlestickPatternRecognizer:
     """
@@ -74,9 +73,13 @@ class CandlestickPatternRecognizer:
 
         # Convert pattern indicators to DataFrame
         combined_patterns: Dict[str, List[int]] = {**engulf_patterns, **{k: (v > 0).astype(int).tolist() for k, v in patterns.items()}}
-        pattern_df: pd.DataFrame = pd.DataFrame(combined_patterns, index = df.index)
 
-        return pattern_df
+        data_len = len(combined_patterns['BullishEngulfing'])
+        for key, val in combined_patterns.items(): assert len(val) == data_len, f"Length mismatch for key '{key}': expected {data_len}, got {len(val)}"
+
+        pattern_df: pd.DataFrame = pd.DataFrame(combined_patterns, index = df.index.to_series().iloc[-data_len:])
+
+        return get_trunc_output(pattern_df)
 
 
 # Example usage

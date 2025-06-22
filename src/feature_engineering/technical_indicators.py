@@ -30,7 +30,7 @@ class TechnicalIndicators:
         return indicators_df
 
     def _truncate_data_for_live_mode(self, data: pd.DataFrame) -> pd.DataFrame:
-        #max_period = (14 * config.N_OPERATIONS_HOURS_DAILY * 60) // config.TRADE_RUN_INTERVAL_MIN
+        # max_period = (14 * config.N_OPERATIONS_HOURS_DAILY * 60) // config.TRADE_RUN_INTERVAL_MIN
         # TODO
         return data.tail(config.backtest_data_load.tech_inds_max_length + 1)
 

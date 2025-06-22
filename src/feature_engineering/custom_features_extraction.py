@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List
 from src import config
-
+from src.utils.utils import get_trunc_output
 
 class FeatureExtraction:
     """
@@ -115,6 +115,12 @@ class FeatureExtraction:
         features['body_mid_point'] = data['open'] + (features['body_length'] / 2)
         features['is_green'] = data['close'] > data['open']
         features['body_to_length_ratio'] = features['body_length'] / features['candlestick_length']
+
+        # Calculate the price movement from open to close
+        features["price_movement_open_close"] = ((
+            (data["close"] - data["open"]) / data["open"])
+            .replace([np.inf, -np.inf], np.nan)
+            .fillna(0))
         feat_cols: List[str] = features.columns.to_list()
 
         # Carry forward the features for the last two candles into the current record
@@ -149,13 +155,11 @@ class FeatureExtraction:
         for period in config.backtest_data_load.volume_mean_windows:
             # Calculate percent change compared to the rolling mean of the given period
             rolling_mean: pd.Series = data['volume'].rolling(window=period).mean()
+            # rolling_mean_inds = ~rolling_mean.isna()
             pct_change_from_rolling_mean: pd.Series = (
                 data['volume'] - rolling_mean
             ) / rolling_mean * 100
-            if self.mode == "BACKTEST":
-                features[f'volume_pct_change_mean_{period}'] = pct_change_from_rolling_mean
-            else:
-                features[f'volume_pct_change_mean_{period}'] = pct_change_from_rolling_mean.iloc[-1:]
+            features[f'volume_pct_change_mean_{period}'] = get_trunc_output(pct_change_from_rolling_mean)
 
         return features
 
@@ -213,11 +217,11 @@ class FeatureExtraction:
         Returns:
             pd.DataFrame: DataFrame containing all generated custom features.
         """
-        candlestick_features: pd.DataFrame = self._add_candlestick_features(data)
-        high_low_features: pd.DataFrame = self._add_high_low_features(data)
-        volume_features: pd.DataFrame = self._add_volume_features(data)
-        time_based_features: pd.DataFrame = self._add_time_based_features(data)
-        gap_analysis_features: pd.DataFrame = self._add_gap_analysis_features(data)
+        candlestick_features: pd.DataFrame = get_trunc_output(self._add_candlestick_features(data))
+        high_low_features: pd.DataFrame = get_trunc_output(self._add_high_low_features(data))
+        volume_features: pd.DataFrame = get_trunc_output(self._add_volume_features(data))
+        time_based_features: pd.DataFrame = get_trunc_output(self._add_time_based_features(data))
+        gap_analysis_features: pd.DataFrame = get_trunc_output(self._add_gap_analysis_features(data))
 
         # Combine all new feature DataFrames
         custom_dfs: List[pd.DataFrame] = [

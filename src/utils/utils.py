@@ -120,3 +120,10 @@ def epoch_to_ist(epoch_time: float) -> datetime.datetime:
     ist_timezone = datetime.timezone(datetime.timedelta(hours=5, minutes=30))  # IST timezone offset
     ist_datetime = datetime.datetime.fromtimestamp(epoch_time, tz=ist_timezone)
     return ist_datetime
+
+def get_timezone():
+   return pytz.timezone(config.scheduler.timezone)
+
+
+def get_trunc_output(output):
+    return output if not config.trading_config.trade_mode == 'LIVE' else output.iloc[-1:]

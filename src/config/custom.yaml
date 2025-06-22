@@ -1,10 +1,11 @@
 # src/config/custom.yaml
 trading_config:
-  trade_mode:  LIVE # "LIVE" "BACKTEST"
+  trade_mode:  LIVE #LIVE # "LIVE" "BACKTEST"
   manual_set_trade_mode: null
   redirect_url: "https://www.google.com/"
   response_type: "code"
   grant_type: "authorization_code"
+  mlflow_url: "http://localhost:5000"
 
 base_payload_args:
   symbol: "{symbol}"
@@ -33,7 +34,10 @@ model_settings:
     - 15min
     - 30min
     - 1h
-    - 3h
+   #  - 3h
+
+live_mode_max_length:
+   tech_ind_bollinger_bands: 
 
 # New setting to control whether training combines
 # data across all symbols or trains models per symbol.

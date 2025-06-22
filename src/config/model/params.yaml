@@ -49,3 +49,4 @@ technical_indicators_params:
   fibonacci_retracements__window: [78, 156, 234]
 # Custom model
 custom_model_windows: [5, 15, 30, 60, 180]
+

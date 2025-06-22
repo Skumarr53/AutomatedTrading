@@ -5,6 +5,8 @@ from datetime import datetime
 from loguru import logger
 import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
+# from src.trading_logic.trading_bot import TradingBot
+from src.mlflow_utils.model_loader import PredictionExecutor
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
 from src.utils.utils import load_symbols
@@ -15,7 +17,7 @@ from src.financial_analysis.trading_strategies import TradingStrategies
 from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.base_pipeline import MLPipelineBase
-from src.utils.utils import determine_mode
+from src.utils.utils import determine_mode, get_timezone
 from src.mlflow_utils.model_loader import ModelCache, MLflowModelLoader
 
 
@@ -50,7 +52,7 @@ class MarketAnalysisApp:
         self.strategy_module = TradingStrategies()
         self.last_data_collection_time = None
         self.custom_model = MLPipelineBase()
-        self.timezone = pytz.timezone(config.scheduler.timezone)
+        # self.trading_bot = TradingBot()
 
         # Add model loading components for LIVE mode
         if self.trading_mode == 'LIVE':
@@ -111,26 +113,26 @@ class MarketAnalysisApp:
             raise
 
 
-    def _schedule_job(self, func: Callable, interval: int, job_id: str, max_instances: int=1) -> None:
+    def _schedule_job(self, func: Callable, job_id: str) -> None:
         """Schedules a single job with a delay mechanism."""
         self.scheduler.add_job(
             func,
             'cron',
-            day_of_week='mon-fri',
-            hour='9-15',
-            minute=f'*/{interval}',
-            timezone=self.timezone,
+            day_of_week=config.scheduler.day_of_week,
+            hour=config.scheduler.hour,
+            minute=f'*/{config.scheduler.data_fetch_cron_interval_min}',
+            timezone=get_timezone(),
             id=job_id,
-            max_instances=max_instances
+            max_instances=config.scheduler.max_instances
         )
-        logger.info(f"Scheduled {job_id} every {interval} minutes.")
+        logger.info(f"Scheduled {job_id} every {config.scheduler.data_fetch_cron_interval_min} minutes.")
 
     def configure_scheduler(self):
         """
         Schedule regular data updates during trading hours.
         """
         self._schedule_job(
-            self.data_collection, config.scheduler.data_fetch_cron_interval_min, "data_collection", max_instances=2)
+            self.data_collection, "data_collection")
         # self._schedule_job(self.start_live_trading, config.scheduler.data_fetch_cron_interval_min, "start_live_trading")
         self.scheduler.start()
 
@@ -141,17 +143,20 @@ class MarketAnalysisApp:
         self.start_live_trading()
 
     def start_live_trading(self):
-        time.sleep(10)
+        # time.sleep(10)
         ## TODO Turn assert on 
         # assert (datetime.now() - self.last_data_collection_time).seconds < 60, 'Data Collection and Trading Excecution not in sync'
         for symbol in config.symbols:
-            ticker_data = self.ticker_data_handler.data[symbol].iloc[-1,:]
-            order_book_data = self.order_data_handler.data[symbol].iloc[-1,:]
+            ticker_data = self.ticker_data_handler.data[symbol]#.tail(1)
+            order_book_data = self.order_data_handler.data[symbol]#.tail(1)
             
             # Aggregate features
             data_agg = self.data_aggregator.aggregate_features(ticker_data, order_book_data)
             
             predictions = self.generate_live_predictions(data_agg, symbol)
+
+            print(1)
+
         pass
 
     def start_backtesting(self):

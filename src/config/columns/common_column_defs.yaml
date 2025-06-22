@@ -147,5 +147,4 @@ common_columns:
   total_ask_volume: 'total_ask_volume'
   spread: 'spread'
   buy_sell_pressure_ratio: 'buy_sell_pressure_ratio'
-  intraday_price_range: 'intraday_price_range'
   price_movement_open_close: 'price_movement_open_close'

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 from typing import Dict, Any, List, Tuple
+from src.utils.utils import get_trunc_output
 
 
 class OrderBookDataTransformer:
@@ -50,10 +51,12 @@ class OrderBookDataTransformer:
         Returns:
             pd.DataFrame: DataFrame containing condensed order book information.
         """
-        clean_str2pyobj =  lambda bid: ast.literal_eval(bid.replace("'", '"').replace("\n", ','))
+
+
+        clean_str2pyobj =  lambda bid: ast.literal_eval(bid.replace("'", '"').replace("\n", ',')) if isinstance(bid, str) else bid
                                      
-        bids: List[Dict[str, Any]] = data.get("bids", []).apply(clean_str2pyobj)
-        asks: List[Dict[str, Any]] = data.get("asks", []).apply(clean_str2pyobj)
+        bids: List[Dict[str, Any]] = data.bids.apply(clean_str2pyobj)
+        asks: List[Dict[str, Any]] = data.asks.apply(clean_str2pyobj)
 
         weighted_bid_price, total_bid_volume = self.calculate_weighted_price_and_volume(
             bids
@@ -74,7 +77,7 @@ class OrderBookDataTransformer:
                 , index = data.index
         )
 
-        return condensed_info_df
+        return get_trunc_output(condensed_info_df)
 
     @staticmethod
     def calculate_metrics(order: List[Dict[str, Any]]) -> pd.Series:
@@ -135,36 +138,6 @@ class OrderBookDataTransformer:
             (
                 condensed_info_df["total_bid_volume"]
                 / condensed_info_df["total_ask_volume"]
-            )
-            .replace([np.inf, -np.inf], np.nan)
-            .fillna(0)
-        )
-
-        # Assuming 'high' and 'low' are part of condensed_info_df or available from elsewhere
-        # If not available, these need to be passed or calculated separately
-        # For demonstration, we'll add dummy values
-        derived_df["intraday_price_range"] = condensed_info_df.get(
-            "high", pd.Series(0, index=condensed_info_df.index)
-        ) - condensed_info_df.get("low", pd.Series(0, index=condensed_info_df.index))
-
-        # Assuming 'open' and 'close' are part of condensed_info_df or available from elsewhere
-        # If not available, these need to be passed or calculated separately
-        # For demonstration, we'll add dummy values
-        
-
-        derived_df["price_movement_open_close"] = (
-            (
-                (
-                    condensed_info_df.get(
-                        "close", pd.Series(0, index=condensed_info_df.index)
-                    )
-                    - condensed_info_df.get(
-                        "open", pd.Series(0, index=condensed_info_df.index)
-                    )
-                )
-                / condensed_info_df.get(
-                    "open", pd.Series(1, index=condensed_info_df.index)
-                )
             )
             .replace([np.inf, -np.inf], np.nan)
             .fillna(0)

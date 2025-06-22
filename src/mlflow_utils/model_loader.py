@@ -86,17 +86,18 @@ class PredictionExecutor:
     def _predict_for_stock(self, stock_symbol: str, time_periods: List[str], metrics: List[str]) -> Dict[str, float]:
         """Run predictions for each stock symbol across different time periods and metrics."""
         predictions = {}
+        self.data.fillna(0, inplace=True)
         for time_period in config.model_settings.run_ids:
             for metric in metrics:
                 start_time = time.time()  # Start timer for performance profiling
-                try:
-                    model = self.model_loader.load_model(stock_symbol, time_period, metric)
-                    prediction = model.predict(self.data)  # Predict using the pipeline model
-                    predictions[f"{time_period}_{metric}"] = prediction[0]  # Assuming single row prediction
-                    end_time = time.time()  # End timer
-                    logging.info(f"Prediction for {stock_symbol}, {time_period}, {metric} took {end_time - start_time:.4f} seconds.")
-                except Exception as e:
-                    logging.error(f"Error in making prediction for {stock_symbol}, {time_period}, {metric}: {e}")
+                # try:
+                model = self.model_loader.load_model(stock_symbol, time_period, metric)
+                prediction = model.predict(self.data)  # Predict using the pipeline model
+                predictions[f"{time_period}_{metric}"] = prediction[0]  # Assuming single row prediction
+                end_time = time.time()  # End timer
+                logging.info(f"Prediction for {stock_symbol}, {time_period}, {metric} took {end_time - start_time:.4f} seconds.")
+                # except Exception as e:
+                #     logging.error(f"Error in making prediction for {stock_symbol}, {time_period}, {metric}: {e}")
         return predictions
 
     def run_predictions(self, stock_symbols: List[str], time_periods: List[str], metrics: List[str]) -> Dict[str, Dict[str, float]]:

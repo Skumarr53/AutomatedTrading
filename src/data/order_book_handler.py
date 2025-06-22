@@ -22,12 +22,9 @@ class OrderBookHandler:
         # config.symbols = config.symbols
         self.path = config.paths.orderbook_filename
         self.callbacks = []
+        self.data = {symbol: self.load_existing_data(symbol) for symbol in config.symbols}
         if config.trading_config.trade_mode == "LIVE":
-            self.data = {symbol: pd.DataFrame() for symbol in config.symbols}
-            self.initialize_scheduler()
-        else:
-            self.data = {symbol: self.load_existing_data(
-                symbol) for symbol in config.symbols}
+            self.initialize_scheduler()            
 
     @staticmethod
     def extract_info_df(data: dict, symbol: str):

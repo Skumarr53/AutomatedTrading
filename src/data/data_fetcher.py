@@ -11,7 +11,7 @@ from datetime import datetime, time as _time
 import os
 import pandas as pd
 from typing import List, Dict, Callable, Optional
-from src.utils.utils import load_symbols, get_NSE_symbol
+from src.utils.utils import get_NSE_symbol, get_timezone
 from src import config
 
 
@@ -238,8 +238,6 @@ class DataHandler:
         """
         Schedule regular data updates during trading hours.
         """
-        IST = pytz.timezone(config.scheduler.timezone)
-
         def delayed_job() -> None:
             """
             Delayed job execution to ensure trading hours alignment.
@@ -252,10 +250,10 @@ class DataHandler:
         self.scheduler.add_job(
             delayed_job,
             'cron',
-            day_of_week='mon-fri',
-            hour='9-15',
+            day_of_week=config.scheduler.day_of_week,
+            hour=config.scheduler.hour,
             minute=f'*/{config.scheduler.data_fetch_cron_interval_min}',
-            timezone=IST,
+            timezone=get_timezone(),
             id='update_data_regularly_job'
         )
 
@@ -267,8 +265,7 @@ class DataHandler:
             Optional[Dict[str, pd.DataFrame]]: Updated data dictionary if within trading hours, else None.
         """
         try:
-            IST = pytz.timezone(config.scheduler.timezone)
-            now: datetime = datetime.now(IST)
+            now: datetime = datetime.now(get_timezone())
             logger.debug(f"Attempting data update at {now}")
             if _time(9, 0) <= now.time() <= _time(15, 0):
                 for symbol in config.symbols:

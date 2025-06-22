@@ -18,6 +18,7 @@ from joblib import Memory  # NEW: Import Memory for caching
 from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
 from src.utils.mlflow_utils import log_model_performance
+from src.mlflow_utils.mlflow_server import start_mlflow_server, is_mlflow_server_running
 from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
 
 cache_dir = './pipeline_cache'
@@ -200,6 +201,15 @@ class MLPipelineBase:
 
         return X_train, X_test, y_train, y_test
     
+    @staticmethod
+    def start_mlflow_server_if_not_running():
+        url = config.trading_config.mlflow_url
+        if not is_mlflow_server_running(url):
+            logger.info("MLflow server is not running. Starting server...")
+            start_mlflow_server()
+        else:
+            logger.info("MLflow server is already running.")
+    
     def log_and_register_model(self, X_test, y_test, pipeline, symbol, run_id, target):
         """
         Logs model performance, logs the model, and registers it in the production stage.
@@ -268,6 +278,7 @@ class MLPipelineBase:
         """
 
         experiment_name = f"TradingModels_{self.model_id}"
+        self.start_mlflow_server_if_not_running()
         mlflow.set_experiment(experiment_name)
 
         run_ids = config.model_settings.run_ids

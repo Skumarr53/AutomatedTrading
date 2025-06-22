@@ -5,17 +5,17 @@ pipeline_configs:
     imbalance_technique: smote
     model: GBC
 
-  Pipeline_2:
-    std_scale: true
-    cat_encode: true
-    imbalance_technique: smote
-    model: MLP
+  # Pipeline_2:
+  #   std_scale: true
+  #   cat_encode: true
+  #   imbalance_technique: smote
+  #   model: MLP
   
-  Pipeline_3:
-    std_scale: false
-    cat_encode: true
-    imbalance_technique: smote
-    model: MLP
+  # Pipeline_3:
+  #   std_scale: false
+  #   cat_encode: true
+  #   imbalance_technique: smote
+  #   model: MLP
   
 
   # Pipeline_4:
