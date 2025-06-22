@@ -9,8 +9,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from src.mlflow_utils.model_loader import PredictionExecutor
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
-from src.utils.utils import load_symbols
-import pandas as pd
 from typing import Callable
 from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.financial_analysis.trading_strategies import TradingStrategies
@@ -21,7 +19,6 @@ from src.utils.utils import determine_mode, get_timezone
 from src.mlflow_utils.model_loader import ModelCache, MLflowModelLoader
 
 
-print(1)
 
 ## TODO: use the following snippet for alert across 
 # send_telegram_message(
@@ -93,6 +90,10 @@ class MarketAnalysisApp:
             logger.error("Strategy execution failed")
             raise
 
+    def _execute_trades_based_on_decisions(self, strategy_decisions: dict) -> None:
+        """Placeholder for executing trades based on strategy decisions."""
+        logger.info(f"Strategy decisions: {strategy_decisions}")
+
     def _setup_data_handling(self):
         self.indicators = TechnicalIndicators()
         self.ticker_data_handler = DataHandler(self.fyers_instance, self.scheduler)
@@ -100,18 +101,6 @@ class MarketAnalysisApp:
                 self.indicators.get_stock_indicators)
         # self.indicators.register_callback(self.execute_strategies)
     
-    def execute_strategies(self, indicators_data):
-        """
-        Execute trading strategies based on the indicators data.
-        """
-        try:
-            strategy_decisions = self.strategy_module.execute_technical_strategy(
-                indicators_data)
-            # Process the strategy decisions further as needed
-        except Exception as e:
-            logger.error("Strategy execution failed")
-            raise
-
 
     def _schedule_job(self, func: Callable, job_id: str) -> None:
         """Schedules a single job with a delay mechanism."""
@@ -155,7 +144,6 @@ class MarketAnalysisApp:
             
             predictions = self.generate_live_predictions(data_agg, symbol)
 
-            print(1)
 
         pass
 
@@ -206,3 +194,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
