@@ -16,3 +16,10 @@ pipeline_configs:
     cat_encode: true
     imbalance_technique: smote
     model: MLP
+  
+
+  # Pipeline_4:
+  #   std_scale: false
+  #   cat_encode: true
+  #   imbalance_technique: smote
+  #   model: LR
