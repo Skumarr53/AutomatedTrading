@@ -1,21 +1,19 @@
 import hydra
-from omegaconf import DictConfig, OmegaConf
-from pathlib import Path
-from loguru import logger
-import sys,os
-from typing import Optional
+from omegaconf import DictConfig
+from functools import lru_cache
+
+"""Configuration loading utilities."""
 
 
 
+@lru_cache(maxsize=1)
 def get_config() -> DictConfig:
-    # global _config
-    # If the configuration is not already loaded, initialize and compose it
-    # if _config is None:
+    """Load and cache the Hydra configuration once."""
     try:
         with hydra.initialize(config_path="."):
-            _config = hydra.compose(config_name="config.yaml") #version_base="1.1"
+            _config = hydra.compose(config_name="config.yaml")
         return _config
-    except Exception as e:
-        raise f"Error loading configuration: {e}"
+    except Exception as e:  # pragma: no cover - configuration errors are fatal
+        raise RuntimeError(f"Error loading configuration: {e}")
 
 

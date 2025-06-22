@@ -79,14 +79,12 @@ class MarketAnalysisApp:
             raise
     
     def execute_strategies(self, indicators_data: dict, predictions: dict) -> None:
-        """Execute trading strategies combining indicators and model predictions."""
+        """Execute trading strategies combining indicators and predictions."""
         try:
-            # Merge technical indicators with model predictions
             enhanced_data = {
                 **indicators_data,
-                'model_predictions': predictions
-            } 
-            
+                "model_predictions": predictions,
+            }
             strategy_decisions = self.strategy_module.execute_technical_strategy(enhanced_data)
             self._execute_trades_based_on_decisions(strategy_decisions)
         except Exception as e:
@@ -99,18 +97,12 @@ class MarketAnalysisApp:
         self.ticker_data_handler.register_callback(
                 self.indicators.get_stock_indicators)
         # self.indicators.register_callback(self.execute_strategies)
-    
-    def execute_strategies(self, indicators_data):
-        """
-        Execute trading strategies based on the indicators data.
-        """
-        try:
-            strategy_decisions = self.strategy_module.execute_technical_strategy(
-                indicators_data)
-            # Process the strategy decisions further as needed
-        except Exception as e:
-            logger.error("Strategy execution failed")
-            raise
+
+    def _execute_trades_based_on_decisions(self, decisions: dict) -> None:
+        """Handle trade execution based on strategy decisions."""
+        for symbol, decision_data in decisions.items():
+            majority_decision = decision_data.get("Majority_Vote_Strategy")
+            logger.info(f"{symbol}: {majority_decision}")
 
 
     def _schedule_job(self, func: Callable, job_id: str) -> None:
