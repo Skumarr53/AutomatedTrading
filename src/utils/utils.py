@@ -5,13 +5,15 @@ import pandas as pd
 import time
 import pytz
 from selenium.webdriver.chrome.options import Options
-from functools import partial
+from functools import partial, lru_cache
 from typing import List
 import datetime
 import yaml
 
 
-def load_config(filename):
+@lru_cache(maxsize=None)
+def load_config(filename: str):
+    """Load YAML configuration from ``filename`` and cache the result."""
     with open(filename, 'r') as file:
         return yaml.safe_load(file)
 
@@ -52,6 +54,7 @@ def get_chrome_options() -> Options:
     return options
 
  
+@lru_cache(maxsize=None)
 def load_symbols(symbols_file: str) -> List[str]:
     """
     Loads stock symbols from a specified file, one per line.
