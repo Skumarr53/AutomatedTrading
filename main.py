@@ -1,6 +1,5 @@
 from src import config
-import time, pytz
-from scripts.telegram_notifier import send_telegram_message
+import time
 from datetime import datetime
 from loguru import logger
 import pandas as pd
@@ -9,8 +8,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from src.mlflow_utils.model_loader import PredictionExecutor
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
-from src.utils.utils import load_symbols
-import pandas as pd
 from typing import Callable
 from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.financial_analysis.trading_strategies import TradingStrategies
@@ -18,16 +15,11 @@ from src.feature_engineering.feature_aggregator import DataAggregator
 from src.data.order_book_handler import OrderBookHandler
 from src.pipelines.base_pipeline import MLPipelineBase
 from src.utils.utils import determine_mode, get_timezone
+# Utility classes
 from src.mlflow_utils.model_loader import ModelCache, MLflowModelLoader
 
+# TODO: use the following snippet for alerts across services
 
-print(1)
-
-## TODO: use the following snippet for alert across 
-# send_telegram_message(
-# type: Good or Bad 
-# message=str('Service has started')
-# )
 
 class MarketAnalysisApp:
     """
@@ -37,14 +29,20 @@ class MarketAnalysisApp:
     """
     def __init__(self):
         # self.trading_mode = config.trading_config.trade_mode
-        self.trading_mode = config.trading_config.trade_mode if config.trading_config.trade_mode else determine_mode() 
+        self.trading_mode = (
+            config.trading_config.trade_mode
+            if config.trading_config.trade_mode
+            else determine_mode()
+        )
         self.setup_based_on_mode()
-    
+
     def setup_based_on_mode(self):
         # config.symbols = config.symbols #config.symbols
         self.generator = AuthCodeGenerator()
         self._setup_authorization()
-        self.scheduler = BackgroundScheduler() if self.trading_mode == 'LIVE' else None 
+        self.scheduler = (
+            BackgroundScheduler() if self.trading_mode == 'LIVE' else None
+        )
         self._setup_data_handling()
         self.order_data_handler = OrderBookHandler(
             self.fyers_instance, self.scheduler)
@@ -62,7 +60,9 @@ class MarketAnalysisApp:
                 model_cache=self.model_cache
             )
 
-    def generate_live_predictions(self, data_agg: pd.DataFrame, symbol: str) -> dict:
+    def generate_live_predictions(
+        self, data_agg: pd.DataFrame, symbol: str
+    ) -> dict:
         """Generate predictions using loaded models."""
         try:
             prediction_executor = PredictionExecutor(
@@ -97,20 +97,8 @@ class MarketAnalysisApp:
         self.indicators = TechnicalIndicators()
         self.ticker_data_handler = DataHandler(self.fyers_instance, self.scheduler)
         self.ticker_data_handler.register_callback(
-                self.indicators.get_stock_indicators)
+            self.indicators.get_stock_indicators)
         # self.indicators.register_callback(self.execute_strategies)
-    
-    def execute_strategies(self, indicators_data):
-        """
-        Execute trading strategies based on the indicators data.
-        """
-        try:
-            strategy_decisions = self.strategy_module.execute_technical_strategy(
-                indicators_data)
-            # Process the strategy decisions further as needed
-        except Exception as e:
-            logger.error("Strategy execution failed")
-            raise
 
 
     def _schedule_job(self, func: Callable, job_id: str) -> None:
@@ -152,12 +140,8 @@ class MarketAnalysisApp:
             
             # Aggregate features
             data_agg = self.data_aggregator.aggregate_features(ticker_data, order_book_data)
-            
+
             predictions = self.generate_live_predictions(data_agg, symbol)
-
-            print(1)
-
-        pass
 
     def start_backtesting(self):
         """Run backtesting for all configured symbols."""

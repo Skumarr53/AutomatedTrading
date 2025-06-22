@@ -2,6 +2,7 @@ import ast
 from dataclasses import dataclass, field
 from typing import Dict
 import pandas as pd
+import numpy as np
 from src.feature_engineering.custom_features_extraction import FeatureExtraction
 from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.feature_engineering.orderbook_features_extraction import OrderBookDataTransformer

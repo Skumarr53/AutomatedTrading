@@ -5,7 +5,7 @@ import pandas as pd
 import time
 import pytz
 from selenium.webdriver.chrome.options import Options
-from functools import partial
+from functools import partial, lru_cache
 from typing import List
 import datetime
 import yaml
@@ -52,6 +52,7 @@ def get_chrome_options() -> Options:
     return options
 
  
+@lru_cache(maxsize=None)
 def load_symbols(symbols_file: str) -> List[str]:
     """
     Loads stock symbols from a specified file, one per line.
@@ -122,7 +123,7 @@ def epoch_to_ist(epoch_time: float) -> datetime.datetime:
     return ist_datetime
 
 def get_timezone():
-   return pytz.timezone(config.scheduler.timezone)
+    return pytz.timezone(config.scheduler.timezone)
 
 
 def get_trunc_output(output):
