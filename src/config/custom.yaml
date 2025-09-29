@@ -1,6 +1,6 @@
 # src/config/custom.yaml
 trading_config:
-  trade_mode:  LIVE #LIVE # "LIVE" "BACKTEST"
+  trade_mode: BACKTEST #LIVE # "LIVE" "BACKTEST"
   manual_set_trade_mode: null
   redirect_url: "https://www.google.com/"
   response_type: "code"
