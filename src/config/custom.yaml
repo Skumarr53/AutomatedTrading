@@ -1,11 +1,10 @@
 # src/config/custom.yaml
 trading_config:
-  trade_mode: BACKTEST #LIVE # "LIVE" "BACKTEST"
+  trade_mode: LIVE # "LIVE" "BACKTEST"
   manual_set_trade_mode: null
   redirect_url: "https://www.google.com/"
   response_type: "code"
   grant_type: "authorization_code"
-  mlflow_url: "http://localhost:5000"
 
 base_payload_args:
   symbol: "{symbol}"
@@ -43,3 +42,12 @@ live_mode_max_length:
 # data across all symbols or trains models per symbol.
 training:
   combine_all_symbols: false
+
+mlflow_config:
+  enabled: true  # Whether to start the MLflow server
+  host: "0.0.0.0"
+  port: 5000
+  backend_store_uri: "sqlite:///mlflow.db"
+  default_artifact_root: "./mlruns"
+  startup_delay_seconds: 5  # Time to wait after starting the server
+  tracking_uri: "http://0.0.0.0:5000"  # Used for client tracking

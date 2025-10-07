@@ -203,7 +203,7 @@ class MLPipelineBase:
     
     @staticmethod
     def start_mlflow_server_if_not_running():
-        url = config.trading_config.mlflow_url
+        url = config.mlflow_config.tracking_uri
         if not is_mlflow_server_running(url):
             logger.info("MLflow server is not running. Starting server...")
             start_mlflow_server()
@@ -278,7 +278,6 @@ class MLPipelineBase:
         """
 
         experiment_name = f"TradingModels_{self.model_id}"
-        self.start_mlflow_server_if_not_running()
         mlflow.set_experiment(experiment_name)
 
         run_ids = config.model_settings.run_ids

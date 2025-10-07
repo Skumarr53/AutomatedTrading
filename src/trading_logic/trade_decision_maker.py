@@ -15,6 +15,7 @@ class TradeDecisionMaker:
         Args:
             cooldown_minutes (int): Time interval before executing another trade.
         """
+        ## TODO: Add weights to config file
         self.weights = {'5m': 1, '15m': 2, '1h': 4}  # Exponential weighting for signals
         self.cooldown_minutes = cooldown_minutes
         self.last_trade_time: Optional[datetime] = None
@@ -23,6 +24,7 @@ class TradeDecisionMaker:
 
     def convert_signal_to_score(self, signal: str) -> int:
         """Convert model prediction categories to numeric scores."""
+        ## TODO
         mapping = {'Low': 1, 'Medium Low': 2, 'Neutral': 2.5, 'Medium High': 3, 'High': 4}
         return mapping.get(signal, 0)
 

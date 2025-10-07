@@ -38,9 +38,14 @@ class ModelCache:
 class MLflowModelLoader:
     """Class to load models from MLflow for given stock, time period, and metric."""
 
-    def __init__(self, config: dict, model_cache: ModelCache):
+    def __init__(self, config: dict, model_cache: ModelCache, experiment_name: str = None, tracking_uri: str = "http://localhost:5000"):
         self.config = config
         self.model_cache = model_cache
+        self.experiment_name = experiment_name
+        
+        # Set MLflow tracking URI
+        mlflow.set_tracking_uri(tracking_uri)
+        logger.info(f"MLflow tracking URI set to: {tracking_uri}")
 
     def _get_model_name(self, stock_symbol: str, time_period: str, metric: str) -> str:
         """Generate model name based on stock symbol, time period, and metric."""
@@ -63,18 +68,21 @@ class MLflowModelLoader:
             return cached_model
 
         # If cache miss, load the model from MLflow
-        # experiment = self._get_latest_experiment()
-        # logging.info(f"Loading model: {model_name}")
-        
-        # Load the pipeline model from MLflow
-        model_uri = f"models:/{model_name}/latest"
-        loaded_pipeline = mlflow.sklearn.load_model(model_uri)
-        
-        # Cache the loaded model
-        self.model_cache.add(model_name, loaded_pipeline)
-        
-        logging.info(f"Model {model_name} loaded and cached successfully")
-        return loaded_pipeline
+        try:
+            logging.info(f"Loading model: {model_name}")
+            
+            # Load the pipeline model from MLflow
+            model_uri = f"models:/{model_name}/latest"
+            loaded_pipeline = mlflow.sklearn.load_model(model_uri)
+            
+            # Cache the loaded model
+            self.model_cache.add(model_name, loaded_pipeline)
+            
+            logging.info(f"Model {model_name} loaded and cached successfully")
+            return loaded_pipeline
+        except Exception as e:
+            logging.error(f"Failed to load model {model_name}: {e}")
+            raise
 
 class PredictionExecutor:
     """Class to execute predictions for a list of stocks."""

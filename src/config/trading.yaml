@@ -1,3 +1,25 @@
 trading_decision:
   buy_labels: ["High", "Medium High"]
   sell_labels: ["Medium Low", "Low"]
+
+# Trading execution parameters
+execution:
+  product_type: "CNC"  # INTRADAY or CNC (Cash and Carry)
+  order_type: "MARKET"  # MARKET or LIMIT
+  risk_per_trade_percent: 2.0  # Percentage of account to risk per trade
+  max_position_size: 100  # Maximum quantity per trade
+  enable_short_trading: false  # Whether to allow short selling
+  cooldown_minutes: 5  # Minutes to wait between trades for same symbol
+  
+# Risk management
+risk_management:
+  max_portfolio_risk_percent: 10.0  # Maximum % of portfolio at risk
+  max_positions: 5  # Maximum number of concurrent positions
+  stop_loss_atr_multiplier: 2.0  # Stop loss = ATR * multiplier
+  take_profit_atr_multiplier: 3.0  # Take profit = ATR * multiplier
+  
+# Trade signal thresholds
+signal_thresholds:
+  buy_score_threshold: 3.0  # Minimum weighted score for BUY
+  sell_score_threshold: 2.0  # Maximum weighted score for SELL
+  confirmation_required: true  # Require signal confirmation across checks

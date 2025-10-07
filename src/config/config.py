@@ -17,5 +17,5 @@ def get_config() -> DictConfig:
         return _config
     except Exception as e:
         raise f"Error loading configuration: {e}"
-
+    
 
