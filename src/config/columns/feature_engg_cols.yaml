@@ -1,5 +1,6 @@
 
 cat_cols:
+
   - ${columns.common_columns.is_green}
   - ${columns.common_columns.is_green_prev_1}
   - ${columns.common_columns.is_green_prev_2}

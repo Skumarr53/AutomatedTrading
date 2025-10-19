@@ -86,14 +86,24 @@ class MarketAnalysisApp:
     def generate_live_predictions(self, data_agg: pd.DataFrame, symbol: str) -> dict:
         """Generate predictions using loaded models."""
         try:
+            # Add symbol column if using combined model
+            if getattr(config.training, 'combine_all_symbols', False):
+                data_agg_with_symbol = data_agg.copy()
+                data_agg_with_symbol['symbol'] = symbol
+                prediction_symbol = 'ALL_SYMBOLS'
+            else:
+                data_agg_with_symbol = data_agg
+                prediction_symbol = symbol
+                
             prediction_executor = PredictionExecutor(
                 model_loader=self.model_loader,
-                data=data_agg
+                data=data_agg_with_symbol
             )
             return prediction_executor.run_predictions(
-                stock_symbols=[symbol],
+                stock_symbols=[prediction_symbol],
                 time_periods=config.model_settings.run_ids,
-                metrics=config.model_settings.model_targets
+                metrics=config.model_settings.model_targets,
+                actual_symbol=symbol  # Pass actual symbol for output
             )
         except Exception as e:
             logger.error(f"Prediction failed for {symbol}: {str(e)}")

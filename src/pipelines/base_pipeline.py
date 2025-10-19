@@ -140,7 +140,11 @@ class MLPipelineBase:
     def get_cleaned_data(df: pd.DataFrame, target: pd.Series) -> pd.DataFrame:
 
         # Drop unnecessary columns if present
-        drop_cols = [col for col in ['expiry', 'symbol','open_interest_flag'] if col in df.columns]
+        # Keep 'symbol' if combine_all_symbols is True (needed for model to distinguish stocks)
+        drop_cols = ['expiry', 'open_interest_flag']
+        if not getattr(config.training, 'combine_all_symbols', False):
+            drop_cols.append('symbol')
+        drop_cols = [col for col in drop_cols if col in df.columns]
         df = df.drop(columns=drop_cols, errors='ignore')
 
         # Remove rows where target is NaN

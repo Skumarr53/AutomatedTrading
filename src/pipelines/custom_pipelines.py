@@ -36,6 +36,11 @@ class CustomModelPipeline():
         """
         super().__init__()
         self.features: List[str] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
+        
+        # Add 'symbol' to features if using combined model training
+        if getattr(config.training, 'combine_all_symbols', False) and 'symbol' not in self.features:
+            self.features = ['symbol'] + self.features
+            
         self.feature_config = feature_config
         self.params = {} 
         self.target_encoder = TargetLabelEncoder()  # Initialize TargetLabelEncoder

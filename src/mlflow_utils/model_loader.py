@@ -108,16 +108,26 @@ class PredictionExecutor:
                 #     logging.error(f"Error in making prediction for {stock_symbol}, {time_period}, {metric}: {e}")
         return predictions
 
-    def run_predictions(self, stock_symbols: List[str], time_periods: List[str], metrics: List[str]) -> Dict[str, Dict[str, float]]:
-        """Run predictions for all stocks in parallel using ThreadPoolExecutor."""
+    def run_predictions(self, stock_symbols: List[str], time_periods: List[str], metrics: List[str], actual_symbol: str = None) -> Dict[str, Dict[str, float]]:
+        """Run predictions for all stocks in parallel using ThreadPoolExecutor.
+        
+        Args:
+            stock_symbols: List of symbol identifiers for model loading (can be 'ALL_SYMBOLS')
+            time_periods: List of time periods for predictions
+            metrics: List of metrics to predict
+            actual_symbol: The actual stock symbol for output (used when stock_symbols contains 'ALL_SYMBOLS')
+        """
         predictions = {}
+        
+        # Determine which symbol to use for output keys
+        output_symbol = actual_symbol if actual_symbol else stock_symbols[0]
         
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future_to_stock = {executor.submit(self._predict_for_stock, stock, time_periods, metrics): stock for stock in stock_symbols}
             for future in concurrent.futures.as_completed(future_to_stock):
                 stock_symbol = future_to_stock[future]
                 try:
-                    predictions[stock_symbol] = future.result()
+                    predictions[output_symbol] = future.result()
                 except Exception as e:
                     logging.error(f"Error occurred for stock {stock_symbol}: {e}")
         
