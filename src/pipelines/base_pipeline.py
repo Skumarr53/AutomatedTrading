@@ -1,7 +1,9 @@
 # src/pipelines/base_pipeline.py
 
+import traceback
 from typing import Any, Dict, List, Optional, Tuple
 import os
+import warnings
 import pandas as pd
 from datetime import datetime
 from loguru import logger
@@ -13,13 +15,18 @@ from joblib import Parallel, delayed
 import mlflow
 import mlflow.sklearn
 from mlflow import MlflowClient
-
 from joblib import Memory  # NEW: Import Memory for caching
 from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
 from src.utils.mlflow_utils import log_model_performance
 from src.mlflow_utils.mlflow_server import start_mlflow_server, is_mlflow_server_running
 from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
+from src.preprocessing.custom_transformers import TargetLabelEncoder
+
+# Suppress warnings in this module
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', message='.*resource_tracker.*')
 
 cache_dir = './pipeline_cache'
 if not os.path.exists(cache_dir):
@@ -41,7 +48,7 @@ class MLPipelineBase:
         self.features: Optional[List[str]] = config.columns.custom_cs_cols if config.model_settings.model_type == 'COMB' else []
         self.pipelines: Optional[Pipeline] =  []
         self.mlflow_client = MlflowClient()
-
+        self.target_encoder = TargetLabelEncoder()
         # self.best_model_dict: Dict[str, Any] = (
         #     self._load_models()
         #     if config.trading_config.trade_mode == 'LIVE'
@@ -151,25 +158,40 @@ class MLPipelineBase:
         rows_to_drop = target.isna()
         df, target = df[~rows_to_drop], target[~rows_to_drop]
 
+        # Check if DataFrame is empty after dropping NaN targets
+        if len(df) == 0:
+            logger.error(
+                f"All rows were dropped after removing NaN targets. "
+                f"Original shape: {len(rows_to_drop)}, "
+                f"NaN count: {rows_to_drop.sum()}"
+            )
+            raise ValueError(
+                "All samples have NaN target values after transformation. "
+                "This usually means the window size is too large for the data, "
+                "or there's insufficient data for the specified time period."
+            )
+
         df = df.infer_objects()
         df = df.replace({True: 1, False: 0})
+        df = df.apply(lambda col: pd.to_numeric(col, errors='ignore'))
+        df = df.convert_dtypes()
 
         # Impute missing values instead of dropping rows
         numeric_cols = df.select_dtypes(include=['number']).columns
         cat_cols = df.select_dtypes(exclude=['number']).columns
-        if len(numeric_cols) > 0:
+        
+        if 'symbol' in numeric_cols:
+            numeric_cols = numeric_cols.drop(['symbol'])
+        if 'symbol' in cat_cols:
+            cat_cols = cat_cols.drop(['symbol'])
+        
+        if len(numeric_cols) > 0 and len(df) > 0:
             num_imputer = SimpleImputer(strategy='median')
             df[numeric_cols] = num_imputer.fit_transform(df[numeric_cols])
-        if len(cat_cols) > 0:
+        if len(cat_cols) > 0 and len(df) > 0:
             cat_imputer = SimpleImputer(strategy='most_frequent')
             df[cat_cols] = cat_imputer.fit_transform(df[cat_cols])
         
-        
-        # cat_cols = list(getattr(config.columns, 'cat_cols', []))
-        # if cat_cols:
-        #     df[cat_cols] = df[cat_cols].astype(int, errors='ignore')
-        obj_cols = df.columns[df.dtypes=='object']
-        df[obj_cols] = df[obj_cols].astype('float')
         return df, target
 
     def transform_and_split(self, 
@@ -193,10 +215,15 @@ class MLPipelineBase:
         - y_test (pd.Series): Test targets after transformation.
         """
         # Prepare input and target
+ 
         X_trans, y_trans = self.prepare_input_and_target(X, target, run_id)
 
-        X_trans, y_trans = self.get_cleaned_data(X_trans, y_trans)
+        if os.environ.get("DEBUG_TARGET_TRANSFORM") == "1":
+            logger.debug("DEBUG_TARGET_TRANSFORM active; inspecting targets before cleaning/split.")
+            logger.debug(f"Target sample (first 10): {y_trans.head(10).tolist()}")
+            breakpoint()
 
+        X_trans, y_trans = self.get_cleaned_data(X_trans, y_trans)
 
         # Train/test split
         X_train, X_test, y_train, y_test = train_test_split(
@@ -289,51 +316,72 @@ class MLPipelineBase:
             raise ValueError("run_ids must be set for BACKTEST mode.")
         
         
+        debug_serial = any(
+            os.environ.get(flag) == "1"
+            for flag in ("DEBUG_TARGET_TRANSFORM", "DEBUG_TARGET_FIT", "PIPELINE_DEBUG_SERIAL")
+        )
+
         for pipeline in self.pipelines:
-            Parallel(n_jobs=-1)(
-                delayed(self._train_single)(pipeline, run_id, target, X, symbol)
-                for run_id in run_ids
-                for target in config.model_settings.model_targets
-            )
+            if debug_serial:
+                logger.info("Debug mode active; running training sequentially to allow breakpoints.")
+                for run_id in run_ids:
+                    for target in config.model_settings.model_targets:
+                        self._train_single(pipeline, run_id, target, X, symbol)
+            else:
+                Parallel(n_jobs=4)(
+                    delayed(self._train_single)(pipeline, run_id, target, X, symbol)
+                    for run_id in run_ids
+                    for target in config.model_settings.model_targets
+                )
+            # self._train_single(pipeline, run_ids[0], config.model_settings.model_targets[0], X, symbol)
 
     def _train_single(self, pipeline: CustomModelPipeline, run_id: str, target: str, X: pd.DataFrame, symbol: str) -> None:
-        logger.info(
-            f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}"
-        )
-        with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
-            mlflow.set_tag("mode", self.mode)
-            mlflow.set_tag("model_id", self.model_id)
-            mlflow.log_param("symbol", symbol)
-            mlflow.log_param("run_id", run_id)
-            mlflow.log_param("target", target)
-
-            X_train, X_test, y_train, y_test = self.transform_and_split(X, target, run_id)
-
-            if y_train is None:
-                logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
-                return
-
-            if pipeline.model is None:
-                raise ValueError("Model has not been defined. Call setup() before running.")
-
-            pipeline.model.fit(X_train, y_train)
-            mlflow.log_params(pipeline.model.best_params_)
-            y_pred = pipeline.model.predict(X_test)
-
-            log_model_performance(y_test, y_pred, pipeline.model.best_estimator_, X_test)
-
-            registered_model_name = f"{symbol}_{run_id}_{target}"
-            mlflow.sklearn.log_model(
-                sk_model=pipeline.model.best_estimator_,
-                artifact_path="model",
-                registered_model_name=registered_model_name,
+        try:
+            logger.info(
+                f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}"
             )
+            with mlflow.start_run(run_name=f"{symbol}_{run_id}_{target}_{self.model_id}"):
+                mlflow.set_tag("mode", self.mode)
+                mlflow.set_tag("model_id", self.model_id)
+                mlflow.log_param("symbol", symbol)
+                mlflow.log_param("run_id", run_id) 
+                mlflow.log_param("target", target)
+                
+                X_train, X_test, y_train, y_test = self.transform_and_split(X, target, run_id)
 
-            if symbol not in self.best_model_dict:
-                self.best_model_dict[symbol] = {}
-            if run_id not in self.best_model_dict[symbol]:
-                self.best_model_dict[symbol][run_id] = {}
-            self.best_model_dict[symbol][run_id][target] = clone(pipeline.model.best_estimator_)
+                if y_train is None:
+                    logger.warning(f"Target {target} could not be prepared for {symbol} {run_id}")
+                    return
+
+                if pipeline.model is None:
+                    raise ValueError("Model has not been defined. Call setup() before running.")
+                
+                # self.target_encoder.fit_transform(y_train)
+                # y_train = y_train.map(config.target_encode_dict)
+                if os.environ.get("DEBUG_TARGET_FIT") == "1":
+                    logger.debug("DEBUG_TARGET_FIT active; inspecting data prior to pipeline.fit.")
+                    logger.debug(f"y_train unique categories: {y_train.unique().tolist()[:10]}")
+                    breakpoint()
+                pipeline.fit(X_train, y_train)
+                mlflow.log_params(pipeline.model.best_params_)
+                y_pred = pipeline.predict(X_test)
+
+                log_model_performance(y_test, y_pred, pipeline.model.best_estimator_, X_test)
+
+                registered_model_name = f"{symbol}_{run_id}_{target}"
+                mlflow.sklearn.log_model(
+                    sk_model=pipeline.model.best_estimator_,
+                    artifact_path="model",
+                    registered_model_name=registered_model_name,
+                )
+
+                if symbol not in self.best_model_dict:
+                    self.best_model_dict[symbol] = {}
+                if run_id not in self.best_model_dict[symbol]:
+                    self.best_model_dict[symbol][run_id] = {}
+                self.best_model_dict[symbol][run_id][target] = clone(pipeline.model.best_estimator_)
+        except Exception as e:
+            raise ValueError(traceback.print_exc(e))
 
     def predict(self, X: pd.DataFrame, symbol: str) -> pd.DataFrame:
         """

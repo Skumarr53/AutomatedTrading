@@ -1,4 +1,17 @@
 from src import config
+
+# ============================================================================
+# WARNING SUPPRESSION CONFIGURATION
+# ============================================================================
+# Suppress common warnings to reduce log clutter
+# Set SUPPRESS_WARNINGS=0 in environment to enable warnings for debugging
+# Set VERBOSE_LOGGING=1 in environment to enable verbose library logging
+
+from src.utils.warning_config import configure_all_warnings
+configure_all_warnings()
+
+# ============================================================================
+
 import time, pytz
 from scripts.telegram_notifier import send_telegram_message
 from datetime import datetime
@@ -11,7 +24,6 @@ from src.mlflow_utils.model_loader import PredictionExecutor
 from src.auth.fyers_auth import AuthCodeGenerator
 from src.data.data_fetcher import DataHandler
 from src.utils.utils import load_symbols
-import pandas as pd
 from typing import Callable
 from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.financial_analysis.trading_strategies import TradingStrategies
@@ -22,6 +34,7 @@ from src.utils.utils import determine_mode, get_timezone, get_NSE_symbol
 from src.mlflow_utils.model_loader import ModelCache, MLflowModelLoader
 from src.trading_logic.trade_decision_maker import TradeDecisionMaker
 from src.trading_logic.fyers_trade_executor import FyersTradeExecutor
+from src.data.company_metadata import CompanyMetadataFetcher
 
 
 print(1)
@@ -47,6 +60,10 @@ class MarketAnalysisApp:
         # config.symbols = config.symbols #config.symbols
         self.generator = AuthCodeGenerator()
         self._setup_authorization()
+        
+        # Initialize company metadata if enabled
+        self._initialize_company_metadata()
+        
         self.scheduler = BackgroundScheduler() if self.trading_mode == 'LIVE' else None 
         self._setup_data_handling()
         self.order_data_handler = OrderBookHandler(
@@ -324,15 +341,20 @@ class MarketAnalysisApp:
         if getattr(config.training, 'combine_all_symbols', False):
             combined = []
             for symbol in config.symbols:
-                data_agg = self.data_aggregator.aggregate_features(
-                    self.ticker_data_handler.data[symbol],
-                    self.order_data_handler.data[symbol]
-                )
-                data_agg['symbol'] = symbol
-                combined.append(data_agg)
+                try: 
+                    data_agg = self.data_aggregator.aggregate_features(
+                        self.ticker_data_handler.data[symbol],
+                        self.order_data_handler.data[symbol]
+                    )
+                    data_agg['symbol'] = symbol
+                    combined.append(data_agg)
+                except Exception as e:
+                    logger.error(f"Error in backtesting for {symbol}: {e}")
+                    pass
+                
 
             if combined:
-                combined_df = pd.concat(combined, ignore_index=True)
+                combined_df = pd.concat(combined, ignore_index=False)
                 self.custom_model.train(combined_df, 'ALL_SYMBOLS')
         else:
             for symbol in config.symbols:
@@ -352,6 +374,42 @@ class MarketAnalysisApp:
         except Exception as e:
             logger.error("Authorization failed")
             raise
+    
+    def _initialize_company_metadata(self):
+        """
+        Initialize company metadata cache if enabled in config.
+        This will fetch metadata for new symbols and refresh stale entries.
+        """
+        try:
+            # Check if metadata is enabled
+            if not getattr(config.metadata, 'enabled', False):
+                logger.info("Company metadata is disabled in config")
+                return
+            
+            logger.info("Initializing company metadata cache...")
+            
+            # Create metadata fetcher
+            cache_dir = getattr(config.metadata.cache, 'directory', './data/cache')
+            fetcher = CompanyMetadataFetcher(cache_dir=cache_dir)
+            
+            # Update cache with current symbols if auto_update is enabled
+            if getattr(config.metadata.fetcher, 'auto_update_on_startup', True):
+                logger.info("Auto-updating metadata cache with current symbols...")
+                fetcher.update_symbols(config.symbols)
+            
+            # Refresh stale entries if auto_refresh is enabled
+            if getattr(config.metadata.fetcher, 'auto_refresh_stale', True):
+                logger.info("Auto-refreshing stale metadata entries...")
+                fetcher.refresh_stale_entries()
+            
+            # Log cache statistics
+            stats = fetcher.get_cache_stats()
+            logger.info(f"Metadata cache initialized: {stats['total_entries']} entries, "
+                       f"{stats['stale_entries']} stale")
+            
+        except Exception as e:
+            logger.warning(f"Failed to initialize company metadata: {e}")
+            logger.warning("Continuing without metadata features...")
 
 
 

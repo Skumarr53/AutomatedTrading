@@ -1,0 +1,395 @@
+[33mcommit 872e7faa912e3f66cf584583acd9a8eb5fa340c3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mml[m[33m)[m
+Author: skumarr53 <skumarr53@gmail.com>
+Date:   Sun Oct 19 11:32:52 2025 +0530
+
+    ml training with all synbols combined
+
+[33mcommit 433d5d4628f806941534d1ce58dc4e4f3eb2f2b2[m
+Author: skumarr53 <skumarr53@gmail.com>
+Date:   Tue Oct 7 12:04:10 2025 +0530
+
+    Added functionlity to make decision and excute tarde
+
+[33mcommit 4b1b3fe3a62f8624a89bda861aa03ac93b9b2c1a[m
+Author: skumarr53 <skumarr53@gmail.com>
+Date:   Tue Sep 30 03:55:20 2025 +0530
+
+    Update custom.yaml configuration
+
+[33mcommit e0534eb362028be85f5fb8d6a6021c4271c64fc7[m[33m ([m[1;31morigin/ml[m[33m)[m
+Author: skumarr53 <skumarr53@gmail.com>
+Date:   Sun Jun 22 16:56:43 2025 +0530
+
+    ml enhancements
+
+[33mcommit 3af8dc9a3f3e7c8be37bcd4935c4980054dac0a4[m
+Author: skumarr53 <skumarr53@gmail.com>
+Date:   Wed May 14 00:36:16 2025 +0530
+
+    upgraded python and its dependencies
+
+[33mcommit 9a40d773334422ce3b8a58abf0c483786b5a9568[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Feb 3 09:24:24 2025 +0530
+
+    ml enhancements
+
+[33mcommit 6cb69c0573ac499457b6f71d11a84f05773a762a[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Jan 20 09:25:38 2025 +0530
+
+    ml enhancements
+
+[33mcommit e896414c23fbfa06798e38b6dd486c5463485463[m
+Author: skumarr53 <skumarr53@gmail.com>
+Date:   Sun Jun 22 17:02:33 2025 +0530
+
+    ml enhancements
+
+[33mcommit c893518c6916c98860ce72b44c9d4dbdf529d1fd[m
+Merge: ab52892 9ff96f9
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sun Jun 22 01:28:49 2025 +0530
+
+    Merge pull request #12 from Skumarr53/codex/review-machine-learning-training-and-inference-components
+    
+    Enhance ML pipeline
+
+[33mcommit 9ff96f9bdaa6406a5e1ce7d187f74672b1bc477a[m[33m ([m[1;31morigin/codex/review-machine-learning-training-and-inference-components[m[33m)[m
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sun Jun 22 01:28:36 2025 +0530
+
+    Improve ML pipeline
+
+[33mcommit ab5289245f50534d6abf2a231f959dbb2e8dc87e[m
+Merge: 4ce0f48 3a98469
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sun Jun 22 01:07:14 2025 +0530
+
+    Merge pull request #11 from Skumarr53/codex/review-and-enhance-metrics-and-ui-for-traders
+    
+    Add portfolio metrics and basic dashboard
+
+[33mcommit 3a9846980d0b58e5b5e0d4e34014307a3ca39aa1[m[33m ([m[1;31morigin/codex/review-and-enhance-metrics-and-ui-for-traders[m[33m)[m
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sun Jun 22 01:06:45 2025 +0530
+
+    Add performance metrics and dashboard UI
+
+[33mcommit 4ce0f48146125ab2cf43e31d1dcce98cd65ea6a4[m
+Merge: 9115f31 a964447
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sun Jun 22 00:21:19 2025 +0530
+
+    Merge pull request #10 from Skumarr53/codex/plan-and-implement-trading-system-features
+    
+    Implement configurable training and trading utilities
+
+[33mcommit a96444701d91e63203436e9dec7a55c7a745fa93[m[33m ([m[1;31morigin/codex/plan-and-implement-trading-system-features[m[33m)[m
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sun Jun 22 00:20:49 2025 +0530
+
+    Add configurable combined training and trading modules
+
+[33mcommit 9115f31c551de917caa15183d63b471a80184706[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Jan 2 16:49:56 2025 +0530
+
+    ml enhancememnts
+
+[33mcommit 816ff42159d7358e433d6fc0891ef8ed8a4b8928[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Nov 11 09:26:24 2024 +0530
+
+    ml enhancements
+
+[33mcommit 0e0c3e92c68f6f1370d0248a4b2ea7082550c016[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Fri Nov 8 10:04:28 2024 +0530
+
+    djfei
+
+[33mcommit c1c9c8209689a0cad50be66ee766006962565f71[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Nov 7 23:44:59 2024 +0530
+
+    ml enhancenments
+
+[33mcommit fb6a2b6eb5a5c2667f14545114024b6fffc6390f[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Wed Nov 6 09:14:50 2024 +0530
+
+    ml enhancements
+
+[33mcommit a86ae7ba40ac81bc415a3a4b4c0d2d9495fdd9ab[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Nov 5 09:11:32 2024 +0530
+
+    ML enhancments
+
+[33mcommit 2fa894d09e9059ef13531f13f389a6563eae8994[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 28 22:49:10 2024 +0530
+
+    Feature Engg enhancement
+
+[33mcommit da6330719ecda5a41920478dde5c29c54c4cc5b4[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 28 08:58:23 2024 +0530
+
+    mlflow enhancements
+
+[33mcommit f2ea701bd6ad35814502f10c55945d269cb1674f[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Fri Oct 25 09:04:10 2024 +0530
+
+    mlflow enhancements
+
+[33mcommit a0d1a0e9f935edf4bdbf29fc569f4154d7edcbef[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Oct 24 08:58:50 2024 +0530
+
+    testing mlfow
+
+[33mcommit a991b62c5be1cb49e213421e74a49c963d90c02c[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 21 09:14:11 2024 +0530
+
+    mlflow
+
+[33mcommit 2d48e1a3953e11e196c02bca068ccbbee6938c1f[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 21 00:14:06 2024 +0530
+
+    mlflow setup
+
+[33mcommit fb9565b41dad8a06b28dc9aff056c116eb6246c9[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 21 00:11:37 2024 +0530
+
+    mlflow setup
+
+[33mcommit fa69c0dd189fddccd3ce3c4f99185f933ad56f3b[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Wed Oct 16 09:33:24 2024 +0530
+
+    ml upgfrade
+
+[33mcommit f87c356abf2d2ac587c97d1a10edd3df62a0a9c2[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 15 22:53:34 2024 +0530
+
+    ml features fix
+
+[33mcommit ddc65029ce89098b5702c00565effe91d92e12cb[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 14 23:08:56 2024 +0530
+
+    ML pipeline changes
+
+[33mcommit 10870efd6934cd48dae284d77d8896763761d326[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 14 11:34:16 2024 +0530
+
+    data concat issue fix
+
+[33mcommit 1530bcbe275159c27dc244eb97c6faea7f15d4f4[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sun Oct 13 23:18:47 2024 +0530
+
+    minor fix
+
+[33mcommit 882628ec8f6dcb2cdca2d4181c8d6366a52de114[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 15 23:00:46 2024 +0530
+
+    config cleanup: columns.yml remove
+
+[33mcommit a53878274e9cc3001de55d44d9d3f4200186796e[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sun Oct 13 13:00:37 2024 +0530
+
+    data DB Migration and Peotry setup
+
+[33mcommit c907acf97cbed76cf95fc864a890b2207a62d564[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Oct 10 10:59:02 2024 +0530
+
+    minor change
+
+[33mcommit b3e5bc928ee572b2510d15622fa7005b783933ff[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 15 21:34:14 2024 +0530
+
+    gitignore updated
+
+[33mcommit b20cfce11d3d34aff7dd91e3097b79eeb2e50290[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 14 10:21:59 2024 +0530
+
+    ticker suff fix
+
+[33mcommit 4152d16020ab16c17ef5df777d9e38511c367f60[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Fri Oct 11 23:18:23 2024 +0530
+
+    minor cleanup
+
+[33mcommit 55af744372e2dcbd950f690ec9e783527d176c44[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Fri Oct 11 23:11:09 2024 +0530
+
+    logger init and config import improv by adding to __init__.py
+
+[33mcommit 2983f62b1bc7c4339284b9493cceec0f5604050d[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Oct 10 11:38:12 2024 +0530
+
+    Logging via loguru lib
+
+[33mcommit 74913183ac561f3f16f05d66822c8b0d97842d3a[m[33m ([m[1;31morigin/gh-pages[m[33m)[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Wed Oct 9 12:03:56 2024 +0530
+
+    git repair doc
+
+[33mcommit 2e59e420f664ee7b8463ecf68fed0c50e1b5eff4[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Wed Oct 9 11:47:38 2024 +0530
+
+    documentation build replair
+
+[33mcommit fa1e8dedb5cfb8a2039fb902ed2b98174f20b260[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 8 23:01:11 2024 +0530
+
+    docsring correction
+
+[33mcommit 7a450b77bfbad52aa9a8c86d259cfd4a44ab71d6[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 8 22:56:54 2024 +0530
+
+    df
+
+[33mcommit f0c41090ff905f37a93e7f64955c77cba1724b2d[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 8 09:36:20 2024 +0530
+
+    doc modification
+
+[33mcommit 59711d4d79fb65bbc8e3b33c67d82e3882e8eea7[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 8 09:28:08 2024 +0530
+
+    doc modification
+
+[33mcommit 738dae09f624fc1a666a6ccac4063933e1e80920[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Tue Oct 8 09:14:51 2024 +0530
+
+    trading mode adjusted
+
+[33mcommit 8fdd5b36437cb6079a7edaa57ae4ad9251fc95d9[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 7 23:16:16 2024 +0530
+
+    OrderBook folder correction
+
+[33mcommit a01aa7301a2ea47b1107bd30a6841a48dd80829a[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Oct 7 09:27:01 2024 +0530
+
+    config update
+
+[33mcommit 4db49c9062697a95a20c55c432358b01062cf309[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sun Oct 6 17:40:33 2024 +0530
+
+    added hydra configuration
+
+[33mcommit 0c34ce7c73fe885668d06c9b78721796ca6d3879[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sat Oct 5 11:50:46 2024 +0530
+
+    logging and telegram alert setup
+
+[33mcommit 21d292cfe0c64b07af5813a87389d4ea2bfcc3f7[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Sep 30 20:12:48 2024 +0530
+
+    fix corrupted rows read
+
+[33mcommit fcf70c7631f7f23c9265e3f277e89d132f46dd2a[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sat Sep 28 16:37:05 2024 +0530
+
+    config adjustment
+
+[33mcommit 3005d4a24b5c2b63672c5e4dbb1a19e9c729cd3b[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sat Sep 21 21:45:14 2024 +0530
+
+    gitignore updated
+
+[33mcommit 9c627dc19ec907042c2d0477bf33bc7fd49adf33[m
+Merge: 4f633f1 4dae5c7
+Author: Santhosh Kumar <skumarr53@gmail.com>
+Date:   Sat Sep 21 21:39:15 2024 +0530
+
+    Merge pull request #1 from Skumarr53/docstring
+    
+    Docstring
+
+[33mcommit 4dae5c72cfdfab4b9bbdc40ca051a19b1d4c41d0[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sat Sep 21 21:29:01 2024 +0530
+
+    Added sphinx Documentation setup
+
+[33mcommit 513bd09c0c922ad863a10c4efc9d60a91a8806c0[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sat Sep 21 21:28:03 2024 +0530
+
+    Added sphinx Documentation setup
+
+[33mcommit 4f633f19d7fcf842f41da62e51f353c2378026b6[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Sat Sep 21 12:11:43 2024 +0530
+
+    code and folder resturturing
+
+[33mcommit 43ee9c7cccf4dfef2d9d5519cbe8c73908c12288[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Aug 19 10:47:30 2024 +0530
+
+    git ignore backup files
+
+[33mcommit 033917adec2ab8dbf5cece26fed1b851eb1c87ef[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Mon Aug 12 10:48:36 2024 +0530
+
+    minor changes
+
+[33mcommit 8f0935533e5bea87f870779970edcd9638701b73[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Aug 8 10:38:33 2024 +0530
+
+    auth method change
+
+[33mcommit 3542c269d7b670f3eb54e275c39ec5f308b11949[m
+Author: santhosh <skumarr53@gmail.com>
+Date:   Thu Aug 8 10:01:48 2024 +0530
+
+    removed .pyc files tracking and added logging exception
+
+[33mcommit 8249003b463d00b949b43438f7f75f9ff4e4e809[m
+Author: skumarr53 <skumarr@gmail.com>
+Date:   Mon May 6 21:41:29 2024 +0530
+
+    update til date
+
+[33mcommit a295f74b252c467bf39beea524e79925fab4c246[m
+Author: skumarr53 <skumarr@gmail.com>
+Date:   Wed Feb 28 12:08:25 2024 +0530
+
+    first commit

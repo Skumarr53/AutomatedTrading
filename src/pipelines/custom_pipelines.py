@@ -1,9 +1,15 @@
+import warnings
 import pandas as pd
 from typing import Dict, List, Optional
 from imblearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from joblib import Memory  # Add this import
+from omegaconf import OmegaConf
+
+# Suppress warnings in this module
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
 
 from src import config
 from src.config import (FeatSelect_mapping,
@@ -19,6 +25,7 @@ from src.preprocessing.custom_transformers import (
     ResamplerTransformer
  # Assuming ImbalanceHandler is defined in custom transformers
 )
+from src.preprocessing.company_metadata_transformer import CompanyMetadataTransformer
 
 class CustomModelPipeline():
 
@@ -52,6 +59,14 @@ class CustomModelPipeline():
         self.short_numeric_cols = [col for col in self.features if col in config.columns.short_num_cols]
         self.long_numeric_cols = [col for col in self.features if col in config.columns.long_num_cols]
         self.cat_cols = [col for col in self.features if col in config.columns.cat_cols]
+        
+        # Add metadata features if enabled
+        if getattr(config.metadata, 'enabled', False):
+            # Metadata features will be added dynamically by the transformer
+            # We'll store them separately for reference
+            self.use_metadata = True
+        else:
+            self.use_metadata = False
 
     def empty_pipeline_and_params(self):
         self.steps = []
@@ -83,6 +98,21 @@ class CustomModelPipeline():
             cat_feature_transformers.append(('cat_normalize', CategoricalPreprocessor(self.cat_cols)))
         return cat_feature_transformers
 
+    def add_metadata_transformer(self):
+        """
+        Adds company metadata transformer to the pipeline if enabled.
+        This should be called before feature extraction.
+        """
+        if self.use_metadata:
+            metadata_transformer = CompanyMetadataTransformer(
+                cache_dir=getattr(config.metadata.cache, 'directory', './data/cache'),
+                encoding_method=getattr(config.metadata.transformer, 'encoding_method', 'label'),
+                handle_missing=getattr(config.metadata.transformer, 'handle_missing', 'constant'),
+                include_categorical=getattr(config.metadata.transformer, 'include_categorical', True),
+                include_numerical=getattr(config.metadata.transformer, 'include_numerical', True)
+            )
+            self.steps.append(('company_metadata', metadata_transformer))
+    
     def add_combined_preprocessed_features(self):
         self.steps.append(
             (
@@ -112,7 +142,9 @@ class CustomModelPipeline():
     def update_feature_selection_pipeline(self):
         feature_selector = self.feature_config.get('feature_selector', None)
         if feature_selector:
-            self.params = {**self.params, **config.model.pipeline_params}
+            # Convert OmegaConf to native Python objects for sklearn compatibility
+            pipeline_params = OmegaConf.to_container(config.model.pipeline_params, resolve=True)
+            self.params = {**self.params, **pipeline_params}
             feature_selector = FeatSelect_mapping.get(feature_selector, None)
             self.steps.append(('feature_selection', feature_selector()))
 
@@ -121,7 +153,12 @@ class CustomModelPipeline():
         model_class = ModelType_mapping.get(model_type, RandomForestClassifier)
         # Add the model as the final step
         self.steps.append(('model_fit', model_class()))
-        self.params = {**self.params, **config.model.model_params.get(model_type, 'RFC')}
+        # Convert OmegaConf to native Python objects for sklearn compatibility
+        model_params = OmegaConf.to_container(
+            config.model.model_params.get(model_type, 'RFC'), 
+            resolve=True
+        )
+        self.params = {**self.params, **model_params}
 
     def define_pipeline(self) -> None:
         """
@@ -129,6 +166,7 @@ class CustomModelPipeline():
         and optional imbalance handling.
 
         The pipeline consists of:
+            0. Optional Company Metadata: Enriches features with company metadata if enabled.
             1. Feature Union: Combines configurable feature groups.
             2. Optional Imbalance Handling: Applies a resampling technique if enabled.
             3. Optional Feature Selection: Applies the specified feature selector if enabled.
@@ -141,6 +179,7 @@ class CustomModelPipeline():
         self.empty_pipeline_and_params()
 
         ## Define pipliene steps
+        self.add_metadata_transformer()  # Add metadata transformer first
         self.add_combined_preprocessed_features()
         self.update_resampling_pipeline()
         self.update_feature_selection_pipeline()

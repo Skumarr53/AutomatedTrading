@@ -71,8 +71,8 @@ symbols:
   # - POWERGRID
   # - PGHH
   - PNB
-  # - RELIANCE
-  # - SBICARD
+  - RELIANCE
+  - SBICARD
   # - SBILIFE
   # - SRF
   # - MOTHERSON
@@ -84,7 +84,6 @@ symbols:
   # - TVSMOTOR
   # - TCS
   # - TATACONSUM
-  # - TATAMTRDVR
   # - TATAMOTORS
   # - TATAPOWER
   # - TATASTEEL
@@ -97,6 +96,6 @@ symbols:
   # - VBL
   # - VEDL
   # - WIPRO
-  # - ZOMATO
+  # # - ZOMATO
   # - ZYDUSLIFE
   # - NIFTYBANK

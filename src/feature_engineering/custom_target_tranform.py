@@ -2,11 +2,17 @@
 
 from typing import Optional
 import re
+import warnings
 import numpy as np
 import pandas as pd
 from functools import partial
 from joblib import Memory
+from loguru import logger
 from src import config
+
+# Suppress pandas warnings in this module
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
 
 cache_dir = './pipeline_cache'
 memory = Memory(location=cache_dir, verbose=0)
@@ -66,20 +72,23 @@ class TargetTransform:
         
         return window_size
     
-    def fill_missing_timestamps(self, df: pd.DataFrame) -> None:
+    def fill_missing_timestamps(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Fills missing dates in the DataFrame with NaN values.
 
         Args:
             df (pd.DataFrame): The DataFrame to fill missing dates in.
+        
+        Returns:
+            pd.DataFrame: DataFrame with filled timestamps.
         """
         min_date = df.index.min()
         max_date = df.index.max()
 
-        # Create a date range with a 5-minute frequency
-        colmplete_date_range = pd.date_range(start=min_date, end=max_date, freq=f'{self.interval_min}T')
+        # Create a date range with a 5-minute frequency (use 'min' instead of deprecated 'T')
+        complete_date_range = pd.date_range(start=min_date, end=max_date, freq=f'{self.interval_min}min')
 
-        df_filled = df.reindex(colmplete_date_range)
+        df_filled = df.reindex(complete_date_range)
 
         df_filled.index = pd.to_datetime(df_filled.index)
         return df_filled
@@ -157,8 +166,8 @@ class TargetTransform:
             # Take the larger absolute percent change (max or min)
             pct_change = pct_change_max.where(pct_change_max.abs() >= pct_change_min.abs(), pct_change_min)
         else:
-            # If window_periods is 1, simply calculate the percent change with a forward shift
-            pct_change = series.pct_change(periods=window_periods) * 100
+            # If window_periods is 1, calculate percent change without deprecated fill_method
+            pct_change = series.pct_change(periods=window_periods, fill_method=None) * 100
             pct_change.replace({0.0: np.nan}, inplace=True)
 
         return pct_change
@@ -190,7 +199,6 @@ class TargetTransform:
 
         return atr.iloc[::-1]
 
-    @memory.cache
     def categorize_percent_change(self, data: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Computes the largest absolute percent change (either maximum or minimum) within a specified forward window size 
@@ -201,21 +209,56 @@ class TargetTransform:
         'Medium High', 'Neutral', 'Medium Low', or 'Low' based on the number of standard deviations from the mean.
 
         Args:
-            series (pd.Series): Time series of close prices captured at 5-minute intervals.
+            data (pd.DataFrame): DataFrame with time series data. May contain multiple symbols.
             run_id (str): Unique identifier that contains the window size information (in minutes).
 
         Returns:
-            pd.Series: A series containing categorized labels ('High', 'Medium High', 'Neutral', 'Medium Low', 'Low') 
-                       based on the largest forward absolute percent change (max or min) within the specified window.
+            tuple: (df, categories) where categories is a series containing categorized labels 
+            based on the largest forward absolute percent change (max or min) within the specified window.
         """
         df = data.copy()
+        
+        logger.debug(f"categorize_percent_change - Input shape: {df.shape}, run_id: {run_id}")
 
+        # Check if data contains multiple symbols
+        has_symbol_col = 'symbol' in df.columns
+        
+        if has_symbol_col:
+            # Process each symbol separately using groupby
+            logger.info("Processing target computation for multiple symbols separately using groupby")
+            
+            # Apply the computation per symbol group
+            grouped_results = df.groupby('symbol', group_keys=False).apply(
+                lambda group: self._categorize_percent_change_single_with_categories(group, run_id)
+            )
+            
+            # Separate df and categories from the result
+            df = grouped_results.drop(columns=['_target_category'])
+            categories = grouped_results['_target_category']
+            
+            logger.debug(f"Combined result shape: {df.shape}, categories shape: {categories.shape}")
+        else:
+            # Single symbol, process as before
+            df, categories = self._categorize_percent_change_single(df, run_id)
+
+        return df, categories
+    
+    def _categorize_percent_change_single(self, df: pd.DataFrame, run_id: str) -> tuple:
+        """
+        Internal method to process percent change categorization for a single symbol.
+        
+        Args:
+            df (pd.DataFrame): DataFrame for a single symbol
+            run_id (str): Unique identifier that contains the window size information
+            
+        Returns:
+            tuple: (df, categories)
+        """
         # Extract window_size from run_id
         window_size = self.extract_window_size(run_id)  # in minutes
 
         # Number of periods corresponding to the window size (since data is at 5 min intervals)
         window_periods = window_size // self.interval_min
-
 
         df = self.fill_missing_timestamps(df)
 
@@ -223,9 +266,11 @@ class TargetTransform:
 
         pct_change = self._calculate_window_max_percent_change(target, window_periods)
 
-        # Compute mean and standard deviation of the percent changes
+        # Compute mean and standard deviation of the percent changes FOR THIS SYMBOL
         mu = pct_change.mean()
         sigma = pct_change.std()
+        
+        logger.debug(f"Symbol stats - mu: {mu:.4f}, sigma: {sigma:.4f}")
 
         get_categories = partial(self._categorize, mu, sigma)
 
@@ -235,23 +280,71 @@ class TargetTransform:
         categories = pct_change.apply(get_categories)
 
         return df, categories
+    
+    def _categorize_percent_change_single_with_categories(self, df: pd.DataFrame, run_id: str) -> pd.DataFrame:
+        """
+        Internal method for groupby operation - returns DataFrame with categories as a column.
+        
+        Args:
+            df (pd.DataFrame): DataFrame for a single symbol
+            run_id (str): Unique identifier that contains the window size information
+            
+        Returns:
+            pd.DataFrame: DataFrame with added '_target_category' column
+        """
+        processed_df, categories = self._categorize_percent_change_single(df, run_id)
+        processed_df['_target_category'] = categories
+        return processed_df
 
-    @memory.cache
     def categorize_atr(self, data: pd.DataFrame, run_id: str) -> pd.Series:
         """
         Calculates the ATR over a specified window size and categorizes the ATR values.
 
         Args:
-            high (pd.Series): Series of high prices.
-            low (pd.Series): Series of low prices.
-            close (pd.Series): Series of closing prices.
+            data (pd.DataFrame): DataFrame with time series data. May contain multiple symbols.
             run_id (str): Unique identifier that contains the window size information (in minutes).
 
         Returns:
-            pd.Series: A series containing categorized ATR values.
+            tuple: (df, categories) where categories is a series containing categorized ATR values.
         """
         df = data.copy()
 
+        logger.debug(f"categorize_atr - Input shape: {df.shape}, run_id: {run_id}")
+
+        # Check if data contains multiple symbols
+        has_symbol_col = 'symbol' in df.columns
+        
+        if has_symbol_col:
+            # Process each symbol separately using groupby
+            logger.info("Processing ATR computation for multiple symbols separately using groupby")
+            
+            # Apply the computation per symbol group
+            grouped_results = df.groupby('symbol', group_keys=False).apply(
+                lambda group: self._categorize_atr_single_with_categories(group, run_id)
+            )
+            
+            # Separate df and categories from the result
+            df = grouped_results.drop(columns=['_target_category'])
+            categories = grouped_results['_target_category']
+            
+            logger.debug(f"Combined result shape: {df.shape}, categories shape: {categories.shape}")
+        else:
+            # Single symbol, process as before
+            df, categories = self._categorize_atr_single(df, run_id)
+
+        return df, categories
+    
+    def _categorize_atr_single(self, df: pd.DataFrame, run_id: str) -> tuple:
+        """
+        Internal method to process ATR categorization for a single symbol.
+        
+        Args:
+            df (pd.DataFrame): DataFrame for a single symbol
+            run_id (str): Unique identifier that contains the window size information
+            
+        Returns:
+            tuple: (df, categories)
+        """
         columns_names_config = config.columns.common_columns
 
         # Extract window_size from run_id
@@ -267,9 +360,11 @@ class TargetTransform:
         # Calculate ATR
         atr = self._calculate_atr(high, low, close, window_periods)
 
-        # Compute mean and standard deviation of the ATR
+        # Compute mean and standard deviation of the ATR FOR THIS SYMBOL
         mu = atr.mean()
         sigma = atr.std()
+        
+        logger.debug(f"Symbol ATR stats - mu: {mu:.4f}, sigma: {sigma:.4f}")
 
         df, atr = self.drop_nulls(df, atr)
 
@@ -278,3 +373,18 @@ class TargetTransform:
         categories = atr.apply(get_categories)
 
         return df, categories
+    
+    def _categorize_atr_single_with_categories(self, df: pd.DataFrame, run_id: str) -> pd.DataFrame:
+        """
+        Internal method for groupby operation - returns DataFrame with categories as a column.
+        
+        Args:
+            df (pd.DataFrame): DataFrame for a single symbol
+            run_id (str): Unique identifier that contains the window size information
+            
+        Returns:
+            pd.DataFrame: DataFrame with added '_target_category' column
+        """
+        processed_df, categories = self._categorize_atr_single(df, run_id)
+        processed_df['_target_category'] = categories
+        return processed_df

@@ -34,7 +34,13 @@ model_settings:
     - 30min
     - 1h
     - 3h
-    - 5h
+
+target_encode_dict:
+  'Low': 1
+  'Medium Low': 2
+  'Neutral': 2.5
+  'Medium High': 3
+  'High': 4
 
 live_mode_max_length:
    tech_ind_bollinger_bands: 

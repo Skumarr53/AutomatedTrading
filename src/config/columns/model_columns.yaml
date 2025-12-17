@@ -102,3 +102,11 @@ custom_cs_cols:
   - ${columns.common_columns.day_of_week}
   - ${columns.common_columns.month_of_year}
   - ${columns.common_columns.quarter_of_year}
+  # Company Metadata Features
+  - ${columns.common_columns.sector_encoded}
+  - ${columns.common_columns.industry_encoded}
+  - ${columns.common_columns.market_cap_bucket_encoded}
+  - ${columns.common_columns.country_encoded}
+  - ${columns.common_columns.market_cap_log}
+  - ${columns.common_columns.employees_log}
+  - ${columns.common_columns.years_since_listing}

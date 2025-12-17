@@ -1,0 +1,41 @@
+# Company Metadata Configuration
+
+metadata:
+  enabled: true  # Enable/disable metadata features globally
+  
+  cache:
+    directory: "./data/cache"
+    file_name: "company_metadata.parquet"
+    expiry_days: 30  # Days before cache is considered stale
+  
+  fetcher:
+    max_workers: 5  # Number of parallel workers for fetching
+    auto_update_on_startup: true  # Automatically check for new symbols on startup
+    auto_refresh_stale: true  # Automatically refresh stale entries
+  
+  transformer:
+    encoding_method: "label"  # 'label' or 'onehot'
+    handle_missing: "constant"  # 'constant' or 'median'
+    include_categorical: true
+    include_numerical: true
+  
+  features:
+    categorical:
+      - sector
+      - industry
+      - market_cap_bucket
+      - country
+    
+    numerical:
+      - market_cap_log
+      - employees_log
+      - years_since_listing
+  
+  # Market cap buckets (in INR crores)
+  market_cap_buckets:
+    micro: [0, 500]
+    small: [500, 5000]
+    mid: [5000, 20000]
+    large: [20000, 50000]
+    mega: [50000, 999999999]
+

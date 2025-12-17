@@ -1,7 +1,13 @@
 import ast
+import warnings
+from loguru import logger
 from dataclasses import dataclass, field
 from typing import Dict
 import pandas as pd
+
+# Suppress warnings in this module
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
 from src.feature_engineering.custom_features_extraction import FeatureExtraction
 from src.feature_engineering.technical_indicators import TechnicalIndicators
 from src.feature_engineering.orderbook_features_extraction import OrderBookDataTransformer
@@ -80,15 +86,18 @@ class DataAggregator:
         return data
     
     def df_cleaup_transform(self, ticker_data, order_book_data):
+        try:
 
-        ticker_data = ticker_data[ticker_data.volume != 0]
+            ticker_data = ticker_data[ticker_data.volume != 0]
 
-        ticker_data = self.data_set_index(ticker_data, 'date')
-        order_book_data = self.data_set_index(order_book_data, 'last_traded_time')
+            ticker_data = self.data_set_index(ticker_data, 'date')
+            order_book_data = self.data_set_index(order_book_data, 'last_traded_time')
 
-        order_book_data = order_book_data[~order_book_data.index.duplicated(keep='first')]
-        order_book_data = order_book_data.drop(columns = [col for col in config.columns.ticker_cols if col in order_book_data.columns])
-        return ticker_data, order_book_data
+            order_book_data = order_book_data[~order_book_data.index.duplicated(keep='first')]
+            order_book_data = order_book_data.drop(columns = [col for col in config.columns.ticker_cols if col in order_book_data.columns])
+            return ticker_data, order_book_data
+        except Exception as e:
+            logger.error(f"Error in df_cleanup transform: {e}")
 
     def aggregate_features(self, ticker_data, order_book_data) -> Dict[str, pd.DataFrame]:
         """
@@ -103,12 +112,7 @@ class DataAggregator:
             order_book_data)
 
         # comment out in PROD Merge ticker and order book data features
-        dfs = []
-        
-        for df in [*combined_ticker_data, *combined_order_book_data]: dfs.append(df.reset_index(drop=True))
-        combined_data = pd.concat(dfs, axis=1, join='inner')
-
-        # combined_data = pd.concat([*combined_ticker_data, *combined_order_book_data], axis=1,join='inner')
+        combined_data = pd.concat([*combined_ticker_data, *combined_order_book_data], axis=1,join='inner')
 
         return combined_data
 

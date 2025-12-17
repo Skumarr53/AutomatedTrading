@@ -148,3 +148,14 @@ common_columns:
   spread: 'spread'
   buy_sell_pressure_ratio: 'buy_sell_pressure_ratio'
   price_movement_open_close: 'price_movement_open_close'
+  
+  # Company Metadata Columns (Categorical - will be encoded)
+  sector_encoded: 'sector_encoded'
+  industry_encoded: 'industry_encoded'
+  market_cap_bucket_encoded: 'market_cap_bucket_encoded'
+  country_encoded: 'country_encoded'
+  
+  # Company Metadata Columns (Numerical)
+  market_cap_log: 'market_cap_log'
+  employees_log: 'employees_log'
+  years_since_listing: 'years_since_listing'

@@ -7,6 +7,7 @@ defaults:
   - custom
   - trading
   - symbols
+  - metadata_config           # Loads company metadata configuration
   - columns/common_column_defs    # Loads common_column_defs for shared column names
   - columns/numerical_columns
   - columns/core_columns

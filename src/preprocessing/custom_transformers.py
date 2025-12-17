@@ -153,12 +153,15 @@ class ResamplerTransformer(BaseEstimator, TransformerMixin):
         self.sampler.fit(X, y)
     
     def fit_transform(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
-        self.fit(X, y) 
-        X,y = self.sampler.fit_resample(X, y)
-        # if self.shuffle:
-        #     logger.debug("Shuffling the resampled data.")
-        #     X, y = self._shuffle(X, y)
-        return X, y #.values.reshape(-1, 1)
+        try:
+            self.fit(X, y) 
+            X,y = self.sampler.fit_resample(X, y)
+            # if self.shuffle:
+            #     logger.debug("Shuffling the resampled data.")
+            #     X, y = self._shuffle(X, y)
+            return X, y #.values.reshape(-1, 1)
+        except Exception as e:
+                raise ValueError(f"Error transforming data: {e}\n this failed at ResamplerTransformer transform method")
 
     def transform(
         self, 
