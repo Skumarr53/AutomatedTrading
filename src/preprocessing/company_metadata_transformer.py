@@ -11,7 +11,7 @@ from typing import Optional, List, Dict
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from loguru import logger
-
+from pdb import set_trace
 from src.data.company_metadata import CompanyMetadataFetcher
 
 
@@ -97,6 +97,8 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
         self.ordinal_encoders: Dict[str, OrdinalEncoder] = {}
         self.feature_columns: List[str] = []
         self.fitted_ = False
+        # Instance-level ordinal orders (computed during fit, merged with class-level)
+        self._ordinal_orders: Dict[str, List[str]] = {}
     
     def _initialize_metadata_fetcher(self):
         """Initialize the metadata fetcher if not already initialized."""
@@ -104,6 +106,33 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
             self.metadata_fetcher = CompanyMetadataFetcher(cache_dir=self.cache_dir)
             self.metadata_df = self.metadata_fetcher.get_cached_metadata()
             logger.info(f"Loaded {len(self.metadata_df)} company metadata entries")
+    
+    def _compute_ordinal_orders(self, df: pd.DataFrame) -> None:
+        """
+        Compute ordinal orders from metadata and cache them.
+        
+        This is called once during fit() to ensure consistent ordering across
+        all transform() calls, eliminating warnings about missing orders.
+        
+        Args:
+            df: DataFrame with metadata (after derived features computed)
+        """
+        # Start with class-level orders
+        self._ordinal_orders = self.ORDINAL_ORDERS.copy()
+        
+        # Compute orders for features that use ordinal encoding but don't have orders
+        for feature in self.CATEGORICAL_FEATURES:
+            method = self.ENCODING_MAP.get(feature, self.encoding_method)
+            if method == 'ordinal' and feature not in self._ordinal_orders:
+                if feature in df.columns:
+                    # Get unique values from metadata
+                    uniqs = pd.Series(df[feature].dropna().unique(), dtype=str)
+                    if 'Unknown' not in uniqs.values:
+                        uniqs = pd.concat([uniqs, pd.Series(['Unknown'])]).unique()
+                    # Sort alphabetically for consistency
+                    order = sorted(uniqs)
+                    self._ordinal_orders[feature] = order
+                    logger.debug(f"Computed ordinal order for {feature}: {len(order)} categories")
     
     def _compute_derived_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -202,14 +231,26 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
             elif method == 'ordinal':
                 # Ensure values are all string type
                 df[feature] = df[feature].astype(str)
-                # Get or define order
-                order = self.ORDINAL_ORDERS.get(feature)
+                # Get order from cached orders (computed during fit) or class-level defaults
+                # Merge instance-level (computed) with class-level (hardcoded)
+                order = self._ordinal_orders.get(feature) or self.ORDINAL_ORDERS.get(feature)
                 if not order:
+                    # #region agent log
+                    uniqs_raw = df[feature].dropna().unique()
+                    with open(debug_log_path, "a") as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"company_metadata_transformer.py:208","message":"No order found - computing from data (fallback)","data":{"feature":feature,"unique_count":len(uniqs_raw),"unique_values":list(uniqs_raw)[:10]},"timestamp":int(pd.Timestamp.now().timestamp()*1000)})+"\n")
+                    # #endregion
                     logger.warning(f"No order supplied for {feature} ordinal encoding. Will use sorted unique vals (as string).")
-                    uniqs = pd.Series(df[feature].dropna().unique(), dtype=str)
+                    uniqs = pd.Series(uniqs_raw, dtype=str)
                     if 'Unknown' not in uniqs.values:
                         uniqs = pd.concat([uniqs, pd.Series(['Unknown'])]).unique()
                     order = sorted(uniqs)
+                    # Cache for future use
+                    self._ordinal_orders[feature] = order
+                    # #region agent log
+                    with open(debug_log_path, "a") as f:
+                        f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"company_metadata_transformer.py:212","message":"Computed order from data (fallback)","data":{"feature":feature,"order_length":len(order),"order":order[:10]},"timestamp":int(pd.Timestamp.now().timestamp()*1000)})+"\n")
+                    # #endregion
                 else:
                     # Ensure your order is string list
                     order = [str(v) for v in order]
@@ -282,7 +323,7 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
             self
         """
         logger.info("Fitting CompanyMetadataTransformer...")
-        
+        set_trace()
         # Initialize metadata fetcher
         self._initialize_metadata_fetcher()
         
@@ -298,6 +339,8 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
             self.fitted_ = True
             return self
         
+        
+        
         # Get unique symbols from training data
         unique_symbols = X['symbol'].unique()
         logger.info(f"Found {len(unique_symbols)} unique symbols in training data")
@@ -307,6 +350,9 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
         
         # Compute derived features
         metadata_subset = self._compute_derived_features(metadata_subset)
+        
+        # Compute ordinal orders from metadata (once during fit, cache for consistency)
+        self._compute_ordinal_orders(metadata_subset)
         
         # Encode categorical features (fit encoders)
         metadata_subset = self._encode_categorical_features(metadata_subset, is_training=True)
@@ -379,11 +425,12 @@ class CompanyMetadataTransformer(BaseEstimator, TransformerMixin):
             )
             
             X_transformed = self.drop_symbol_column(X_transformed)
+            set_trace()
             
             # Fill any missing values that resulted from left join
             for col in self.feature_columns:
                 if col in X_transformed.columns:
-                    if X_transformed[col].dtype in ['float64', 'float32', 'int64', 'int32']:
+                    if X_transformed[col].dtype in ['float', 'float64', 'float32', 'int64', 'int32']:
                         X_transformed[col] = X_transformed[col].fillna(0)
                     else:
                         X_transformed[col] = X_transformed[col].fillna('Unknown')

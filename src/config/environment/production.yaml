@@ -1,7 +1,28 @@
+# src/config/environment/production.yaml
 app_settings:
   client_id: ${oc.env:FYERS_CLIENT_ID}
   secret_key: ${oc.env:FYERS_SECRET_ID}
   totp_secret: ${oc.env:TOTP_SECRET}
   user_pin: ${oc.env:USER_PIN}
-  user_name: ${oc.env:USER_NAME, "prod-user"}
+  user_name: ${oc.env:USER_NAME,prod-user}
   env: "prod"
+
+# Production InfluxDB settings (higher throughput)
+influxdb_overrides:
+  write:
+    batch_size: 5000
+    flush_interval_ms: 2000
+  # Disable CSV fallback in production - fail fast
+  fallback_to_csv: false
+
+# Ray settings for production (use all available resources)
+ray_overrides:
+  enabled: true
+  num_cpus: null  # Use all available
+  actors:
+    data_ingestor:
+      num_actors: 10  # Scale up for production
+      symbols_per_actor: 15
+    signal_generator:
+      num_actors: 8
+      batch_size: 15

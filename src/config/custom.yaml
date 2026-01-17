@@ -27,20 +27,22 @@ backtest_data_load:
 model_settings:
   model_targets: ['PctChange', 'ATR']
   model_type: COMB
-  shuffle: true
+  # CRITICAL: shuffle must be false for temporal data to prevent data leakage
+  # TimeSeriesSplit is now used for cross-validation
+  shuffle: false
   run_ids:
-    - 5min
-    - 15min
-    - 30min
-    - 1h
     - 3h
+    - 1h
+    - 30min
+    - 15min
+    - 5min
 
 target_encode_dict:
-  'Low': 1
-  'Medium Low': 2
-  'Neutral': 2.5
-  'Medium High': 3
-  'High': 4
+  'Low': -2
+  'Medium Low': -1 
+  'Neutral': 0
+  'Medium High': 1
+  'High': 2
 
 live_mode_max_length:
    tech_ind_bollinger_bands: 
@@ -52,9 +54,22 @@ training:
 
 mlflow_config:
   enabled: true  # Whether to start the MLflow server
-  host: "0.0.0.0"
+  host: "0.0.0.0"  # Server bind address (0.0.0.0 = all interfaces)
   port: 5000
   backend_store_uri: "sqlite:///mlflow.db"
   default_artifact_root: "./mlruns"
   startup_delay_seconds: 5  # Time to wait after starting the server
-  tracking_uri: "http://0.0.0.0:5000"  # Used for client tracking
+  tracking_uri: "http://localhost:5000"  # Client connection - use localhost, NOT 0.0.0.0
+
+# Hardware optimization settings
+# Auto-detects CPU cores, RAM, and GPU to optimize parallel processing
+hardware_optimization:
+  auto_detect: true  # Auto-detect hardware and optimize settings
+  mode: balanced  # Optimization mode: 'speed' | 'balanced' | 'quality'
+  # Manual overrides (only used if auto_detect=false)
+  n_jobs: null  # null = auto-detect, or specify number of parallel jobs
+  reserve_cores: 2  # Number of CPU cores to reserve for system (when auto_detect=true)
+  use_gpu: null  # null = auto-detect, true/false to force GPU usage
+  # Hardware tier overrides (only used if auto_detect=false)
+  # 'low' (<8 cores, <16GB), 'medium' (8-16 cores, 16-32GB), 'high' (>16 cores, >32GB)
+  hardware_tier: null

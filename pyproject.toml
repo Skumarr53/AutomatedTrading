@@ -1,38 +1,82 @@
 [project]
 name = "automatedtrading"
-version = "0.1.0"
-description = ""
-authors = ["santhosh <skumarr53@gmail.com>"]
+version = "0.2.0"
+description = "Distributed automated trading system with Ray and InfluxDB"
+authors = [
+    { name = "santhosh", email = "skumarr53@gmail.com" }
+]
 readme = "README.md"
-requires-python = ">=3.10,<3.11"
+requires-python = ">=3.10,<3.12"
 dependencies = [
+    # Core framework
     "loguru>=0.7.2",
+    "pydantic>=2.5.0",
+    "hydra-core>=1.3",
+    "python-dotenv>=1.0.1",
+    # Distributed computing
+    "ray[default]>=2.9.0",
+    # Data processing
+    "pandas>=2.0.0",
+    "numpy>=1.24.4,<2.0.0",
+    "tqdm>=4.66.5",
+    # Time-series database
+    "influxdb-client[async]>=1.46.0",
+    # Async HTTP (replacing requests for async operations)
+    "httpx>=0.27.0",
+    "aiofiles>=24.1.0",
+    # Trading APIs
+    "fyers-apiv3>=3.1",
     "selenium>=4.20",
     "pyotp>=2.9.0",
-    "fyers-apiv3>=3.1",
     "urllib3>=1.26.0",
-    "pandas>=2.0.0",
-    "hydra-core>=1.3",
-    "APScheduler>=3.10.4",
-    "Sphinx>=7.1.1",
-    "flask>=3.0.3",
-    "python-dotenv>=1.0.1",
-    "numpy==1.24.4",
     "pyperclip>=1.9.0",
+    # Technical analysis
     "ta-lib>=0.4.32",
+    "yfinance>=0.2.40",
+    # ML/AI
+    "scikit-learn>=1.3.2,<1.4.0",
     "joblib>=1.4.2",
-    "scikit-learn==1.3.2",
-    "influxdb-client>=1.46.0",
-    "tqdm>=4.66.5",
     "mlflow>=2.17.0",
-    "seaborn>=0.13.2",
     "shap>=0.41.0",
     "imblearn>=0.0",
-    "yfinance>=0.2.40",
+    # Advanced gradient boosting (recommended for production)
+    "lightgbm>=4.0.0",
+    "xgboost>=2.0.0",
+    # Hardware detection
+    "psutil>=5.9.0",
+    # Visualization & UI
+    "seaborn>=0.13.2",
     "streamlit>=1.51.0",
+    # Scheduling
+    "APScheduler>=3.10.4",
+    # Documentation
+    "Sphinx>=7.1.1",
+    # Web framework (for health endpoints)
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3.3"
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+    "mypy>=1.8.0",
+    "types-aiofiles>=24.1.0",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

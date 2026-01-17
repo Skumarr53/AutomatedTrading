@@ -1,0 +1,38 @@
+# src/config/influxdb.yaml
+# InfluxDB configuration for time-series data storage
+
+influxdb:
+  # Connection settings
+  url: ${oc.env:INFLUXDB_URL,http://localhost:8086}
+  token: ${oc.env:INFLUXDB_TOKEN}
+  org: ${oc.env:INFLUXDB_ORG,trading}
+  
+  # Buckets for different data types
+  buckets:
+    ticker_data: "ticker_data"
+    order_book: "order_book"
+    trades: "trades"
+    metrics: "system_metrics"
+  
+  # Write settings for batch optimization
+  write:
+    batch_size: 1000  # Points per batch (optimized for 100+ symbols)
+    flush_interval_ms: 1000  # Flush every 1 second
+    retry_interval_ms: 5000  # Retry on failure
+    max_retries: 3
+    max_retry_delay_ms: 30000
+  
+  # Query settings
+  query:
+    timeout_ms: 30000  # 30 second timeout for queries
+    
+  # Retention policies (in days)
+  retention:
+    ticker_data: 365  # 1 year
+    order_book: 90    # 3 months
+    trades: 365       # 1 year
+    metrics: 30       # 1 month
+
+  # Feature flags
+  enabled: true
+  fallback_to_csv: true  # Use CSV if InfluxDB unavailable

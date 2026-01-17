@@ -3,9 +3,10 @@ import pandas as pd
 from typing import Dict, List, Optional
 from imblearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from joblib import Memory  # Add this import
+from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
+from joblib import Memory
 from omegaconf import OmegaConf
+from loguru import logger
 
 # Suppress warnings in this module
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -26,6 +27,7 @@ from src.preprocessing.custom_transformers import (
  # Assuming ImbalanceHandler is defined in custom transformers
 )
 from src.preprocessing.company_metadata_transformer import CompanyMetadataTransformer
+from src.utils.hardware_detector import get_hardware_detector
 
 class CustomModelPipeline():
 
@@ -48,7 +50,21 @@ class CustomModelPipeline():
         if getattr(config.training, 'combine_all_symbols', False) and 'symbol' not in self.features:
             self.features = ['symbol'] + self.features
             
-        self.feature_config = feature_config
+        self.feature_config = feature_config or {}
+        
+        # Hardware-aware optimization: adjust max_samples_per_class if auto_detect is enabled
+        if hasattr(config, 'hardware_optimization') and config.hardware_optimization.auto_detect:
+            hw_detector = get_hardware_detector()
+            mode = config.hardware_optimization.mode or 'balanced'
+            optimal_max_samples = hw_detector.get_max_samples_per_class(mode=mode)
+            
+            # Override if not explicitly set in config, or if config value is too high for hardware
+            current_max = self.feature_config.get('max_samples_per_class', None)
+            if current_max is None or (current_max > optimal_max_samples * 1.5):
+                self.feature_config['max_samples_per_class'] = optimal_max_samples
+                logger.info(f"Hardware-aware optimization: Set max_samples_per_class={optimal_max_samples} "
+                          f"(mode={mode}, RAM={hw_detector.detect()['ram_total_gb']:.1f}GB)")
+        
         self.params = {} 
         self.target_encoder = TargetLabelEncoder()  # Initialize TargetLabelEncoder
         self.model = None
@@ -133,10 +149,15 @@ class CustomModelPipeline():
             sampler = ImbalanceHandler_mapping.get(imbalance_technique, 'smote')
             if sampler is None:
                 raise ValueError(f"Imbalance technique '{imbalance_technique}' is not supported.")
+            
+            # Get max_samples_per_class from config (default: None for no limit)
+            max_samples_per_class = self.feature_config.get('max_samples_per_class', None)
+            
             self.steps.append(('resample', ResamplerTransformer(
                 sampler=sampler(),
                 shuffle=True,
-                random_state=42  # You can make this configurable
+                random_state=42,  # You can make this configurable
+                max_samples_per_class=max_samples_per_class
             )))
 
     def update_feature_selection_pipeline(self):
@@ -179,33 +200,75 @@ class CustomModelPipeline():
         self.empty_pipeline_and_params()
 
         ## Define pipliene steps
-        self.add_metadata_transformer()  # Add metadata transformer first
+        # self.add_metadata_transformer()  # Add metadata transformer first
         self.add_combined_preprocessed_features()
         self.update_resampling_pipeline()
-        self.update_feature_selection_pipeline()
+        # self.update_feature_selection_pipeline()
         self.update_model_pipeline()
 
         # Define the pipeline with the configured steps
         self.pipeline = Pipeline(self.steps)
 
-    def define_model(self, memory: Memory = None) -> RandomizedSearchCV:
+    def define_model(self, memory: Memory = None, n_splits: int = 5, gap: int = 0, 
+                     n_iter: Optional[int] = None, n_jobs: Optional[int] = None) -> RandomizedSearchCV:
         """
         Defines the machine learning model using RandomizedSearchCV for hyperparameter tuning.
+        
+        IMPORTANT: Uses TimeSeriesSplit for cross-validation to prevent data leakage.
+        Standard KFold would allow future data to train the model, which is invalid
+        for time series prediction.
+
+        Args:
+            memory: Joblib Memory instance for caching.
+            n_splits: Number of splits for TimeSeriesSplit cross-validation.
+            gap: Number of samples to exclude from the end of each train set before
+                 the test set (embargo period to prevent leakage at boundaries).
+            n_iter: Number of hyperparameter search iterations. If None, auto-detected from hardware.
+            n_jobs: Number of parallel jobs. If None, auto-detected from hardware.
 
         Returns:
-            RandomizedSearchCV: Configured search instance.
+            RandomizedSearchCV: Configured search instance with temporal CV.
         """
         self.define_pipeline()
         if memory:
             self.pipeline.memory = memory
 
+        # Hardware-aware optimization
+        hw_detector = get_hardware_detector()
+        hw_config = config.hardware_optimization
+        
+        # Auto-detect n_jobs if not specified
+        if n_jobs is None:
+            if hw_config.auto_detect and hw_config.n_jobs is None:
+                mode = hw_config.mode or 'balanced'
+                reserve = hw_config.reserve_cores or 2
+                n_jobs = hw_detector.get_optimal_n_jobs(mode=mode, reserve_cores=reserve)
+                logger.info(f"Auto-detected optimal n_jobs={n_jobs} (mode={mode}, reserve_cores={reserve})")
+            else:
+                n_jobs = hw_config.n_jobs or 4
+        
+        # Auto-detect n_iter if not specified
+        if n_iter is None:
+            if hw_config.auto_detect:
+                mode = hw_config.mode or 'balanced'
+                n_iter = hw_detector.get_optimal_n_iter(mode=mode)
+                logger.info(f"Auto-detected optimal n_iter={n_iter} (mode={mode})")
+            else:
+                n_iter = 20
+
+        # Use TimeSeriesSplit instead of standard KFold
+        # This ensures training data always comes BEFORE test data chronologically
+        tscv = TimeSeriesSplit(n_splits=n_splits, gap=gap)
+        
+        logger.info(f"Using TimeSeriesSplit for CV: n_splits={n_splits}, gap={gap}")
+
         self.model = RandomizedSearchCV(
             self.pipeline,
             param_distributions=self.params,
-            n_iter=20,
+            n_iter=n_iter,
             scoring='accuracy',
-            n_jobs=4,
-            cv=3,
+            n_jobs=n_jobs,
+            cv=tscv,  # Use TimeSeriesSplit instead of int
             random_state=42,
             verbose=1,
             return_train_score=True,
@@ -222,6 +285,70 @@ class CustomModelPipeline():
         """
         # Encode the target variable
         y_encoded = self.target_encoder.fit_transform(y)
+
+        # Validate data before fitting (catch sequence issues early)
+        import numpy as np
+        from loguru import logger
+        
+        # Check for sequences in X
+        sequence_cols = []
+        for col in X.columns:
+            try:
+                sample = X[col].dropna().head(10)
+                for val in sample:
+                    if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
+                        sequence_cols.append(col)
+                        logger.error(
+                            f"Column '{col}' contains sequences before model fit: "
+                            f"type={type(val)}, sample_value={val}"
+                        )
+                        break
+            except Exception:
+                pass
+        
+        if sequence_cols:
+            raise ValueError(
+                f"DataFrame contains columns with sequences (lists/arrays) instead of scalars: {sequence_cols}. "
+                f"Shape: {X.shape}. "
+                f"This will cause sklearn to fail. Check transformers in pipeline."
+            )
+        
+        # Check shape is reasonable
+        if X.shape[0] < 2:
+            raise ValueError(f"Not enough samples for training: {X.shape[0]} rows")
+        
+        if X.shape[1] > 50000:  # Suspiciously large number of columns
+            logger.warning(
+                f"Very large number of columns: {X.shape[1]}. "
+                f"This might indicate a transformer is creating too many features."
+            )
+        
+        # Try to convert to numpy array to catch any issues early
+        try:
+            test_array = np.asarray(X.head(100))
+            logger.debug(f"Data validation passed: shape={X.shape}, array_shape={test_array.shape}")
+        except ValueError as e:
+            logger.error(f"Failed to convert DataFrame to numpy array: {e}")
+            logger.error(f"  DataFrame shape: {X.shape}")
+            logger.error(f"  DataFrame dtypes: {X.dtypes.value_counts().to_dict()}")
+            
+            # Try to identify problematic columns
+            problematic = []
+            for col in X.columns:
+                try:
+                    np.asarray(X[col].head(100))
+                except (ValueError, TypeError):
+                    problematic.append(col)
+            
+            if problematic:
+                logger.error(f"Problematic columns: {problematic[:10]}")
+                for col in problematic[:5]:
+                    logger.error(f"  Column '{col}': dtype={X[col].dtype}, sample={X[col].head(3).tolist()}")
+            
+            raise ValueError(
+                f"Cannot convert DataFrame to numpy array: {e}. "
+                f"Problematic columns: {problematic[:10]}"
+            )
 
         # Fit the pipeline
         self.model.fit(X, y_encoded)

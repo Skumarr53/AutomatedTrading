@@ -4,5 +4,17 @@ app_settings:
   secret_key: ${oc.env:FYERS_SECRET_ID}
   totp_secret: ${oc.env:TOTP_SECRET}
   user_pin: ${oc.env:USER_PIN}
-  user_name: ${oc.env:USER_NAME, "dummy-user"}  # Use environment variables with fallback
+  user_name: ${oc.env:USER_NAME,dummy-user}
   env: "dev"
+
+# Override InfluxDB settings for development
+influxdb_overrides:
+  # Use lower batch sizes for faster feedback during development
+  write:
+    batch_size: 100
+    flush_interval_ms: 500
+
+# Ray settings for development (single-node)
+ray_overrides:
+  enabled: true
+  num_cpus: 4  # Limit CPUs in dev mode

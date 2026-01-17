@@ -21,13 +21,26 @@ class TargetTransform:
     """
     FeatureExtractor encapsulates the logic for target transformations, including 
     categorizing ATR and percent changes based on statistical thresholds.
+    
+    IMPORTANT: To prevent target leakage, mu/sigma for categorization thresholds
+    are computed ONLY on the training portion of data (controlled by train_ratio).
+    This ensures test data categories are determined using thresholds that don't
+    include future information.
     """
     
-    def __init__(self) -> None:
+    def __init__(self, train_ratio: float = 0.8) -> None:
         """
         Initializes the FeatureExtractor instance.
+        
+        Args:
+            train_ratio: Proportion of data to use for computing statistics (mu, sigma).
+                        This should match the train/test split ratio to prevent leakage.
+                        Default is 0.8 (80% train, 20% test).
         """
         self.interval_min = config.scheduler.data_fetch_cron_interval_min
+        self.train_ratio = train_ratio
+        # Cache for computed statistics to ensure consistency
+        self._stats_cache: dict = {}
 
 
     @staticmethod
@@ -247,6 +260,10 @@ class TargetTransform:
         """
         Internal method to process percent change categorization for a single symbol.
         
+        CRITICAL: Statistics (mu, sigma) are computed ONLY on the training portion
+        of the data to prevent target leakage. The same thresholds are then applied
+        to categorize all data (including test data).
+        
         Args:
             df (pd.DataFrame): DataFrame for a single symbol
             run_id (str): Unique identifier that contains the window size information
@@ -266,17 +283,32 @@ class TargetTransform:
 
         pct_change = self._calculate_window_max_percent_change(target, window_periods)
 
-        # Compute mean and standard deviation of the percent changes FOR THIS SYMBOL
-        mu = pct_change.mean()
-        sigma = pct_change.std()
+        # CRITICAL FIX: Compute mu/sigma ONLY on training portion to prevent target leakage
+        # If we compute on all data, we leak future distribution information into training labels
+        n_samples = len(pct_change.dropna())
+        train_end_idx = int(n_samples * self.train_ratio)
         
-        logger.debug(f"Symbol stats - mu: {mu:.4f}, sigma: {sigma:.4f}")
+        # Get training portion for statistics computation (exclude NaN values)
+        pct_change_clean = pct_change.dropna()
+        train_pct_change = pct_change_clean.iloc[:train_end_idx]
+        
+        if len(train_pct_change) < 10:
+            logger.warning(f"Very few training samples ({len(train_pct_change)}) for statistics. "
+                          f"Using all data as fallback (not recommended for production).")
+            mu = pct_change.mean()
+            sigma = pct_change.std()
+        else:
+            # Compute stats ONLY on training portion
+            mu = train_pct_change.mean()
+            sigma = train_pct_change.std()
+        
+        logger.debug(f"Symbol stats (train-only, n={len(train_pct_change)}) - mu: {mu:.4f}, sigma: {sigma:.4f}")
 
         get_categories = partial(self._categorize, mu, sigma)
 
         df, pct_change = self.drop_nulls(df, pct_change)
 
-        # Apply categorization to the percent changes
+        # Apply categorization to ALL data using training-derived thresholds
         categories = pct_change.apply(get_categories)
 
         return df, categories
@@ -338,6 +370,10 @@ class TargetTransform:
         """
         Internal method to process ATR categorization for a single symbol.
         
+        CRITICAL: Statistics (mu, sigma) are computed ONLY on the training portion
+        of the data to prevent target leakage. The same thresholds are then applied
+        to categorize all data (including test data).
+        
         Args:
             df (pd.DataFrame): DataFrame for a single symbol
             run_id (str): Unique identifier that contains the window size information
@@ -360,15 +396,29 @@ class TargetTransform:
         # Calculate ATR
         atr = self._calculate_atr(high, low, close, window_periods)
 
-        # Compute mean and standard deviation of the ATR FOR THIS SYMBOL
-        mu = atr.mean()
-        sigma = atr.std()
+        # CRITICAL FIX: Compute mu/sigma ONLY on training portion to prevent target leakage
+        n_samples = len(atr.dropna())
+        train_end_idx = int(n_samples * self.train_ratio)
         
-        logger.debug(f"Symbol ATR stats - mu: {mu:.4f}, sigma: {sigma:.4f}")
+        # Get training portion for statistics computation
+        atr_clean = atr.dropna()
+        train_atr = atr_clean.iloc[:train_end_idx]
+        
+        if len(train_atr) < 10:
+            logger.warning(f"Very few training samples ({len(train_atr)}) for ATR statistics. "
+                          f"Using all data as fallback (not recommended for production).")
+            mu = atr.mean()
+            sigma = atr.std()
+        else:
+            # Compute stats ONLY on training portion
+            mu = train_atr.mean()
+            sigma = train_atr.std()
+        
+        logger.debug(f"Symbol ATR stats (train-only, n={len(train_atr)}) - mu: {mu:.4f}, sigma: {sigma:.4f}")
 
         df, atr = self.drop_nulls(df, atr)
 
-        # Categorize ATR values
+        # Categorize ATR values using training-derived thresholds
         get_categories = partial(self._categorize, mu, sigma)
         categories = atr.apply(get_categories)
 

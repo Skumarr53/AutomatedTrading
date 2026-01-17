@@ -97,6 +97,6 @@ long_num_cols:
   - ${columns.common_columns.buy_sell_pressure_ratio}
   - ${columns.common_columns.price_movement_open_close}
   # Company metadata numerical features
-  - ${columns.common_columns.market_cap_log}
-  - ${columns.common_columns.employees_log}
-  - ${columns.common_columns.years_since_listing}
+  # - ${columns.common_columns.market_cap_log}
+  # - ${columns.common_columns.employees_log}
+  # - ${columns.common_columns.years_since_listing}

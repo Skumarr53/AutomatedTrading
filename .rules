@@ -1,0 +1,18 @@
+# Automated Trading - Rules
+
+## Global Rules Reference
+Global rules are available in ~/.zed/rules/:
+- system_env.md - CachyOS, fish, uv, podman standards
+- python_standards.md - Type hints, async, error handling
+- troubleshooting_protocol.md - Diagnostic-first troubleshooting
+- socratic_mentor.md - Principal Architect persona
+
+## Project-Specific Rules
+See .zed/rules/trading_context.md for trading-specific patterns.
+
+## Key Guidelines
+- Always use Decimal for money calculations (never float)
+- Enforce position limits before trades
+- Validate ML predictions before execution
+- Use UTC timestamps for all market data
+- Log every order with full context

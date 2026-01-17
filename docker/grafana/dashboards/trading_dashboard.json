@@ -1,0 +1,167 @@
+{
+  "dashboard": {
+    "title": "AutomatedTrading System Dashboard",
+    "tags": ["trading", "monitoring"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Health Overview",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"ticker_data\") |> range(start: -5m) |> filter(fn: (r) => r[\"_measurement\"] == \"system_health\") |> last()"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Data Ingestion Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"ticker_data\") |> range(start: -1h) |> filter(fn: (r) => r[\"_measurement\"] == \"ticker\") |> aggregateWindow(every: 1m, fn: count, createEmpty: false) |> yield(name: \"records_per_minute\")"
+          }
+        ],
+        "yaxes": [
+          {"label": "Records/min", "format": "short"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Symbols Processed",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"ticker_data\") |> range(start: -1h) |> filter(fn: (r) => r[\"_measurement\"] == \"ticker\") |> group(columns: [\"symbol\"]) |> aggregateWindow(every: 5m, fn: count, createEmpty: false) |> group() |> count() |> yield(name: \"unique_symbols\")"
+          }
+        ],
+        "yaxes": [
+          {"label": "Symbols", "format": "short"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Latest Ticker Data by Symbol",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"ticker_data\") |> range(start: -5m) |> filter(fn: (r) => r[\"_measurement\"] == \"ticker\") |> pivot(rowKey: [\"_time\", \"symbol\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> group() |> sort(columns: [\"_time\"], desc: true) |> limit(n: 20)"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Container Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "trading_components_healthy / trading_components_total"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.5, "color": "yellow"},
+                {"value": 1, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Application Uptime",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "trading_app_uptime_seconds"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Trading Cycle Duration",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "trading_cycle_duration_ms"
+          }
+        ],
+        "yaxes": [
+          {"label": "Duration (ms)", "format": "ms"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Signals Generated",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {
+            "refId": "A",
+            "datasource": {"type": "prometheus", "uid": "prometheus"},
+            "expr": "trading_signals_generated"
+          }
+        ],
+        "yaxes": [
+          {"label": "Signals", "format": "short"},
+          {"format": "short"}
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+    }
+  }
+}

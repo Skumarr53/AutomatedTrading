@@ -1,25 +1,33 @@
 pipeline_configs:
+  # Current default: GradientBoostingClassifier
   Pipeline_1:
     std_scale: false
     cat_encode: false
-    imbalance_technique: smote
-    model: GBC
+    imbalance_technique: random
+    model: LGBM
+    max_samples_per_class: 3000  # Maximum samples per class after resampling
 
-  # Pipeline_2:
-  #   std_scale: true
+  # LightGBM: Recommended for production (faster, better regularization)
+  # Uncomment to use LGBM instead of/alongside GBC
+  # Pipeline_LGBM:
+  #   std_scale: false
+  #   cat_encode: false  # LGBM handles categoricals natively
+  #   imbalance_technique: random
+  #   model: LGBM
+  #   max_samples_per_class: 5000  # Can handle more data efficiently
+  
+  # XGBoost alternative
+  # Pipeline_XGB:
+  #   std_scale: false
+  #   cat_encode: false
+  #   imbalance_technique: random
+  #   model: XGB
+  #   max_samples_per_class: 5000
+
+  # Neural Network (requires more data)
+  # Pipeline_MLP:
+  #   std_scale: true  # Important for neural networks
   #   cat_encode: true
   #   imbalance_technique: smote
   #   model: MLP
-  
-  # Pipeline_3:
-  #   std_scale: false
-  #   cat_encode: true
-  #   imbalance_technique: smote
-  #   model: MLP
-  
-
-  # Pipeline_4:
-  #   std_scale: false
-  #   cat_encode: true
-  #   imbalance_technique: smote
-  #   model: LR
+  #   max_samples_per_class: 10000

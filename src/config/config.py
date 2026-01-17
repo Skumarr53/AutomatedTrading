@@ -5,6 +5,10 @@ from loguru import logger
 import sys,os
 from typing import Optional
 
+# Load environment variables BEFORE Hydra initialization
+# This ensures oc.env resolvers can access .env file variables
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def get_config() -> DictConfig:

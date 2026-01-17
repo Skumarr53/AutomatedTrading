@@ -1,0 +1,237 @@
+# compose.yml
+# Podman Compose configuration for AutomatedTrading stack
+# Usage: podman-compose up -d
+# Data stored in project folder: ./data/ (persists across container restarts)
+
+version: "3.8"
+
+services:
+  # InfluxDB 2.x - Time-series database for ticker and order book data
+  influxdb:
+    image: docker.io/influxdb:2.7
+    container_name: trading-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME:-admin}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD:-trading_password_123}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG:-trading}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET:-ticker_data}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN:-trading_influxdb_token_change_in_prod}
+      - DOCKER_INFLUXDB_INIT_RETENTION=365d
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb2
+      - ./data/influxdb-config:/etc/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - trading-network
+
+  # MLflow - Model tracking and registry server
+  # Option 1: Bitnami MLflow image (public, no auth required)
+  # Option 2: Official ghcr.io/mlflow/mlflow:v2.17.0 (requires GitHub auth)
+  # Option 3: Local build (see build section below)
+  mlflow:
+    image: docker.io/bitnami/mlflow:2.11.3
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: trading-mlflow
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+      - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow/mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+      - MLFLOW_HOST=0.0.0.0
+      - MLFLOW_PORT=5000
+    command:
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --artifacts-destination /mlflow/artifacts
+      --serve-artifacts
+    volumes:
+      - ./data/mlflow:/mlflow
+      - ./data/mlartifacts:/mlflow/artifacts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - trading-network
+
+  # Alternative: Python-based MLflow server (fallback if Bitnami image fails)
+  # Uncomment this and comment out mlflow service above if needed
+  # mlflow-python:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.mlflow
+  #   container_name: trading-mlflow
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5000:5000"
+  #   environment:
+  #     - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+  #   command: >
+  #     mlflow server
+  #     --host 0.0.0.0
+  #     --port 5000
+  #     --backend-store-uri sqlite:///mlflow/mlflow.db
+  #     --default-artifact-root /mlflow/artifacts
+  #   volumes:
+  #     - mlflow-data:/mlflow
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 15s
+  #   networks:
+  #     - trading-network
+
+  # Prometheus - Metrics collection for Ray and system monitoring
+  prometheus:
+    image: docker.io/prom/prometheus:v2.48.0
+    container_name: trading-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"  # Prometheus web UI
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - trading-network
+
+  # Grafana - Monitoring and visualization dashboard
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    container_name: trading-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"  # Grafana web UI
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - trading-network
+
+  # Ray Head Node (optional - for distributed mode)
+  # Uncomment when scaling to multiple workers
+  # ray-head:
+  #   image: docker.io/rayproject/ray:2.9.0-py310
+  #   container_name: trading-ray-head
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8265:8265"  # Ray dashboard
+  #     - "6379:6379"  # Ray client port
+  #   command: ray start --head --dashboard-host 0.0.0.0 --block
+  #   shm_size: "2gb"
+  #   networks:
+  #     - trading-network
+
+  # ============================================================================
+  # Trading Application
+  # ============================================================================
+  trading-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trading-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # Health API
+      - "8265:8265"   # Ray dashboard (internal head node)
+    environment:
+      # Application settings
+      - APP_VERSION=1.0.0
+      - RAY_ENABLED=true
+      - HEALTH_PORT=8080
+      # Ray metrics configuration for Prometheus
+      - RAY_PROMETHEUS_HOST=0.0.0.0
+      - RAY_GRAFANA_HOST=grafana:3000
+      - RAY_GRAFANA_IFRAME_HOST=http://localhost:3000
+      # InfluxDB connection
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN:-trading_influxdb_token_change_in_prod}
+      - INFLUXDB_ORG=${INFLUXDB_ORG:-trading}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET:-ticker_data}
+      # MLflow connection
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      # Fyers API (from .env file)
+      - FYERS_APP_ID=${FYERS_APP_ID}
+      - FYERS_SECRET_ID=${FYERS_SECRET_ID}
+      - FYERS_REDIRECT_URI=${FYERS_REDIRECT_URI:-https://trade.fyers.in/api-login/redirect-uri/index.html}
+      # Slack notifications (optional)
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+    volumes:
+      - ./data:/app/data
+      - ./data/logs:/app/logs
+      - ./data/mlartifacts:/app/mlartifacts
+      - ./data/backups:/app/backups
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # Increased shared memory for Ray
+    shm_size: "2gb"
+    # Graceful shutdown timeout
+    stop_grace_period: 30s
+    networks:
+      - trading-network
+
+networks:
+  trading-network:
+    driver: bridge

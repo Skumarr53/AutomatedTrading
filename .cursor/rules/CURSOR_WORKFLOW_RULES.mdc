@@ -1,0 +1,132 @@
+---
+description: Cursor IDE workflow optimization rules - best practices for efficient AI-assisted development
+globs: []
+alwaysApply: true
+---
+
+# Cursor IDE Workflow Optimization Rules
+
+## Model Selection Strategy
+
+### Planning Phase
+- **Use powerful models** (GPT-5 High, Claude Opus) for:
+  - Complex problem analysis
+  - Architecture decisions
+  - Multi-step planning
+  - Code design
+
+### Execution Phase
+- **Use faster models** (Claude 4.5 Set, GPT-4 Turbo) for:
+  - Code generation
+  - Refactoring
+  - Bug fixes
+  - Simple tasks
+
+**Rule:** Always switch to a faster model before clicking "Build" after planning.
+
+## Message Management
+
+### Queuing vs. Steering
+- **Queue messages** when:
+  - Agent is actively working
+  - You have multiple related tasks
+  - You want to create a to-do list
+  
+- **Steer with messages** when:
+  - Agent needs immediate redirection
+  - You have clarifying information
+  - You want to adjust approach mid-task
+
+### Avoid "Stop and Send"
+- Only use when explicitly telling agent to "forget everything and do this now"
+- Generally confusing for the agent
+- Prefer queuing or steering instead
+
+## Context Management
+
+### When to Duplicate Chat
+- After priming with extensive context (docs, rules, codebase understanding)
+- When branching into different topic while preserving context
+- When starting similar task with same context requirements
+
+### When to Reference Past Chats
+- Continuing previous conversation thread
+- Building on previous analysis
+- Referencing prior decisions
+
+### Git Context Usage
+- Use `@show commits` to reference specific changes
+- Use `@ps` to reference pull requests
+- Helpful for understanding code evolution
+
+## Custom Modes Usage
+
+### When to Create Custom Modes
+- Recurring specialized tasks (e.g., database analysis, code review)
+- Domain-specific expertise needed (e.g., trading systems, ML)
+- Consistent behavior requirements
+
+### Recommended Custom Modes for This Project
+1. **Trading Analyst** - Financial data analysis
+2. **Database Expert** - InfluxDB optimization
+3. **Migration Specialist** - Data migration tasks
+4. **Code Reviewer** - Code quality checks
+
+## Documentation Indexing
+
+### What to Index
+- Framework documentation (InfluxDB, MLflow, etc.)
+- API references
+- Architecture decision records
+- Best practices guides
+
+### How to Use Indexed Docs
+- Use `add` → "Docs" in chat
+- Reference specific sections when needed
+- Keep documentation URLs updated
+
+## Terminal Best Practices
+
+### Always Use Venv Python
+- Use `.venv/bin/python` for all Python scripts
+- Ensures correct dependencies and versions
+- Works in non-interactive shells
+
+### Split Terminal Usage
+- Use split terminal for:
+  - Running multiple commands simultaneously
+  - Monitoring logs while coding
+  - Comparing outputs
+
+## Rule Files Management
+
+### When to Create New Rules
+- Project-specific patterns
+- Common mistakes to avoid
+- Domain-specific guidelines
+- Team conventions
+
+### Rule Organization
+- Global rules: `~/.cursor/rules/`
+- Project rules: `PROJECT/.cursor/rules/`
+- Use `master_index.mdc` to track all rules
+
+## Efficiency Tips
+
+1. **Plan First, Execute Later** - Use powerful models for planning, faster for execution
+2. **Queue Don't Interrupt** - Queue messages instead of stopping agent
+3. **Preserve Context** - Duplicate chats with good context
+4. **Index Important Docs** - Make documentation easily accessible
+5. **Use Custom Modes** - Create specialized modes for recurring tasks
+6. **Reference Git History** - Use `@show commits` for context
+7. **Split Terminals** - Monitor multiple processes simultaneously
+
+## Anti-Patterns to Avoid
+
+1. ❌ Using powerful models for simple tasks
+2. ❌ Stopping agent unnecessarily
+3. ❌ Not preserving context when branching
+4. ❌ Ignoring indexed documentation
+5. ❌ Using system Python instead of venv
+6. ❌ Not using custom modes for specialized tasks
+7. ❌ Interrupting agent instead of queuing

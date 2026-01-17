@@ -1,0 +1,235 @@
+---
+description: Automated Trading project context - risk-aware, latency-critical systems with ML predictions
+globs: ["src/trading_logic/**/*", "src/financial_analysis/**/*", "src/distributed/**/*", "**/main.py", "**/*trading*.py", "**/*strategy*.py", "**/trade*.py", "**/executor*.py", "**/risk*.py", "**/fyers*.py"]
+alwaysApply: false
+---
+
+# Automated Trading Context
+
+## Domain Criticality
+
+Trading systems have ZERO tolerance for:
+- **Data bugs** (wrong price = wrong trade = real money lost)
+- **Latency spikes** (milliseconds matter in execution)
+- **Unhandled exceptions** (crashed bot = missed opportunities or runaway losses)
+- **Position limit violations** (can lead to margin calls or account closure)
+
+## Risk-First Architecture
+
+Every trading component must address:
+
+| Risk | Mitigation Required |
+|------|---------------------|
+| Position Limits | Hard caps on position size, enforced in code |
+| Loss Limits | Daily/weekly drawdown limits with auto-shutdown |
+| Data Staleness | Max age for price data before rejecting trades |
+| Execution Slippage | Expected vs actual fill price monitoring |
+| API Rate Limits | Backoff strategy for Fyers API (8 req/sec limit) |
+| Circuit Breakers | Auto-disable trading after N consecutive failures |
+| Cooldown Periods | Prevent rapid-fire trades on same symbol |
+
+## Stack Quick Reference
+
+| Component | Tech | Critical Config |
+|-----------|------|-----------------|
+| Broker API | Fyers | Rate limit: 8 req/sec, auth token refresh |
+| ML Models | MLflow | Model naming: `{symbol}_{timeframe}_{metric}` |
+| Data Pipeline | Pandas/NumPy | Decimal for money, UTC timestamps |
+| Distributed | Ray (optional) | Actor-based execution, circuit breakers |
+| Risk Management | Custom | Position limits, drawdown tracking |
+
+## Code Standards for Trading
+
+```python
+# WRONG - No safety rails
+def place_order(symbol, qty):
+    return fyers.buy(symbol, qty)
+
+# RIGHT - Defense in depth
+async def place_order(
+    symbol: str,
+    qty: Decimal,
+    max_position: Decimal,
+    current_position: Decimal,
+    risk_per_trade: float = 2.0
+) -> OrderResult:
+    # Pre-trade checks
+    if qty <= 0:
+        raise InvalidOrderError("Quantity must be positive")
+    if current_position + qty > max_position:
+        raise PositionLimitExceeded(f"Would exceed {max_position}")
+    if not await is_market_open(symbol):
+        raise MarketClosedError(symbol)
+    
+    # Calculate position size based on risk
+    account_balance = await get_account_balance()
+    max_risk_amount = account_balance * (risk_per_trade / 100)
+    calculated_qty = calculate_position_size(symbol, max_risk_amount)
+    qty = min(qty, calculated_qty)  # Enforce risk limit
+    
+    # Execute with timeout and rate limiting
+    async with timeout(5.0):
+        async with rate_limiter.acquire():
+            result = await fyers.buy(symbol, qty)
+    
+    # Post-trade logging and validation
+    logger.info("Order filled", extra={
+        "symbol": symbol,
+        "qty": str(qty),
+        "fill_price": str(result.price),
+        "expected_price": str(expected_price),
+        "slippage_bps": calculate_slippage(expected_price, result.price),
+        "position_after": str(current_position + qty)
+    })
+    
+    # Validate fill price is reasonable
+    if abs(result.price - expected_price) / expected_price > 0.01:  # 1% slippage threshold
+        logger.warning("High slippage detected", extra={"slippage_pct": ...})
+    
+    return result
+```
+
+## ML Prediction Integration
+
+```python
+# WRONG - No validation
+prediction = model.predict(features)
+
+# RIGHT - Validate predictions before trading
+prediction = model.predict(features)
+confidence = model.predict_proba(features).max()
+
+if confidence < 0.6:  # Low confidence threshold
+    logger.warning("Low prediction confidence", extra={"confidence": confidence})
+    return "HOLD"  # Don't trade on uncertain predictions
+
+# Map prediction to trading signal with thresholds
+if prediction in ["High", "Medium High"] and confidence >= 0.6:
+    return "BUY"
+elif prediction in ["Low", "Medium Low"] and confidence >= 0.6:
+    return "SELL"
+else:
+    return "HOLD"
+```
+
+## Backtesting Requirements
+
+- **NEVER use future data** (look-ahead bias)
+- Account for slippage, fees, and spread
+- Test on out-of-sample data
+- Report Sharpe ratio, max drawdown, win rate
+- Validate against multiple market conditions (bull, bear, sideways)
+
+## Mandatory: Debug & Verify Block
+
+**EVERY code generation MUST include:**
+
+```
+### Debug & Verify
+
+**Run**: 
+```bash
+# Test trading logic
+python -m pytest tests/test_trading_logic.py::test_place_order -v
+
+# Test with dry-run mode
+python main.py --mode live --dry-run
+
+# Validate position limits
+python -c "from src.trading_logic import FyersTradeExecutor; executor = FyersTradeExecutor(...); print(executor.calculate_position_size('NSE:SBIN-EQ', 10000))"
+```
+
+**Verify**: 
+- Check logs for "Order filled" with slippage calculation
+- Verify position size doesn't exceed max_position
+- Confirm rate limiting is working (check API call timestamps)
+- Validate ML prediction confidence before trade execution
+
+**Debug**: 
+- Breakpoint at order placement: inspect `qty`, `max_position`, `current_position`
+- Check rate limiter state: `rate_limiter._tokens`, `rate_limiter._last_refill`
+- Inspect ML prediction: `prediction`, `confidence`, `features`
+
+**REPL Test**: 
+```python
+from src.trading_logic.fyers_trade_executor import FyersTradeExecutor
+executor = FyersTradeExecutor(fyers=..., default_product_type="INTRADAY")
+balance = await executor.get_funds()
+print(f"Available: {balance}")
+```
+
+**Risk Check**:
+- [ ] Position size calculated correctly (risk_per_trade_percent)
+- [ ] Max position limit enforced
+- [ ] Cooldown period respected
+- [ ] Circuit breaker active if failures detected
+- [ ] Dry-run mode works (no actual orders)
+```
+
+## Interview Questions (Trading Systems)
+
+> **Q**: "How do you prevent a bug from placing infinite orders?"
+> **A**: Rate limiters (8 req/sec), position limits (hard caps), circuit breakers (auto-disable after N failures), kill switch (manual override), cooldown periods (prevent rapid trades)
+
+> **Q**: "What's look-ahead bias and why does it invalidate backtests?"
+> **A**: Using future data to make past decisions; makes strategies look profitable when they're not. Example: Using today's closing price to decide yesterday's trade.
+
+> **Q**: "How do you handle API rate limits in a trading system?"
+> **A**: Token bucket rate limiter (8 tokens/sec), request queuing, exponential backoff on 429 errors, circuit breaker to stop trading if API is down
+
+> **Q**: "Why use Decimal instead of float for money calculations?"
+> **A**: Float precision errors: `0.1 + 0.2 = 0.30000000000000004`. Decimal maintains exact precision for financial calculations.
+
+> **Q**: "How do you validate ML predictions before executing trades?"
+> **A**: Confidence threshold (e.g., >60%), prediction consistency across timeframes, feature validation (no NaN/inf), out-of-sample testing
+
+## Key Facts
+
+- **Decimal, not float** for money (`Decimal('0.1') + Decimal('0.2') == Decimal('0.3')`)
+- **Always use UTC** for timestamps (market data timestamps are UTC)
+- **Log every order** with full context for audit trail (symbol, qty, price, slippage, position before/after)
+- **Paper trade before live** with identical code paths (dry-run mode)
+- **Fyers API limits**: ~8 requests/second, token refresh required periodically
+- **Symbol format**: `"NSE:SBIN-EQ"` (exchange:symbol-product)
+- **Position sizing**: Based on risk_per_trade_percent (default 2%), not fixed quantities
+- **Cooldown periods**: Prevent rapid trades on same symbol (default 5 minutes)
+- **Circuit breakers**: Auto-disable trading after 5 consecutive failures, recover after 30s
+
+## Trading Decision Flow
+
+```
+Data Collection (every 5 min)
+    ↓
+Feature Aggregation (technical indicators)
+    ↓
+ML Predictions (5min, 15min, 30min, 1h timeframes)
+    ↓
+Weighted Signal Score (timeframe weights: 5m=1x, 15m=2x, 30m=3x, 1h=4x)
+    ↓
+Trade Signal (BUY if score ≥ 3.0, SELL if ≤ 2.0, HOLD otherwise)
+    ↓
+Position Check (current position for symbol)
+    ↓
+Signal Confirmation + Cooldown Check
+    ↓
+Position Sizing (risk-based: risk_per_trade_percent of account)
+    ↓
+Pre-trade Validation (position limits, market hours, API rate limit)
+    ↓
+Order Execution via Fyers API (with rate limiting)
+    ↓
+Post-trade Logging & Cache Update
+```
+
+## Risk Management Checklist
+
+Before ANY trade execution, verify:
+- [ ] Position size ≤ max_position_size
+- [ ] Total portfolio risk ≤ max_portfolio_risk_percent
+- [ ] Number of positions ≤ max_positions
+- [ ] Cooldown period elapsed since last trade
+- [ ] Market is open (not after hours)
+- [ ] ML prediction confidence ≥ threshold
+- [ ] Circuit breaker not triggered
+- [ ] Rate limiter has available tokens
+- [ ] Account balance sufficient for trade

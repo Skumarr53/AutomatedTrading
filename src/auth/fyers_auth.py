@@ -45,6 +45,8 @@ class AuthCodeGenerator:
             self.session.set_token(auth_code)
             response = self.session.generate_token()
             access_token = response["access_token"]
+            # Store access_token for Ray actor distribution (avoids pickling logger issues)
+            self.access_token = access_token
             fyers = fyersModel.FyersModel(
                 client_id=config.environment.app_settings.client_id, is_async=False, token=access_token, log_path=os.getcwd())
             logger.debug(fyers.get_profile())

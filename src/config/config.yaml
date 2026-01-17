@@ -8,9 +8,27 @@ defaults:
   - trading
   - symbols
   - metadata_config           # Loads company metadata configuration
+  - influxdb                     # InfluxDB time-series database config
   - columns/common_column_defs    # Loads common_column_defs for shared column names
   - columns/numerical_columns
   - columns/core_columns
   - columns/feature_engg_cols
   - columns/indicators_cols
   - columns/model_columns
+
+# Ray distributed computing settings
+ray:
+  enabled: true
+  num_cpus: null  # null = use all available CPUs
+  dashboard_host: "0.0.0.0"
+  dashboard_port: 8265
+  # Actor configuration for 100+ symbols
+  actors:
+    data_ingestor:
+      num_actors: 5  # Each handles ~20 symbols
+      symbols_per_actor: 20
+    signal_generator:
+      num_actors: 4
+      batch_size: 25
+    trade_executor:
+      num_actors: 1  # Single instance to prevent race conditions

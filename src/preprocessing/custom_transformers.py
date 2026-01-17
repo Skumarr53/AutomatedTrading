@@ -19,7 +19,7 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.base import BaseSampler
 from imblearn.combine import SMOTETomek, SMOTEENN
 from sklearn.preprocessing import LabelEncoder
-
+from sklearn.utils import shuffle
 from src import config
 
 
@@ -66,7 +66,7 @@ class TargetLabelEncoder(BaseEstimator, TransformerMixin):
         Returns:
             pd.Series: Original target variable labels.
         """
-        return pd.Series(self.label_encoder.inverse_transform(y), index=y.index)
+        return pd.Series(self.label_encoder.inverse_transform(y)) #, index=y.index
 
 
 class ColumnExtractor(BaseEstimator, TransformerMixin):
@@ -119,12 +119,14 @@ class ColumnExtractor(BaseEstimator, TransformerMixin):
 class ResamplerTransformer(BaseEstimator, TransformerMixin):
     """
     Custom transformer that applies resampling and shuffling to X and y.
+    Optionally caps samples per class to a maximum limit for balanced datasets.
     """
     def __init__(
         self, 
         sampler: BaseSampler, 
         shuffle: bool = True, 
-        random_state: Optional[int] = 42
+        random_state: Optional[int] = 42,
+        max_samples_per_class: Optional[int] = None
     ) -> None:
         """
         Initializes the ResamplerTransformer.
@@ -133,10 +135,13 @@ class ResamplerTransformer(BaseEstimator, TransformerMixin):
             sampler (BaseSampler): An imblearn sampler, e.g., SMOTE().
             shuffle (bool): Whether to shuffle after resampling.
             random_state (Optional[int]): Seed for reproducibility.
+            max_samples_per_class (Optional[int]): Maximum samples per class after resampling.
+                If None, no limit is applied. If set, all classes will be capped at this value.
         """
         self.sampler = sampler
         self.shuffle = shuffle
         self.random_state = random_state
+        self.max_samples_per_class = max_samples_per_class
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> 'ResamplerTransformer':
         """
@@ -153,15 +158,87 @@ class ResamplerTransformer(BaseEstimator, TransformerMixin):
         self.sampler.fit(X, y)
     
     def fit_transform(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:
+        # Log class distribution BEFORE resampling
         try:
-            self.fit(X, y) 
-            X,y = self.sampler.fit_resample(X, y)
-            # if self.shuffle:
-            #     logger.debug("Shuffling the resampled data.")
-            #     X, y = self._shuffle(X, y)
+            y_counts_before = pd.Series(y).value_counts().to_dict()
+            y_counts_before_sorted = dict(sorted(y_counts_before.items()))
+            min_count = min(y_counts_before.values()) if y_counts_before else 0
+            max_count = max(y_counts_before.values()) if y_counts_before else 0
+            
+            logger.info(f"Class distribution BEFORE resampling: {y_counts_before_sorted}")
+            logger.info(f"Min class count: {min_count}, Max class count: {max_count}, Classes: {len(y_counts_before)}")
+        except Exception as e:
+            logger.debug(f"Failed to log class distribution before resampling: {e}")
+        
+        try:
+            self.fit(X, y)
+            
+            X, y = self.sampler.fit_resample(X, y)
+            
+            # Apply max_samples_per_class limit if configured
+            if self.max_samples_per_class is not None:
+                # Determine target count: min(max_samples_per_class, current_max_class_count)
+                y_counts_after_resample = pd.Series(y).value_counts().to_dict()
+                current_max_count = max(y_counts_after_resample.values()) if y_counts_after_resample else 0
+                target_count = min(self.max_samples_per_class, current_max_count)
+                
+                if current_max_count > self.max_samples_per_class:
+                    logger.info(f"Capping samples per class from {current_max_count} to {target_count}")
+                    
+                    # Sample down each class to target_count
+                    X_list = []
+                    y_list = []
+                    
+                    for class_label in y_counts_after_resample.keys():
+                        class_mask = (y == class_label)
+                        class_X = X[class_mask]
+                        class_y = y[class_mask]
+                        
+                        # If class has more samples than target, randomly sample
+                        if len(class_X) > target_count:
+                            indices = np.random.RandomState(self.random_state).choice(
+                                len(class_X), size=target_count, replace=False
+                            )
+                            class_X = class_X.iloc[indices] if isinstance(class_X, pd.DataFrame) else class_X[indices]
+                            class_y = class_y.iloc[indices] if isinstance(class_y, pd.Series) else class_y[indices]
+                        
+                        X_list.append(class_X)
+                        y_list.append(class_y)
+                    
+                    # Combine all classes
+                    X = pd.concat(X_list, ignore_index=True) if isinstance(X_list[0], pd.DataFrame) else np.vstack(X_list)
+                    y = pd.concat(y_list, ignore_index=True) if isinstance(y_list[0], pd.Series) else np.hstack(y_list)
+            
+                
+                # NEW: Shuffle the combined dataset so classes are not grouped together
+                X, y = shuffle(X, y, random_state=self.random_state)
+                
+                # If using Pandas, reset index after shuffle to keep it clean
+                if isinstance(X, pd.DataFrame):
+                    X = X.reset_index(drop=True)
+                    y = y.reset_index(drop=True)
+            
+            # Log class distribution AFTER resampling
+            try:
+                y_counts_after = pd.Series(y).value_counts().to_dict()
+                y_counts_after_sorted = dict(sorted(y_counts_after.items()))
+                min_count_after = min(y_counts_after.values()) if y_counts_after else 0
+                max_count_after = max(y_counts_after.values()) if y_counts_after else 0
+                is_balanced = len(set(y_counts_after.values())) == 1 if y_counts_after else False
+                
+                logger.info(f"Class distribution AFTER resampling: {y_counts_after_sorted}")
+                logger.info(f"Min class count: {min_count_after}, Max class count: {max_count_after}")
+                logger.info(f"Classes are balanced (equal samples): {is_balanced}")
+            except Exception as e:
+                logger.debug(f"Failed to log class distribution after resampling: {e}")
+
+
             return X, y #.values.reshape(-1, 1)
         except Exception as e:
-                raise ValueError(f"Error transforming data: {e}\n this failed at ResamplerTransformer transform method")
+            logger.error(f"Resampling failed: {e}")
+            import traceback
+            logger.debug(traceback.format_exc())
+            raise ValueError(f"Error transforming data: {e}\n this failed at ResamplerTransformer transform method")
 
     def transform(
         self, 
@@ -253,17 +330,84 @@ class DFFeatureUnion(BaseEstimator, TransformerMixin):
         transformed_dfs = []
         for name, transformer in self.transformer_list:
             logger.debug(f"Transforming with transformer: {name}")
-            transformed_df = transformer.transform(X)
-            transformed_dfs.append(transformed_df)
+            try:
+                transformed_df = transformer.transform(X)
+                
+                # Validate transformer output
+                if not isinstance(transformed_df, pd.DataFrame):
+                    raise ValueError(
+                        f"Transformer '{name}' returned {type(transformed_df)}, expected DataFrame"
+                    )
+                
+                # Check for sequences in columns (lists/arrays instead of scalars)
+                import numpy as np
+                sequence_cols = []
+                for col in transformed_df.columns:
+                    try:
+                        # Sample a few values
+                        sample = transformed_df[col].dropna().head(5)
+                        for val in sample:
+                            if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
+                                sequence_cols.append(col)
+                                logger.error(
+                                    f"Transformer '{name}' column '{col}' contains sequences: "
+                                    f"type={type(val)}, value={val}"
+                                )
+                                break
+                    except Exception:
+                        pass
+                
+                if sequence_cols:
+                    raise ValueError(
+                        f"Transformer '{name}' produced columns with sequences (lists/arrays): {sequence_cols}. "
+                        f"All columns must contain scalar values for sklearn compatibility."
+                    )
+                
+                # Check shape is reasonable
+                if transformed_df.shape[0] != X.shape[0]:
+                    raise ValueError(
+                        f"Transformer '{name}' changed row count: {X.shape[0]} → {transformed_df.shape[0]}"
+                    )
+                
+                logger.debug(f"  Transformer '{name}': {transformed_df.shape} ({len(transformed_df.columns)} columns)")
+                transformed_dfs.append(transformed_df)
+                
+            except Exception as e:
+                logger.error(f"Transformer '{name}' failed: {e}")
+                raise ValueError(f"Transformer '{name}' failed: {str(e)}")
+        
         if not transformed_dfs:
             raise ValueError("No transformers provided to DFFeatureUnion.")
         
-        X_union = pd.concat(transformed_dfs, axis=1)
-
-        # if y is not None:
-        #     return self.shuffle_training_inputs(X_union, y)
-
-        return X_union
+        try:
+            X_union = pd.concat(transformed_dfs, axis=1)
+            
+            # Final validation
+            logger.debug(f"DFFeatureUnion output shape: {X_union.shape}")
+            
+            # Check for sequences in final output
+            import numpy as np
+            for col in X_union.columns:
+                try:
+                    sample = X_union[col].dropna().head(3)
+                    for val in sample:
+                        if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
+                            logger.error(f"Final output column '{col}' contains sequences: {type(val)}")
+                            raise ValueError(
+                                f"Column '{col}' contains sequences. "
+                                f"All values must be scalars for sklearn compatibility."
+                            )
+                except Exception:
+                    pass
+            
+            return X_union
+            
+        except Exception as e:
+            logger.error(f"Failed to concatenate transformer outputs: {e}")
+            logger.error(f"  Number of transformers: {len(transformed_dfs)}")
+            for i, df in enumerate(transformed_dfs):
+                logger.error(f"  Transformer {i}: shape={df.shape}, columns={list(df.columns)[:10]}")
+            raise
 
 
 class ShortTermNormalizer(BaseEstimator, TransformerMixin):
@@ -372,10 +516,37 @@ class LongTermNormalizer(BaseEstimator, TransformerMixin):
         Returns:
             pd.DataFrame: Scaled DataFrame.
         """
-        X_scaled_array = self.scaler_.transform(X)
-        X_scaled = pd.DataFrame(X_scaled_array, index=X.index, columns=X.columns)
-        logger.debug(f"Applied standard scaling to input DataFrame.")
-        return X_scaled
+        # Validate input - ensure all columns are numeric and contain scalars
+        import numpy as np
+        
+        # Check for non-numeric columns
+        non_numeric = X.select_dtypes(exclude=['number']).columns.tolist()
+        if non_numeric:
+            raise ValueError(
+                f"LongTermNormalizer received non-numeric columns: {non_numeric}. "
+                f"Only numeric columns can be scaled."
+            )
+        
+        # Check for sequences in numeric columns (shouldn't happen, but be safe)
+        for col in X.columns:
+            sample = X[col].dropna().head(5)
+            for val in sample:
+                if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
+                    raise ValueError(
+                        f"Column '{col}' contains sequences (lists/arrays) instead of scalars. "
+                        f"Cannot scale sequences."
+                    )
+        
+        try:
+            X_scaled_array = self.scaler_.transform(X)
+            X_scaled = pd.DataFrame(X_scaled_array, index=X.index, columns=X.columns)
+            logger.debug(f"Applied standard scaling to {len(X.columns)} columns.")
+            return X_scaled
+        except Exception as e:
+            logger.error(f"StandardScaler.transform failed: {e}")
+            logger.error(f"  Input shape: {X.shape}")
+            logger.error(f"  Input dtypes: {X.dtypes.value_counts().to_dict()}")
+            raise ValueError(f"Standard scaling failed: {str(e)}")
     
 
 # class CategoricalPreprocessor(BaseEstimator, TransformerMixin):

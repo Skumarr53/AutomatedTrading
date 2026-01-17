@@ -12,7 +12,8 @@ def validate_data_for_model_fit(
     X: pd.DataFrame,
     y: Optional[pd.Series] = None,
     stage_name: str = "pre-fit",
-    raise_on_error: bool = True
+    raise_on_error: bool = True,
+    allow_symbol_if_combining: bool = True
 ) -> Tuple[bool, List[str]]:
     """
     Validate that data is ready for model fitting.
@@ -39,10 +40,67 @@ def validate_data_for_model_fit(
     logger.info(f"{'='*80}")
     logger.info(f"Shape: {X.shape}")
     
-    # Check 1: All columns are numeric
+    # Check 1: Detect columns with sequences (lists/arrays) instead of scalars
+    sequence_cols = []
+    for col in X.columns:
+        try:
+            # Sample a few values to check if they're sequences
+            sample_values = X[col].dropna().head(10)
+            if len(sample_values) > 0:
+                # Check if any value is a list, array, or other sequence (but not string)
+                for val in sample_values:
+                    if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
+                        sequence_cols.append(col)
+                        logger.error(f"❌ Column '{col}' contains sequences (lists/arrays) instead of scalars")
+                        logger.error(f"   Sample value type: {type(val)}, value: {val}")
+                        break
+                    # Also check if dtype is object and values are sequences
+                    elif X[col].dtype == 'object':
+                        # Try to convert to see if it's a sequence
+                        try:
+                            if isinstance(val, str):
+                                # Try to parse as list/array
+                                import ast
+                                parsed = ast.literal_eval(val)
+                                if isinstance(parsed, (list, tuple, np.ndarray)):
+                                    sequence_cols.append(col)
+                                    logger.error(f"❌ Column '{col}' contains string representations of sequences")
+                                    logger.error(f"   Sample value: {val}")
+                                    break
+                        except (ValueError, SyntaxError):
+                            pass
+        except Exception as e:
+            logger.debug(f"Could not check column {col} for sequences: {e}")
+    
+    if sequence_cols:
+        error_msg = f"Columns with sequences (lists/arrays) found: {sequence_cols}"
+        errors.append(error_msg)
+        logger.error(f"❌ {error_msg}")
+        logger.error("💡 These columns need to be flattened or converted to scalar values")
+    
+    # Check 2: All columns are numeric (after sequence check)
     non_numeric_cols = X.select_dtypes(exclude=['number']).columns.tolist()
+    # Remove sequence cols from non-numeric check (already reported)
+    non_numeric_cols = [col for col in non_numeric_cols if col not in sequence_cols]
+    
+    # Allow 'symbol' column if combine_all_symbols is enabled (it will be encoded by pipeline)
+    allowed_non_numeric = []
+    if allow_symbol_if_combining:
+        try:
+            from src import config
+            if getattr(config.training, 'combine_all_symbols', False):
+                if 'symbol' in non_numeric_cols:
+                    allowed_non_numeric.append('symbol')
+                    logger.info(f"✓ Allowing 'symbol' column (will be encoded by pipeline)")
+        except Exception:
+            pass  # If config import fails, don't allow symbol
+    
+    non_numeric_cols = [col for col in non_numeric_cols if col not in allowed_non_numeric]
+    
     if non_numeric_cols:
         error_msg = f"Non-numeric columns found: {non_numeric_cols}"
+        if allowed_non_numeric:
+            error_msg += f" (allowed: {allowed_non_numeric})"
         errors.append(error_msg)
         logger.error(f"❌ {error_msg}")
         
@@ -51,9 +109,9 @@ def validate_data_for_model_fit(
             unique_vals = X[col].unique()[:10]
             logger.error(f"   Column '{col}': dtype={X[col].dtype}, sample_values={unique_vals}")
     else:
-        logger.success("✓ All columns are numeric")
+        logger.success("✓ All columns are numeric (or will be encoded by pipeline)")
     
-    # Check 2: NaN values
+    # Check 3: NaN values
     nan_cols = X.columns[X.isna().any()].tolist()
     if nan_cols:
         nan_counts = X[nan_cols].isna().sum()
@@ -66,7 +124,7 @@ def validate_data_for_model_fit(
     else:
         logger.success("✓ No NaN values")
     
-    # Check 3: Infinite values
+    # Check 4: Infinite values
     numeric_cols = X.select_dtypes(include=['number']).columns
     if len(numeric_cols) > 0:
         inf_mask = np.isinf(X[numeric_cols].values)
@@ -78,13 +136,13 @@ def validate_data_for_model_fit(
         else:
             logger.success("✓ No infinite values")
     
-    # Check 4: Data type consistency
+    # Check 5: Data type consistency
     logger.info(f"\nData types summary:")
     dtype_counts = X.dtypes.value_counts()
     for dtype, count in dtype_counts.items():
         logger.info(f"   {dtype}: {count} columns")
     
-    # Check 5: Target validation (if provided)
+    # Check 6: Target validation (if provided)
     if y is not None:
         logger.info(f"\nTarget validation:")
         logger.info(f"   Shape: {y.shape}")
