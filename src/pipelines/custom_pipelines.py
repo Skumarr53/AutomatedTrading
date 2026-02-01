@@ -203,7 +203,7 @@ class CustomModelPipeline():
         # self.add_metadata_transformer()  # Add metadata transformer first
         self.add_combined_preprocessed_features()
         self.update_resampling_pipeline()
-        # self.update_feature_selection_pipeline()
+        self.update_feature_selection_pipeline()
         self.update_model_pipeline()
 
         # Define the pipeline with the configured steps
@@ -238,6 +238,7 @@ class CustomModelPipeline():
         hw_config = config.hardware_optimization
         
         # Auto-detect n_jobs if not specified
+        n_jobs = 10
         if n_jobs is None:
             if hw_config.auto_detect and hw_config.n_jobs is None:
                 mode = hw_config.mode or 'balanced'
@@ -348,6 +349,34 @@ class CustomModelPipeline():
             raise ValueError(
                 f"Cannot convert DataFrame to numpy array: {e}. "
                 f"Problematic columns: {problematic[:10]}"
+            )
+
+        # === CRITICAL: Validate and fix object dtypes before model.fit() ===
+        # LightGBM and XGBoost require numeric dtypes (int, float, bool)
+        object_cols = X.select_dtypes(include=['object']).columns.tolist()
+        if object_cols:
+            logger.warning(f"Found {len(object_cols)} object dtype columns before model fit: {object_cols[:10]}...")
+            # Force conversion to numeric - this is a safety net, not the primary fix
+            for col in object_cols:
+                try:
+                    X[col] = pd.to_numeric(X[col], errors='coerce').fillna(0.0)
+                    logger.debug(f"  Converted '{col}' to numeric dtype")
+                except Exception as conv_err:
+                    logger.error(f"  Failed to convert '{col}': {conv_err}")
+                    # Last resort: drop the column
+                    X = X.drop(columns=[col])
+                    logger.warning(f"  Dropped column '{col}' due to conversion failure")
+            
+            # Log final dtype distribution
+            dtype_counts = X.dtypes.value_counts().to_dict()
+            logger.info(f"After dtype fix: {dtype_counts}")
+        
+        # Final validation: ensure no object dtypes remain
+        remaining_object_cols = X.select_dtypes(include=['object']).columns.tolist()
+        if remaining_object_cols:
+            raise ValueError(
+                f"Cannot proceed with model.fit(): {len(remaining_object_cols)} columns "
+                f"still have object dtype after conversion attempt: {remaining_object_cols[:10]}"
             )
 
         # Fit the pipeline

@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "influxdb": {
+      "command": "/home/sanky/.scripts/mcp-servers/influxdb-mcp/.venv/bin/python",
+      "args": [
+        "/home/sanky/.scripts/mcp-servers/influxdb-mcp/server.py"
+      ],
+      "env": {
+        "INFLUXDB_URL": "http://localhost:8086",
+        "INFLUXDB_TOKEN": "dK9BCc_QTsnH38kLbtSEJ_HkuRvC_DQEB8QGRqVACTW6yjKMQ4KIYtIdJSTjPZ2U96SeTYAb-eIBQbnzinxm2w==",
+        "INFLUXDB_ORG": "trading",
+        "INFLUXDB_BUCKET": "ticker_data"
+      }
+    },
+    "mlflow": {
+      "command": "/home/sanky/.scripts/mcp-servers/mlflow-mcp/.venv/bin/python",
+      "args": [
+        "/home/sanky/.scripts/mcp-servers/mlflow-mcp/server.py"
+      ],
+      "env": {
+        "MLFLOW_TRACKING_URI": "http://localhost:5000"
+      }
+    }
+  }
+}

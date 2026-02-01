@@ -150,9 +150,11 @@ class InfluxDBClient_Wrapper:
                     logger.info(f"Connected to InfluxDB at {self._config.url}")
                     return True
                 else:
-                    raise InfluxDBError(f"Health check failed: {health.message}")
+                    logger.warning(f"InfluxDB health check failed: {health.message}")
+                    # Trigger retry by raising an exception
+                    raise Exception(f"Health check failed: {health.message}")
                     
-            except InfluxDBError as e:
+            except (InfluxDBError, Exception) as e:
                 logger.warning(
                     f"InfluxDB connection attempt {attempt + 1}/{self._config.max_retries} failed",
                     extra={"error": str(e), "url": self._config.url}

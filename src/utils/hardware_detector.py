@@ -181,9 +181,9 @@ class HardwareDetector:
         ram = specs['ram_total_gb']
         
         if cores >= 16 and ram >= 32:
-            return 'high'
+            return 'low'
         elif cores >= 8 and ram >= 16:
-            return 'medium'
+            return 'low'
         else:
             return 'low'
     

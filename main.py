@@ -68,12 +68,34 @@ except ImportError:
 
 # Optional Slack notifications
 try:
-    from scripts.slack_notifier import send_slack_message
+    from scripts.slack_notifier import send_slack_message, send_trading_alert
     SLACK_AVAILABLE = True
 except ImportError:
     SLACK_AVAILABLE = False
     def send_slack_message(*args, **kwargs) -> bool:
         return False
+    def send_trading_alert(*args, **kwargs) -> bool:
+        return False
+
+# Prometheus metrics for live trading
+try:
+    from src.metrics.performance_metrics import get_ingestion_metrics
+    METRICS_AVAILABLE = True
+except ImportError:
+    METRICS_AVAILABLE = False
+    get_ingestion_metrics = None
+
+# Live trading metrics (module-level to persist across calls)
+_trading_metrics = None
+_trading_start_time = None
+
+def get_trading_metrics():
+    """Get or create trading metrics instance."""
+    global _trading_metrics, _trading_start_time
+    if _trading_metrics is None and METRICS_AVAILABLE:
+        _trading_metrics = get_ingestion_metrics()
+        _trading_start_time = datetime.now()
+    return _trading_metrics
 
 # Legacy Telegram support (deprecated, use Slack instead)
 TELEGRAM_AVAILABLE = False
@@ -564,12 +586,26 @@ class MarketAnalysisApp:
         3. Compute technical indicators
         4. Make trading decision using weighted signals
         5. Execute trades based on decision
+        
+        Includes:
+        - Prometheus metrics for latency and success/failure tracking
+        - Slack/Telegram alerts for trade execution and errors
         """
-        # time.sleep(10)
-        ## TODO Turn assert on 
-        # assert (datetime.now() - self.last_data_collection_time).seconds < 60, 'Data Collection and Trading Excecution not in sync'
+        import time as time_module
+        iteration_start = time_module.time()
         
         current_time = datetime.now()
+        
+        # Get metrics instance
+        metrics = get_trading_metrics()
+        
+        # Track iteration stats
+        symbols_processed = 0
+        signals_generated = 0
+        trades_executed = 0
+        errors_count = 0
+        
+        logger.info(f"=== Live Trading Iteration Started at {current_time.strftime('%H:%M:%S')} ===")
         
         for symbol in config.symbols:
             try:
@@ -654,7 +690,27 @@ class MarketAnalysisApp:
                                 if response:
                                     self.trade_decision_maker.last_trade_time = current_time
                                     action_taken = True
+                                    trades_executed += 1
                                     logger.success(f"✓ {symbol}: BUY order executed successfully")
+                                    
+                                    # Send alert for trade execution
+                                    if SLACK_AVAILABLE:
+                                        send_trading_alert(
+                                            alert_type="Trade Executed",
+                                            symbol=symbol,
+                                            message=f"BUY order placed",
+                                            details={
+                                                "Quantity": qty,
+                                                "Price": f"₹{current_price:.2f}",
+                                                "Score": f"{weighted_score:.2f}",
+                                                "Time": current_time.strftime("%H:%M:%S"),
+                                            }
+                                        )
+                                else:
+                                    errors_count += 1
+                                    logger.error(f"{symbol}: BUY order failed")
+                                    if SLACK_AVAILABLE:
+                                        send_slack_message("Bad", f"{symbol}: BUY order FAILED - Score: {weighted_score:.2f}")
                             else:
                                 logger.warning(f"{symbol}: Insufficient funds or calculated qty is 0")
                         else:
@@ -682,7 +738,26 @@ class MarketAnalysisApp:
                             if success:
                                 self.trade_decision_maker.last_trade_time = current_time
                                 action_taken = True
+                                trades_executed += 1
                                 logger.success(f"✓ {symbol}: SELL (Exit) executed successfully")
+                                
+                                # Send alert for trade execution
+                                if SLACK_AVAILABLE:
+                                    send_trading_alert(
+                                        alert_type="Trade Executed",
+                                        symbol=symbol,
+                                        message=f"SELL (Exit) order placed",
+                                        details={
+                                            "Position": position_qty,
+                                            "Score": f"{weighted_score:.2f}",
+                                            "Time": current_time.strftime("%H:%M:%S"),
+                                        }
+                                    )
+                            else:
+                                errors_count += 1
+                                logger.error(f"{symbol}: SELL (Exit) order failed")
+                                if SLACK_AVAILABLE:
+                                    send_slack_message("Bad", f"{symbol}: SELL (Exit) order FAILED")
                         else:
                             logger.info(f"{symbol}: SELL signal not confirmed yet, waiting for consistency")
                     else:
@@ -697,10 +772,47 @@ class MarketAnalysisApp:
                     logger.info(f"{symbol}: Signal={trade_signal}, Score={weighted_score:.2f}, Position={position_qty}, Action=NONE")
                 
                 logger.debug(f"{symbol}: Predictions = {symbol_predictions}")
+                
+                # Track successful processing
+                symbols_processed += 1
+                if trade_signal in ["BUY", "SELL"]:
+                    signals_generated += 1
                     
             except Exception as e:
+                errors_count += 1
                 logger.error(f"Error processing {symbol}: {str(e)}")
+                
+                # Send alert for critical errors
+                if SLACK_AVAILABLE:
+                    send_slack_message("Bad", f"Error processing {symbol}: {str(e)[:100]}")
                 continue
+        
+        # === Iteration Summary ===
+        iteration_duration = time_module.time() - iteration_start
+        
+        logger.info(
+            f"=== Live Trading Iteration Complete ===\n"
+            f"  Duration: {iteration_duration:.2f}s\n"
+            f"  Symbols: {symbols_processed}/{len(config.symbols)}\n"
+            f"  Signals: {signals_generated}\n"
+            f"  Trades: {trades_executed}\n"
+            f"  Errors: {errors_count}"
+        )
+        
+        # Record metrics if available
+        if metrics and METRICS_AVAILABLE:
+            try:
+                # Record iteration latency
+                metrics.record_api_latency("live_trading_iteration", iteration_duration)
+            except Exception:
+                pass
+        
+        # Send summary alert if trades were executed
+        if trades_executed > 0 and SLACK_AVAILABLE:
+            send_slack_message(
+                "Good",
+                f"Trading iteration complete: {trades_executed} trades executed for {symbols_processed} symbols"
+            )
 
     def start_backtesting(self):
         """Run backtesting for all configured symbols."""

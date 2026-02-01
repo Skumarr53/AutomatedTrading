@@ -1,380 +1,412 @@
 # src/api/health.py
 """
-Health Check API for the Trading Application.
+Health Check API Endpoints
 
-Provides endpoints for:
-- Liveness probe (is the app running?)
-- Readiness probe (is the app ready to accept traffic?)
-- Detailed health status (database, Ray, Fyers API connections)
+Provides component-specific health endpoints for monitoring:
+- /health - Overall system health
+- /health/data - Data collection/InfluxDB health
+- /health/models - MLflow model availability
+- /health/trading - Trading execution health
+- /health/alerts - Alerting system health
+
+Usage:
+    # Run standalone for testing
+    python -m src.api.health
+    
+    # Or import and mount in FastAPI app
+    from src.api.health import health_router
+    app.include_router(health_router)
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import time
-from datetime import datetime
+from dataclasses import dataclass, asdict
+from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
-from pydantic import BaseModel, Field
+
+try:
+    from fastapi import APIRouter, FastAPI
+    from fastapi.responses import JSONResponse
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    FASTAPI_AVAILABLE = False
+    logger.warning("FastAPI not available, health endpoints will be disabled")
 
 
 class HealthStatus(str, Enum):
-    """Health status values."""
+    """Health status enum."""
     HEALTHY = "healthy"
-    DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
+    DEGRADED = "degraded"
+    UNKNOWN = "unknown"
 
 
-class ComponentHealth(BaseModel):
-    """Health status for a single component."""
+@dataclass
+class ComponentHealth:
+    """Health status of a single component."""
     name: str
     status: HealthStatus
-    latency_ms: Optional[float] = None
-    message: Optional[str] = None
-    last_check: datetime = Field(default_factory=datetime.now)
-
-
-class HealthResponse(BaseModel):
-    """Complete health check response."""
-    status: HealthStatus
-    version: str = Field(default="1.0.0")
-    uptime_seconds: float
-    timestamp: datetime = Field(default_factory=datetime.now)
-    components: list[ComponentHealth] = Field(default_factory=list)
+    message: str = ""
+    latency_ms: float = 0.0
+    last_checked: str = ""
+    details: Dict[str, Any] = None
     
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
+    def __post_init__(self):
+        if self.details is None:
+            self.details = {}
+        if not self.last_checked:
+            self.last_checked = datetime.now().isoformat()
+
+
+@dataclass
+class SystemHealth:
+    """Overall system health."""
+    status: HealthStatus
+    timestamp: str
+    version: str
+    uptime_seconds: float
+    components: List[ComponentHealth]
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            'status': self.status.value,
+            'timestamp': self.timestamp,
+            'version': self.version,
+            'uptime_seconds': self.uptime_seconds,
+            'components': [
+                {
+                    'name': c.name,
+                    'status': c.status.value,
+                    'message': c.message,
+                    'latency_ms': c.latency_ms,
+                    'last_checked': c.last_checked,
+                    'details': c.details,
+                }
+                for c in self.components
+            ],
         }
 
 
 class HealthChecker:
     """
-    Health checker for trading application components.
+    Health checker for all system components.
     
-    Checks:
-    - InfluxDB connection
-    - MLflow server availability
-    - Ray cluster status
-    - Fyers API connectivity
-    - Scheduler status
+    Provides methods to check individual components and aggregate health.
     """
     
-    def __init__(self) -> None:
+    _start_time: datetime = None
+    
+    def __init__(self):
         """Initialize health checker."""
-        self._start_time = time.time()
-        self._version = os.getenv("APP_VERSION", "1.0.0")
+        if HealthChecker._start_time is None:
+            HealthChecker._start_time = datetime.now()
+        self._cache: Dict[str, ComponentHealth] = {}
+        self._cache_ttl_seconds = 30
     
-    @property
-    def uptime_seconds(self) -> float:
-        """Get application uptime in seconds."""
-        return time.time() - self._start_time
-    
-    async def check_influxdb(self) -> ComponentHealth:
-        """Check InfluxDB connectivity."""
-        start = time.perf_counter()
+    async def check_data_health(self) -> ComponentHealth:
+        """Check data collection and InfluxDB health."""
+        result = ComponentHealth(
+            name="data",
+            status=HealthStatus.HEALTHY,
+        )
         
         try:
-            from influxdb_client import InfluxDBClient
+            import time
+            start = time.time()
             
-            url = os.getenv("INFLUXDB_URL", "http://localhost:8086")
-            token = os.getenv("INFLUXDB_TOKEN", "")
-            org = os.getenv("INFLUXDB_ORG", "trading")
+            # Check InfluxDB connection
+            from dotenv import load_dotenv
+            load_dotenv()
             
-            client = InfluxDBClient(url=url, token=token, org=org)
-            health = client.health()
-            client.close()
+            influx_url = os.getenv("INFLUXDB_URL", "http://localhost:8086")
+            influx_token = os.getenv("INFLUXDB_TOKEN")
             
-            latency = (time.perf_counter() - start) * 1000
+            if not influx_token:
+                result.status = HealthStatus.DEGRADED
+                result.message = "INFLUXDB_TOKEN not configured"
+                return result
             
-            if health.status == "pass":
-                return ComponentHealth(
-                    name="influxdb",
-                    status=HealthStatus.HEALTHY,
-                    latency_ms=latency,
-                    message=f"Connected to {url}"
-                )
-            else:
-                return ComponentHealth(
-                    name="influxdb",
-                    status=HealthStatus.DEGRADED,
-                    latency_ms=latency,
-                    message=f"InfluxDB status: {health.status}"
-                )
-                
-        except Exception as e:
-            return ComponentHealth(
-                name="influxdb",
-                status=HealthStatus.UNHEALTHY,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                message=f"Connection failed: {str(e)}"
-            )
-    
-    async def check_mlflow(self) -> ComponentHealth:
-        """Check MLflow server connectivity."""
-        start = time.perf_counter()
-        
-        try:
-            import httpx
-            
-            url = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-            
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{url}/health")
-                
-            latency = (time.perf_counter() - start) * 1000
+            import requests
+            response = requests.get(f"{influx_url}/health", timeout=5)
+            result.latency_ms = (time.time() - start) * 1000
             
             if response.status_code == 200:
-                return ComponentHealth(
-                    name="mlflow",
-                    status=HealthStatus.HEALTHY,
-                    latency_ms=latency,
-                    message=f"Connected to {url}"
-                )
+                data = response.json()
+                if data.get("status") == "pass":
+                    result.message = "InfluxDB healthy"
+                    result.details["influx_version"] = data.get("version")
+                else:
+                    result.status = HealthStatus.DEGRADED
+                    result.message = f"InfluxDB status: {data.get('status')}"
             else:
-                return ComponentHealth(
-                    name="mlflow",
-                    status=HealthStatus.DEGRADED,
-                    latency_ms=latency,
-                    message=f"HTTP {response.status_code}"
-                )
-                
+                result.status = HealthStatus.UNHEALTHY
+                result.message = f"InfluxDB returned HTTP {response.status_code}"
+        
+        except requests.exceptions.ConnectionError:
+            result.status = HealthStatus.UNHEALTHY
+            result.message = "Cannot connect to InfluxDB"
         except Exception as e:
-            return ComponentHealth(
-                name="mlflow",
-                status=HealthStatus.UNHEALTHY,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                message=f"Connection failed: {str(e)}"
-            )
+            result.status = HealthStatus.UNKNOWN
+            result.message = str(e)
+        
+        return result
     
-    async def check_ray(self) -> ComponentHealth:
-        """Check Ray cluster status."""
-        start = time.perf_counter()
+    async def check_models_health(self) -> ComponentHealth:
+        """Check MLflow model availability."""
+        result = ComponentHealth(
+            name="models",
+            status=HealthStatus.HEALTHY,
+        )
         
         try:
-            import ray
+            import time
+            start = time.time()
             
-            if not ray.is_initialized():
-                return ComponentHealth(
-                    name="ray",
-                    status=HealthStatus.UNHEALTHY,
-                    latency_ms=(time.perf_counter() - start) * 1000,
-                    message="Ray not initialized"
-                )
+            # Check MLflow tracking server
+            mlflow_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
             
-            # Get cluster resources
-            resources = ray.cluster_resources()
-            latency = (time.perf_counter() - start) * 1000
+            import requests
+            response = requests.get(f"{mlflow_uri}/health", timeout=5)
+            result.latency_ms = (time.time() - start) * 1000
             
-            cpus = resources.get("CPU", 0)
-            
-            return ComponentHealth(
-                name="ray",
-                status=HealthStatus.HEALTHY,
-                latency_ms=latency,
-                message=f"Cluster active: {cpus} CPUs available"
-            )
-            
-        except ImportError:
-            return ComponentHealth(
-                name="ray",
-                status=HealthStatus.DEGRADED,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                message="Ray not installed (running in sequential mode)"
-            )
+            if response.status_code == 200:
+                result.message = "MLflow server healthy"
+                result.details["mlflow_uri"] = mlflow_uri
+            elif response.status_code == 404:
+                # MLflow might not have /health endpoint
+                response = requests.get(f"{mlflow_uri}/api/2.0/mlflow/experiments/list", timeout=5)
+                if response.status_code in [200, 401]:  # 401 = auth required but server is up
+                    result.message = "MLflow server accessible"
+                else:
+                    result.status = HealthStatus.DEGRADED
+                    result.message = "MLflow server issues"
+            else:
+                result.status = HealthStatus.UNHEALTHY
+                result.message = f"MLflow returned HTTP {response.status_code}"
+        
+        except requests.exceptions.ConnectionError:
+            result.status = HealthStatus.UNHEALTHY
+            result.message = "Cannot connect to MLflow"
         except Exception as e:
-            return ComponentHealth(
-                name="ray",
-                status=HealthStatus.UNHEALTHY,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                message=f"Check failed: {str(e)}"
-            )
+            result.status = HealthStatus.UNKNOWN
+            result.message = str(e)
+        
+        return result
     
-    async def check_fyers(self, fyers_instance: Optional[Any] = None) -> ComponentHealth:
-        """Check Fyers API connectivity."""
-        start = time.perf_counter()
+    async def check_trading_health(self) -> ComponentHealth:
+        """Check trading execution health."""
+        result = ComponentHealth(
+            name="trading",
+            status=HealthStatus.HEALTHY,
+        )
         
         try:
-            if fyers_instance is None:
-                return ComponentHealth(
-                    name="fyers",
-                    status=HealthStatus.DEGRADED,
-                    latency_ms=(time.perf_counter() - start) * 1000,
-                    message="Fyers instance not provided"
-                )
+            import time
+            start = time.time()
             
-            # Try to get profile (lightweight API call)
-            response = fyers_instance.get_profile()
-            latency = (time.perf_counter() - start) * 1000
+            # Check Fyers credentials
+            fyers_client_id = os.getenv("FYERS_CLIENT_ID")
+            fyers_token = os.getenv("FYERS_ACCESS_TOKEN")
             
-            if response.get("s") == "ok":
-                return ComponentHealth(
-                    name="fyers",
-                    status=HealthStatus.HEALTHY,
-                    latency_ms=latency,
-                    message="API connected"
-                )
+            if not fyers_client_id:
+                result.status = HealthStatus.DEGRADED
+                result.message = "FYERS_CLIENT_ID not configured"
+                return result
+            
+            result.latency_ms = (time.time() - start) * 1000
+            
+            # Check trading hours (IST)
+            now = datetime.now()
+            market_open = now.replace(hour=9, minute=15, second=0, microsecond=0)
+            market_close = now.replace(hour=15, minute=30, second=0, microsecond=0)
+            
+            is_market_hours = market_open <= now <= market_close
+            is_weekday = now.weekday() < 5
+            
+            result.details["market_hours"] = is_market_hours and is_weekday
+            result.details["fyers_configured"] = bool(fyers_client_id)
+            result.details["token_available"] = bool(fyers_token)
+            
+            if fyers_token:
+                result.message = "Trading system ready"
             else:
-                return ComponentHealth(
-                    name="fyers",
-                    status=HealthStatus.DEGRADED,
-                    latency_ms=latency,
-                    message=f"API response: {response.get('message', 'unknown')}"
-                )
-                
+                result.status = HealthStatus.DEGRADED
+                result.message = "Fyers token not available (need to authenticate)"
+        
         except Exception as e:
-            return ComponentHealth(
-                name="fyers",
-                status=HealthStatus.UNHEALTHY,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                message=f"API check failed: {str(e)}"
-            )
+            result.status = HealthStatus.UNKNOWN
+            result.message = str(e)
+        
+        return result
     
-    def check_scheduler(self, scheduler: Optional[Any] = None) -> ComponentHealth:
-        """Check APScheduler status."""
-        start = time.perf_counter()
+    async def check_alerts_health(self) -> ComponentHealth:
+        """Check alerting system health."""
+        result = ComponentHealth(
+            name="alerts",
+            status=HealthStatus.HEALTHY,
+        )
         
         try:
-            if scheduler is None:
-                return ComponentHealth(
-                    name="scheduler",
-                    status=HealthStatus.DEGRADED,
-                    latency_ms=(time.perf_counter() - start) * 1000,
-                    message="Scheduler not provided"
-                )
+            import time
+            start = time.time()
             
-            if scheduler.running:
-                jobs = scheduler.get_jobs()
-                return ComponentHealth(
-                    name="scheduler",
-                    status=HealthStatus.HEALTHY,
-                    latency_ms=(time.perf_counter() - start) * 1000,
-                    message=f"Running with {len(jobs)} jobs"
-                )
+            # Check Slack webhook
+            slack_url = os.getenv("SLACK_WEBHOOK_URL")
+            telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+            
+            channels_configured = []
+            
+            if slack_url:
+                channels_configured.append("slack")
+            
+            if telegram_token:
+                channels_configured.append("telegram")
+            
+            result.latency_ms = (time.time() - start) * 1000
+            result.details["channels_configured"] = channels_configured
+            
+            if not channels_configured:
+                result.status = HealthStatus.DEGRADED
+                result.message = "No alert channels configured"
             else:
-                return ComponentHealth(
-                    name="scheduler",
-                    status=HealthStatus.UNHEALTHY,
-                    latency_ms=(time.perf_counter() - start) * 1000,
-                    message="Scheduler not running"
-                )
-                
+                result.message = f"Alert channels: {', '.join(channels_configured)}"
+        
         except Exception as e:
-            return ComponentHealth(
-                name="scheduler",
-                status=HealthStatus.UNHEALTHY,
-                latency_ms=(time.perf_counter() - start) * 1000,
-                message=f"Check failed: {str(e)}"
-            )
+            result.status = HealthStatus.UNKNOWN
+            result.message = str(e)
+        
+        return result
     
-    async def get_health(
-        self,
-        fyers_instance: Optional[Any] = None,
-        scheduler: Optional[Any] = None,
-        check_all: bool = True
-    ) -> HealthResponse:
-        """
-        Get complete health status.
+    async def get_system_health(self) -> SystemHealth:
+        """Get overall system health."""
+        # Run all checks in parallel
+        data, models, trading, alerts = await asyncio.gather(
+            self.check_data_health(),
+            self.check_models_health(),
+            self.check_trading_health(),
+            self.check_alerts_health(),
+        )
         
-        Args:
-            fyers_instance: Fyers API instance
-            scheduler: APScheduler instance
-            check_all: If True, checks all components; if False, minimal check
-            
-        Returns:
-            HealthResponse with overall status and component details
-        """
-        components: list[ComponentHealth] = []
-        
-        if check_all:
-            # Check all components in parallel
-            import asyncio
-            
-            checks = await asyncio.gather(
-                self.check_influxdb(),
-                self.check_mlflow(),
-                self.check_ray(),
-                self.check_fyers(fyers_instance),
-                return_exceptions=True
-            )
-            
-            for check in checks:
-                if isinstance(check, ComponentHealth):
-                    components.append(check)
-                elif isinstance(check, Exception):
-                    logger.warning(f"Health check failed: {check}")
-            
-            # Add scheduler (sync check)
-            components.append(self.check_scheduler(scheduler))
+        components = [data, models, trading, alerts]
         
         # Determine overall status
-        statuses = [c.status for c in components]
+        unhealthy_count = sum(1 for c in components if c.status == HealthStatus.UNHEALTHY)
+        degraded_count = sum(1 for c in components if c.status == HealthStatus.DEGRADED)
         
-        if HealthStatus.UNHEALTHY in statuses:
-            overall = HealthStatus.UNHEALTHY
-        elif HealthStatus.DEGRADED in statuses:
-            overall = HealthStatus.DEGRADED
+        if unhealthy_count > 0:
+            overall_status = HealthStatus.UNHEALTHY
+        elif degraded_count > 0:
+            overall_status = HealthStatus.DEGRADED
         else:
-            overall = HealthStatus.HEALTHY
+            overall_status = HealthStatus.HEALTHY
         
-        return HealthResponse(
-            status=overall,
-            version=self._version,
-            uptime_seconds=self.uptime_seconds,
-            components=components
+        uptime = (datetime.now() - self._start_time).total_seconds()
+        
+        return SystemHealth(
+            status=overall_status,
+            timestamp=datetime.now().isoformat(),
+            version=os.getenv("APP_VERSION", "1.0.0"),
+            uptime_seconds=uptime,
+            components=components,
+        )
+
+
+# Create router if FastAPI is available
+health_router = APIRouter(prefix="/health", tags=["health"]) if FASTAPI_AVAILABLE else None
+_health_checker = HealthChecker() if FASTAPI_AVAILABLE else None
+
+
+if FASTAPI_AVAILABLE and health_router:
+    
+    @health_router.get("")
+    async def get_health():
+        """Get overall system health."""
+        health = await _health_checker.get_system_health()
+        status_code = 200 if health.status == HealthStatus.HEALTHY else 503
+        return JSONResponse(content=health.to_dict(), status_code=status_code)
+    
+    @health_router.get("/data")
+    async def get_data_health():
+        """Get data collection health."""
+        health = await _health_checker.check_data_health()
+        status_code = 200 if health.status == HealthStatus.HEALTHY else 503
+        return JSONResponse(
+            content=asdict(health),
+            status_code=status_code,
         )
     
-    def get_liveness(self) -> dict[str, Any]:
-        """Simple liveness check (is the process alive?)."""
-        return {
-            "status": "ok",
-            "timestamp": datetime.now().isoformat()
-        }
-    
-    async def get_readiness(
-        self,
-        scheduler: Optional[Any] = None
-    ) -> dict[str, Any]:
-        """
-        Readiness check (is the app ready to serve traffic?).
-        
-        Checks:
-        - Scheduler is running
-        - At least one critical component is healthy
-        """
-        # Check scheduler
-        sched_health = self.check_scheduler(scheduler)
-        
-        # Quick InfluxDB check
-        influx_health = await self.check_influxdb()
-        
-        is_ready = (
-            sched_health.status != HealthStatus.UNHEALTHY and
-            influx_health.status != HealthStatus.UNHEALTHY
+    @health_router.get("/models")
+    async def get_models_health():
+        """Get MLflow models health."""
+        health = await _health_checker.check_models_health()
+        status_code = 200 if health.status == HealthStatus.HEALTHY else 503
+        return JSONResponse(
+            content=asdict(health),
+            status_code=status_code,
         )
-        
-        return {
-            "ready": is_ready,
-            "timestamp": datetime.now().isoformat(),
-            "scheduler": sched_health.status.value,
-            "database": influx_health.status.value
-        }
+    
+    @health_router.get("/trading")
+    async def get_trading_health():
+        """Get trading system health."""
+        health = await _health_checker.check_trading_health()
+        status_code = 200 if health.status == HealthStatus.HEALTHY else 503
+        return JSONResponse(
+            content=asdict(health),
+            status_code=status_code,
+        )
+    
+    @health_router.get("/alerts")
+    async def get_alerts_health():
+        """Get alerting system health."""
+        health = await _health_checker.check_alerts_health()
+        status_code = 200 if health.status == HealthStatus.HEALTHY else 503
+        return JSONResponse(
+            content=asdict(health),
+            status_code=status_code,
+        )
+    
+    @health_router.get("/live")
+    async def liveness_probe():
+        """Kubernetes liveness probe - always returns 200 if app is running."""
+        return {"status": "alive"}
+    
+    @health_router.get("/ready")
+    async def readiness_probe():
+        """Kubernetes readiness probe - checks if app is ready to serve."""
+        health = await _health_checker.get_system_health()
+        if health.status == HealthStatus.UNHEALTHY:
+            return JSONResponse(
+                content={"status": "not_ready", "reason": "critical components unhealthy"},
+                status_code=503,
+            )
+        return {"status": "ready"}
 
 
-# Global health checker instance
-_health_checker: Optional[HealthChecker] = None
+def create_health_app() -> FastAPI:
+    """Create standalone health check FastAPI app."""
+    if not FASTAPI_AVAILABLE:
+        raise ImportError("FastAPI is required for health endpoints")
+    
+    app = FastAPI(
+        title="Trading System Health API",
+        description="Health check endpoints for the automated trading system",
+        version="1.0.0",
+    )
+    
+    app.include_router(health_router)
+    
+    return app
 
 
-def get_health_checker() -> HealthChecker:
-    """Get or create global health checker instance."""
-    global _health_checker
-    if _health_checker is None:
-        _health_checker = HealthChecker()
-    return _health_checker
-
-
-# Debug & Verify
-# ==============
-# Run: python -c "from src.api.health import HealthChecker; print(HealthChecker().get_liveness())"
-# Verify: Returns status ok with timestamp
+if __name__ == "__main__":
+    # Run standalone health server
+    import uvicorn
+    
+    app = create_health_app()
+    uvicorn.run(app, host="0.0.0.0", port=8080)

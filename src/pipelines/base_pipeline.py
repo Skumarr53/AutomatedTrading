@@ -26,7 +26,11 @@ from mlflow import MlflowClient
 from joblib import Memory  # NEW: Import Memory for caching
 from src import config, pp
 from src.feature_engineering.custom_target_tranform import TargetTransform
-from src.utils.mlflow_utils import log_model_performance
+from src.utils.mlflow_utils import (
+    log_model_performance, 
+    log_test_predictions, 
+    log_training_parameters,
+)
 from src.mlflow_utils.mlflow_server import start_mlflow_server, is_mlflow_server_running
 from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
 from src.preprocessing.custom_transformers import TargetLabelEncoder
@@ -140,6 +144,8 @@ class MLPipelineBase:
             for symbol in config.symbols:
                 for target in config.model_settings.model_targets:
                     registered_model_name = f"{symbol}_{run_id}_{target}"
+                    if getattr(config.training, 'combine_all_symbols', False):
+                        registered_model_name = f"ALL_SYMBOLS_{run_id}_{target}"
                     model_uri = f"models:/{registered_model_name}/Production"
 
                     try:
@@ -237,6 +243,7 @@ class MLPipelineBase:
                 f"All NaNs filled. Numeric dtypes: float64."
             )
         # Remove duplicate columns if any
+        df = df[[col for col in df.columns if (':' not in col and '.' not in col)]]
         df = df.loc[:, ~df.columns.duplicated()]
         
         return df, target
@@ -280,32 +287,39 @@ class MLPipelineBase:
 
         X_trans, y_trans = self.get_cleaned_data(X_trans, y_trans)
 
-        # TEMPORAL SPLIT: Use chronological order, NOT random
-        # This prevents future data from leaking into training
-        n_samples = len(X_trans)
-        split_idx = int(n_samples * (1 - test_size))
-        
-        # Calculate embargo periods if not specified (based on prediction window)
-        if embargo_periods is None:
-            # Extract window from run_id (e.g., '5min' -> 1 period, '1h' -> 12 periods at 5-min intervals)
-            embargo_periods = self._get_embargo_periods(run_id)
-        
-        # Apply embargo: skip 'embargo_periods' samples between train and test
-        train_end_idx = split_idx
-        test_start_idx = split_idx + embargo_periods
-        
-        if test_start_idx >= n_samples:
-            logger.warning(f"Embargo period ({embargo_periods}) too large for dataset size ({n_samples}). "
-                          f"Reducing embargo to maintain at least 10% test data.")
-            test_start_idx = min(split_idx + 1, int(n_samples * 0.9))
-        
-        X_train = X_trans.iloc[:train_end_idx].copy()
-        X_test = X_trans.iloc[test_start_idx:].copy()
-        y_train = y_trans.iloc[:train_end_idx].copy()
-        y_test = y_trans.iloc[test_start_idx:].copy()
-        
-        logger.info(f"Temporal split: Train={len(X_train)} samples, Test={len(X_test)} samples, "
-                   f"Embargo={embargo_periods} periods ({test_start_idx - split_idx} samples skipped)")
+        if config.model_settings.temporal_split:
+            # TEMPORAL SPLIT: Use chronological order, NOT random
+            # This prevents future data from leaking into training
+            n_samples = len(X_trans)
+            split_idx = int(n_samples * (1 - test_size))
+            
+            # Calculate embargo periods if not specified (based on prediction window)
+            if embargo_periods is None:
+                # Extract window from run_id (e.g., '5min' -> 1 period, '1h' -> 12 periods at 5-min intervals)
+                embargo_periods = self._get_embargo_periods(run_id)
+            
+            # Apply embargo: skip 'embargo_periods' samples between train and test
+            train_end_idx = split_idx
+            test_start_idx = split_idx + embargo_periods
+            
+            if test_start_idx >= n_samples:
+                logger.warning(f"Embargo period ({embargo_periods}) too large for dataset size ({n_samples}). "
+                            f"Reducing embargo to maintain at least 10% test data.")
+                test_start_idx = min(split_idx + 1, int(n_samples * 0.9))
+            
+            X_train = X_trans.iloc[:train_end_idx].copy()
+            X_test = X_trans.iloc[test_start_idx:].copy()
+            y_train = y_trans.iloc[:train_end_idx].copy()
+            y_test = y_trans.iloc[test_start_idx:].copy()
+            
+            logger.info(f"Temporal split: Train={len(X_train)} samples, Test={len(X_test)} samples, "
+                    f"Embargo={embargo_periods} periods ({test_start_idx - split_idx} samples skipped)")
+        else:
+            # Train/test split
+            logger.info("Training in BACKTEST mode, using train_test_split")
+            X_train, X_test, y_train, y_test = train_test_split(
+                X_trans, y_trans, test_size=0.2, random_state=42
+                )
 
         return X_train, X_test, y_train, y_test
     
@@ -556,6 +570,30 @@ class MLPipelineBase:
 
         experiment_name = f"TradingModels_{self.model_id}"
         mlflow.set_experiment(experiment_name)
+        
+        # Verify experiment has correct artifact location (HTTP, not local filesystem)
+        # Old experiments may have /mlflow/artifacts/... which causes permission errors
+        exp = self.mlflow_client.get_experiment_by_name(experiment_name)
+        if exp:
+            artifact_loc = exp.artifact_location
+            if artifact_loc.startswith('/mlflow') or artifact_loc.startswith('file://'):
+                logger.warning(f"Experiment '{experiment_name}' has local filesystem artifact location: {artifact_loc}")
+                logger.warning("This will cause permission errors. Deleting and recreating experiment...")
+                
+                # Delete all runs in the experiment
+                runs = self.mlflow_client.search_runs(experiment_ids=[exp.experiment_id])
+                for run in runs:
+                    self.mlflow_client.delete_run(run.info.run_id)
+                
+                # Delete the experiment
+                self.mlflow_client.delete_experiment(exp.experiment_id)
+                
+                # Recreate the experiment (will get correct artifact location)
+                mlflow.set_experiment(experiment_name)
+                exp = self.mlflow_client.get_experiment_by_name(experiment_name)
+                logger.info(f"Recreated experiment with artifact location: {exp.artifact_location}")
+            else:
+                logger.debug(f"Experiment artifact location OK: {artifact_loc}")
 
         run_ids = config.model_settings.run_ids
         if not run_ids:
@@ -746,52 +784,59 @@ class MLPipelineBase:
                     logger.debug(f"y_train unique categories: {y_train.unique().tolist()[:10]}")
                     breakpoint()
                 
-                # Validate data before fitting (catch sequence issues early)
-                # from src.utils.data_validation import validate_data_for_model_fit
-                # try:
-                #     validate_data_for_model_fit(
-                #         X_train, 
-                #         y_train, 
-                #         stage_name=f"pre-fit_{symbol}_{run_id}_{target}",
-                #         raise_on_error=True
-                #     )
-                # except ValueError as validation_error:
-                #     logger.error(f"Data validation failed before model fit: {validation_error}")
-                #     # Try to identify problematic columns
-                #     import numpy as np
-                #     problematic_cols = []
-                #     for col in X_train.columns:
-                #         try:
-                #             # Try to convert to numpy array - this will fail if column has sequences
-                #             test_array = np.asarray(X_train[col].head(100))
-                #             if test_array.dtype == object:
-                #                 # Check if it's sequences
-                #                 for val in X_train[col].head(10):
-                #                     if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
-                #                         problematic_cols.append(col)
-                #                         break
-                #         except (ValueError, TypeError) as e:
-                #             problematic_cols.append(col)
-                #             logger.error(f"   Column '{col}' cannot be converted to array: {e}")
-                    
-                #     if problematic_cols:
-                #         logger.error(f"Problematic columns with sequences: {problematic_cols}")
-                #         # Show sample data from problematic columns
-                #         for col in problematic_cols[:5]:  # Show first 5
-                #             logger.error(f"   Column '{col}' sample values:")
-                #             for idx, val in X_train[col].head(3).items():
-                #                 logger.error(f"      Row {idx}: type={type(val)}, value={val}")
-                    
-                #     raise ValueError(
-                #         f"Data validation failed: {validation_error}. "
-                #         f"Problematic columns: {problematic_cols[:10]}"
-                #     )
-                
                 pipeline.fit(X_train, y_train)
                 mlflow.log_params(pipeline.model.best_params_)
                 y_pred = pipeline.predict(X_test)
 
+                # Get prediction probabilities if available
+                y_proba = None
+                class_labels = None
+                if hasattr(pipeline.model.best_estimator_, 'predict_proba'):
+                    try:
+                        y_proba = pipeline.model.best_estimator_.predict_proba(X_test)
+                        if hasattr(pipeline.model.best_estimator_, 'classes_'):
+                            class_labels = list(pipeline.model.best_estimator_.classes_)
+                    except Exception as e:
+                        logger.debug(f"Could not get prediction probabilities: {e}")
+
+                # Log standard ML metrics + financial metrics
                 log_model_performance(y_test, y_pred, pipeline.model.best_estimator_, X_test)
+                
+                # Log test set predictions as artifact
+                try:
+                    log_test_predictions(
+                        y_true=y_test.values if hasattr(y_test, 'values') else y_test,
+                        y_pred=y_pred,
+                        y_proba=y_proba,
+                        X_test=X_test.head(500),  # Limit features to avoid bloat
+                        model_name=f"{symbol}_{run_id}_{target}",
+                        class_labels=class_labels,
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not log test predictions: {e}")
+                
+                # Log comprehensive training parameters
+                try:
+                    # Get hardware info
+                    hw_detector = get_hardware_detector()
+                    hw_info = hw_detector.detect()
+                    
+                    # Convert config to dict for logging
+                    from omegaconf import OmegaConf
+                    config_dict = OmegaConf.to_container(config, resolve=True) if hasattr(config, '_content') else {}
+                    
+                    log_training_parameters(
+                        X_train=X_train,
+                        X_test=X_test,
+                        y_train=y_train,
+                        config_dict=config_dict,
+                        run_id=run_id,
+                        symbol=symbol,
+                        target=target,
+                        hardware_info=hw_info,
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not log training parameters: {e}")
 
                 registered_model_name = f"{symbol}_{run_id}_{target}"
                 mlflow.sklearn.log_model(

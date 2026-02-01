@@ -1,0 +1,52 @@
+# .dockerignore - Exclude large files from build context
+
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Large Data & Caches (CRITICAL)
+pipeline_cache/
+backups/
+mlruns/
+data/
+model_artifacts/
+WeeklyReports/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+.zed/
+.cursor/
+.cursorignore
+.cursorrules
+.rules/
+.clinerules/
+.claude/
+
+# Infrastructure
+docker/
+compose.yml
+Dockerfile*
+
+# Notebooks & Temporary
+Untitled.ipynb
+junk_code.py
+random_test.py
+*.swp
+*.swo
+*~

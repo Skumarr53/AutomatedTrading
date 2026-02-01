@@ -14,19 +14,9 @@ RUN apt-get update && apt-get install -y \
 # Install MLflow
 RUN pip install --no-cache-dir mlflow>=2.0.0
 
-# Create MLflow data directory
-RUN mkdir -p /mlflow
+# Create directory and set permissions
+# We use chmod 777 so that any user (root or non-root) can write to it
+RUN mkdir -p /mlflow/artifacts && chmod -R 777 /mlflow
 
 # Expose MLflow port
 EXPOSE 5000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
-
-# Run MLflow server
-CMD ["mlflow", "server", \
-     "--host", "0.0.0.0", \
-     "--port", "5000", \
-     "--backend-store-uri", "sqlite:///mlflow/mlflow.db", \
-     "--default-artifact-root", "/mlflow/artifacts"]

@@ -30,6 +30,7 @@ model_settings:
   # CRITICAL: shuffle must be false for temporal data to prevent data leakage
   # TimeSeriesSplit is now used for cross-validation
   shuffle: false
+  temporal_split: false
   run_ids:
     - 3h
     - 1h
@@ -56,10 +57,22 @@ mlflow_config:
   enabled: true  # Whether to start the MLflow server
   host: "0.0.0.0"  # Server bind address (0.0.0.0 = all interfaces)
   port: 5000
-  backend_store_uri: "sqlite:///mlflow.db"
-  default_artifact_root: "./mlruns"
+  # NOTE: Paths are resolved to absolute in mlflow_server.py
+  # Relative paths are resolved relative to project root
+  backend_store_uri: "sqlite:///mlflow.db"  # Will be resolved to project_root/mlflow.db
+  default_artifact_root: "./mlruns"  # Will be resolved to project_root/mlruns
   startup_delay_seconds: 5  # Time to wait after starting the server
   tracking_uri: "http://localhost:5000"  # Client connection - use localhost, NOT 0.0.0.0
+
+# Live trading model configuration
+# Controls which MLflow experiment and model stage to use for live predictions
+live_trading:
+  experiment_name: "TradingModels_Production"  # MLflow experiment to load models from
+  model_stage: "Production"  # Model stage: "Production", "Staging", "None" (latest), or "Archived"
+  fallback_experiment: null  # Optional fallback experiment if primary not found
+  max_model_age_days: 7  # Reject models older than this (0 = no limit)
+  require_registered_model: true  # If true, only load models from Model Registry
+  cache_ttl_minutes: 60  # How long to cache loaded models before refresh check
 
 # Hardware optimization settings
 # Auto-detects CPU cores, RAM, and GPU to optimize parallel processing

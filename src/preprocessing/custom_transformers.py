@@ -21,7 +21,7 @@ from imblearn.combine import SMOTETomek, SMOTEENN
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from src import config
-
+from collections import Counter
 
 
 class TargetLabelEncoder(BaseEstimator, TransformerMixin):
@@ -155,6 +155,9 @@ class ResamplerTransformer(BaseEstimator, TransformerMixin):
             ResamplerTransformer
         """
         logger.debug("Fitting the sampler.")
+        counts = Counter(y)
+        min_samples = min(counts.values())
+        self.sampler.k_neighbors = min(5, min_samples - 1)
         self.sampler.fit(X, y)
     
     def fit_transform(self, X: pd.DataFrame, y: pd.Series) -> Tuple[pd.DataFrame, pd.Series]:

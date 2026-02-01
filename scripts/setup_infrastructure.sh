@@ -264,6 +264,37 @@ start_mlflow() {
     # Ensure network exists
     create_network
     
+    # PREVENT permission issues by ensuring permissions are correct BEFORE starting
+    log_info "Preventing MLflow permission issues..."
+    if [ -f "${PROJECT_ROOT}/scripts/prevent_mlflow_permission_issues.sh" ]; then
+        bash "${PROJECT_ROOT}/scripts/prevent_mlflow_permission_issues.sh" || {
+            log_warn "Permission prevention script had issues, continuing anyway..."
+        }
+    fi
+    
+    # Fix permissions for rootless Podman (if directories exist)
+    if [ -d "${PROJECT_ROOT}/data/mlflow" ]; then
+        log_info "Fixing MLflow directory permissions for rootless Podman..."
+        # Use the dedicated permission fix script for consistency
+        if [ -f "${PROJECT_ROOT}/scripts/ensure_mlflow_permissions.sh" ]; then
+            bash "${PROJECT_ROOT}/scripts/ensure_mlflow_permissions.sh" || {
+                log_warn "Permission fix script had issues, trying direct fix..."
+                podman unshare chmod -R 777 "${PROJECT_ROOT}/data/mlflow" 2>/dev/null || true
+                podman unshare chmod -R 777 "${PROJECT_ROOT}/data/mlartifacts" 2>/dev/null || true
+            }
+        else
+            # Fallback to direct fix
+            podman unshare chmod -R 777 "${PROJECT_ROOT}/data/mlflow" 2>/dev/null || true
+            podman unshare chmod -R 777 "${PROJECT_ROOT}/data/mlartifacts" 2>/dev/null || true
+        fi
+    else
+        # Create directories with correct permissions from the start
+        mkdir -p "${PROJECT_ROOT}/data/mlflow"
+        mkdir -p "${PROJECT_ROOT}/data/mlartifacts"
+        podman unshare chmod -R 777 "${PROJECT_ROOT}/data/mlflow" 2>/dev/null || true
+        podman unshare chmod -R 777 "${PROJECT_ROOT}/data/mlartifacts" 2>/dev/null || true
+    fi
+    
     if podman ps --format "{{.Names}}" | grep -q "trading-mlflow"; then
         log_info "✓ MLflow container already running"
         return 0
@@ -283,6 +314,18 @@ start_mlflow() {
     while [[ $attempt -lt $max_attempts ]]; do
         if curl -s http://localhost:5000/health &> /dev/null; then
             log_info "✓ MLflow is ready"
+            
+            # Verify container can write to artifacts directory
+            if podman exec trading-mlflow sh -c "test -w /mlflow/artifacts" 2>/dev/null; then
+                log_info "✓ Container write permissions verified"
+            else
+                log_warn "Container cannot write to /mlflow/artifacts - fixing permissions..."
+                podman exec trading-mlflow sh -c "chmod -R 777 /mlflow /mlflow/artifacts" 2>/dev/null || {
+                    log_warn "Could not fix permissions from inside container"
+                    log_info "Run: bash scripts/ensure_mlflow_permissions.sh"
+                }
+            fi
+            
             return 0
         fi
         attempt=$((attempt + 1))

@@ -1,0 +1,105 @@
+# Cursor Indexing Exclusions
+# Optimizes codebase indexing by excluding build artifacts, dependencies, and infrastructure state
+# Based on Cursor blog best practices: "Securely indexing large codebases"
+
+# Build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Python cache and testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.hypothesis/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE and editor files
+.vscode/
+.idea/
+.zed/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git (already tracked, no need to index)
+.git/
+.gitignore
+.gitattributes
+
+# Logs and temporary files
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# Secrets and credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# Docker build context
+docker/
+Dockerfile*
+compose.yml
+
+# Lock files (too large, not useful for context)
+uv.lock
+poetry.lock
+package-lock.json
+yarn.lock
+
+# Model artifacts and data (if large)
+model_artifacts/
+*.pkl
+*.h5
+*.ckpt
+*.pt
+*.pth
+data/
+*.csv
+*.parquet
+
+# Coverage and profiling
+.coverage.*
+*.prof
+*.lprof
+
+# MLflow artifacts (if large)
+mlruns/
+mlartifacts/

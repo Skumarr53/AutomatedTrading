@@ -1,24 +1,17 @@
 # src/api/__init__.py
 """
-API module for trading application.
+API module for the AutomatedTrading system.
 
-Provides:
-- Health check endpoints
-- Metrics endpoints (future)
-- Admin endpoints (future)
+Provides REST API endpoints for:
+- Health checks
+- System status
+- Trading operations
 """
-from src.api.health import (
-    HealthChecker,
-    HealthResponse,
-    HealthStatus,
-    ComponentHealth,
-    get_health_checker,
-)
+
+from src.api.health import health_router, HealthChecker, HealthStatus
 
 __all__ = [
+    "health_router",
     "HealthChecker",
-    "HealthResponse",
     "HealthStatus",
-    "ComponentHealth",
-    "get_health_checker",
 ]

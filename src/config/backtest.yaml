@@ -1,0 +1,101 @@
+# src/config/backtest.yaml
+# Configuration for backtesting framework
+
+backtest:
+  # Default date range (can be overridden via CLI)
+  # Format: YYYY-MM-DD or relative like "-30d", "-1y"
+  default_start_date: "-365d"  # Last year
+  default_end_date: "today"
+  
+  # Capital and risk management
+  initial_capital: 100000.0
+  transaction_cost: 20.0  # Fixed cost per trade (INR)
+  risk_per_trade_percent: 2.0  # % of capital risked per trade
+  max_position_size: 100  # Maximum shares per trade
+  
+  # MLflow model settings
+  mlflow:
+    tracking_uri: ${oc.env:MLFLOW_TRACKING_URI,http://localhost:5000}
+    default_experiment: "TradingModels_Production"
+    default_model_stage: "Production"  # Production, Staging, None (latest)
+    
+    # Experiments to compare
+    experiments_to_compare:
+      - "TradingModels_Production"
+      - "TradingModels_Staging"
+  
+  # Symbols to backtest (empty = all from config.symbols)
+  symbols: []
+  
+  # Timeframes and targets (from model training)
+  timeframes:
+    - "5min"
+    - "15min"
+    - "30min"
+    - "1h"
+    - "3h"
+  
+  targets:
+    - "PctChange"
+    - "ATR"
+  
+  # Performance thresholds for model acceptance
+  thresholds:
+    min_sharpe_ratio: 0.5
+    max_drawdown_percent: 20.0
+    min_win_rate_percent: 45.0
+    min_profit_factor: 1.2
+    min_trades: 10  # Minimum trades for statistical significance
+  
+  # Simulation settings
+  simulation:
+    # Walk-forward validation
+    walk_forward_enabled: true
+    walk_forward_train_pct: 70  # % of data for training
+    walk_forward_test_pct: 30   # % of data for testing
+    
+    # Slippage model (basis points)
+    slippage_bps: 5  # 0.05% slippage
+    
+    # Market hours (IST)
+    market_open: "09:15"
+    market_close: "15:30"
+    
+    # Trading days per year (for annualization)
+    trading_days_per_year: 252
+  
+  # Report settings
+  reporting:
+    output_dir: "./backtest_reports"
+    generate_html: true
+    generate_pdf: false
+    include_trade_log: true
+    include_equity_chart: true
+    include_drawdown_chart: true
+    include_monthly_returns: true
+  
+  # Comparison metrics (for model comparison)
+  comparison_metrics:
+    primary: "sharpe_ratio"  # Primary metric for ranking
+    secondary:
+      - "total_return"
+      - "max_drawdown"
+      - "win_rate"
+      - "profit_factor"
+
+# Quick backtest presets
+presets:
+  quick:
+    # Quick test: last 30 days, single symbol
+    days: 30
+    symbols: ["RELIANCE"]
+    
+  standard:
+    # Standard test: last 90 days, top 5 symbols
+    days: 90
+    symbols: ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK"]
+    
+  full:
+    # Full test: last year, all symbols
+    days: 365
+    symbols: []  # All symbols from config

@@ -37,6 +37,15 @@ try:
 except ImportError:
     INFLUX_AVAILABLE = False
 
+# Import metrics
+try:
+    from src.metrics.performance_metrics import get_ingestion_metrics, DataIngestionMetrics
+    METRICS_AVAILABLE = True
+except ImportError:
+    METRICS_AVAILABLE = False
+    get_ingestion_metrics = None
+import time
+
 
 class DataIngestorConfig(BaseActorConfig):
     """Configuration for DataIngestorActor."""
@@ -110,6 +119,11 @@ class DataIngestorActor(BaseActor):
         self._data_cache: dict[str, pd.DataFrame] = {}
         self._last_fetch_time: dict[str, datetime] = {}
         
+        # Initialize metrics
+        self._metrics: Optional[DataIngestionMetrics] = None
+        if METRICS_AVAILABLE and get_ingestion_metrics:
+            self._metrics = get_ingestion_metrics()
+        
     async def _initialize(self) -> None:
         """Initialize InfluxDB connection and Fyers client."""
         # Initialize InfluxDB if available
@@ -124,8 +138,16 @@ class DataIngestorActor(BaseActor):
                 self._influx_client = InfluxDBClient_Wrapper(influx_config)
                 await self._influx_client.connect()
                 logger.info(f"Actor {self._actor_id}: InfluxDB connected")
+                
+                # Update active connections metric
+                if self._metrics:
+                    self._metrics.update_active_connections('influxdb', 1)
             except Exception as e:
                 logger.warning(f"Actor {self._actor_id}: InfluxDB connection failed: {e}")
+                
+                # Update active connections metric (0 connections)
+                if self._metrics:
+                    self._metrics.update_active_connections('influxdb', 0)
         
         # Create CSV backup directory
         if self._ingestor_config.csv_backup_enabled:
@@ -148,6 +170,10 @@ class DataIngestorActor(BaseActor):
         if self._influx_client:
             await self._influx_client.close()
             logger.info(f"Actor {self._actor_id}: InfluxDB connection closed")
+            
+            # Update active connections metric
+            if self._metrics:
+                self._metrics.update_active_connections('influxdb', 0)
         
         # Save cached data to CSV
         if self._ingestor_config.csv_backup_enabled:
@@ -224,13 +250,36 @@ class DataIngestorActor(BaseActor):
             logger.error(f"Actor {self._actor_id}: Fyers instance not set")
             return {"error": "Fyers instance not set"}
         
+        # Update queue size metric
+        if self._metrics:
+            self._metrics.update_queue_size(self._actor_id, len(self._assigned_symbols))
+        
         # Rate limiting: spread requests over time
         delay_between_requests = 1.0 / self._ingestor_config.api_rate_limit_per_second
         
         for symbol in self._assigned_symbols:
             try:
+                start_time = time.time()
                 result = await self._fetch_symbol_data(symbol)
+                latency = time.time() - start_time
                 results[symbol] = result
+                
+                # Record metrics
+                if self._metrics:
+                    if result.get("success", False):
+                        self._metrics.record_ingestion_success(
+                            symbol=symbol,
+                            actor_id=self._actor_id,
+                            records=result.get("records", 0),
+                            latency_seconds=latency
+                        )
+                    else:
+                        error_type = result.get("error", "unknown")[:50]  # Truncate error
+                        self._metrics.record_ingestion_failure(
+                            symbol=symbol,
+                            actor_id=self._actor_id,
+                            error_type=error_type
+                        )
                 
                 # Rate limiting delay
                 await asyncio.sleep(delay_between_requests)
@@ -238,6 +287,18 @@ class DataIngestorActor(BaseActor):
             except Exception as e:
                 logger.error(f"Actor {self._actor_id}: Error fetching {symbol}: {e}")
                 results[symbol] = {"success": False, "records": 0, "error": str(e)}
+                
+                # Record failure metric
+                if self._metrics:
+                    self._metrics.record_ingestion_failure(
+                        symbol=symbol,
+                        actor_id=self._actor_id,
+                        error_type=type(e).__name__
+                    )
+        
+        # Update queue size to 0 (done)
+        if self._metrics:
+            self._metrics.update_queue_size(self._actor_id, 0)
         
         successful = sum(1 for r in results.values() if r.get("success", False))
         logger.info(
@@ -328,13 +389,35 @@ class DataIngestorActor(BaseActor):
             return
         
         # Write to InfluxDB
+        influx_success = False
         if self._influx_client:
             try:
                 data_points = self._df_to_ticker_points(symbol, df)
                 if data_points:
+                    write_start = time.time()
                     await self._influx_client.write_ticker_batch(data_points)
+                    influx_success = True
+                    
+                    # Update data freshness metric
+                    if self._metrics and 'date' in df.columns:
+                        try:
+                            latest_time = df['date'].max()
+                            if hasattr(latest_time, 'to_pydatetime'):
+                                latest_time = latest_time.to_pydatetime()
+                            age_seconds = (datetime.now() - latest_time).total_seconds()
+                            self._metrics.update_data_freshness(symbol, 'ticker', age_seconds)
+                        except Exception:
+                            pass
             except Exception as e:
                 logger.warning(f"Actor {self._actor_id}: InfluxDB write failed for {symbol}: {e}")
+                
+                # Record failure metric
+                if self._metrics:
+                    self._metrics.record_ingestion_failure(
+                        symbol=symbol,
+                        actor_id=self._actor_id,
+                        error_type=f"influxdb_write:{type(e).__name__}"
+                    )
         
         # Write to CSV backup
         if self._ingestor_config.csv_backup_enabled:

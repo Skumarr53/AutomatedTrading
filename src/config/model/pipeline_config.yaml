@@ -5,7 +5,7 @@ pipeline_configs:
     cat_encode: false
     imbalance_technique: random
     model: LGBM
-    max_samples_per_class: 3000  # Maximum samples per class after resampling
+    max_samples_per_class: 5000  # Maximum samples per class after resampling
 
   # LightGBM: Recommended for production (faster, better regularization)
   # Uncomment to use LGBM instead of/alongside GBC

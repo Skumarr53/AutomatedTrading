@@ -18,8 +18,58 @@ risk_management:
   stop_loss_atr_multiplier: 2.0  # Stop loss = ATR * multiplier
   take_profit_atr_multiplier: 3.0  # Take profit = ATR * multiplier
   
-# Trade signal thresholds
+# Trade signal thresholds (legacy - see trading_strategy for enhanced version)
 signal_thresholds:
   buy_score_threshold: 3.0  # Minimum weighted score for BUY
   sell_score_threshold: 2.0  # Maximum weighted score for SELL
   confirmation_required: true  # Require signal confirmation across checks
+
+# === Enhanced Trading Strategy Configuration ===
+# Used by TradeDecisionMaker for multi-signal decision making
+trading_strategy:
+  # Timeframe weights for signal aggregation
+  # Higher weight = more influence on final decision
+  timeframe_weights:
+    5min: 1.0
+    5m: 1.0  # Alias for 5min
+    15min: 2.0
+    15m: 2.0
+    30min: 3.0
+    30m: 3.0
+    1h: 4.0
+    3h: 5.0
+  
+  # Signal category to numeric score mapping
+  # Negative = bearish, Positive = bullish
+  signal_mapping:
+    Low: -2
+    "Medium Low": -1
+    Neutral: 0
+    "Medium High": 1
+    High: 2
+  
+  # ATR-based volatility thresholds
+  # Used to adjust confidence and position sizing
+  atr_volatility_thresholds:
+    low: 0.02   # Below this ATR ratio = low volatility (stable market)
+    high: 0.05  # Above this ATR ratio = high volatility (risky market)
+  
+  # Confidence thresholds
+  min_confidence: 0.5  # Minimum confidence to execute trade (0.0 to 1.0)
+  min_timeframe_agreement: 2  # Minimum timeframes agreeing on direction
+  
+  # Score thresholds for trade direction
+  # Normalized score ranges from -2 to +2
+  buy_score_threshold: 0.5   # Score > this = LONG signal
+  sell_score_threshold: -0.5  # Score < this = SHORT signal
+  
+  # Cooldown between trades for same symbol
+  cooldown_minutes: 5
+
+# Circuit breaker for loss protection
+circuit_breaker:
+  enabled: true
+  max_daily_loss_percent: 5.0  # Stop trading if daily P&L drops below -5%
+  max_consecutive_losses: 3    # Stop after N consecutive losing trades
+  cooldown_after_trigger_minutes: 60  # Wait time after circuit breaker triggers
+  reset_time: "09:15"  # Time to reset daily counters (market open)
