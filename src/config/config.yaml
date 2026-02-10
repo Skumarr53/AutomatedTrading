@@ -3,6 +3,7 @@ defaults:
   - scheduler          # Loads scheduler directly
   - model/params                 # Loads model/params directly
   - model/pipeline_config
+  - model/model_families          # Loads model families configuration
   - paths                  # Loads paths directly
   - custom
   - trading

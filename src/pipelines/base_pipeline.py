@@ -32,7 +32,7 @@ from src.utils.mlflow_utils import (
     log_training_parameters,
 )
 from src.mlflow_utils.mlflow_server import start_mlflow_server, is_mlflow_server_running
-from src.pipelines.custom_pipelines import CustomModelPipeline  # Import custom pipeline class
+from src.pipelines.custom_pipelines import CustomModelPipeline, FamilyModelPipeline  # Import pipeline classes
 from src.preprocessing.custom_transformers import TargetLabelEncoder
 from src.utils.hardware_detector import get_hardware_detector
 
@@ -78,6 +78,10 @@ class MLPipelineBase:
         """
         Sets up multiple pipelines based on the provided configurations.
         
+        Supports two pipeline types:
+        1. Legacy CustomModelPipeline: Uses 'model' key in config
+        2. New FamilyModelPipeline: Uses 'family' or 'families' key in config
+        
         Note: Uses TimeSeriesSplit for cross-validation with a default gap
         that covers the longest prediction horizon (3h = 36 periods at 5-min intervals).
         Hardware-aware optimization is applied automatically.
@@ -98,10 +102,39 @@ class MLPipelineBase:
         n_splits = 5
         
         for pp_name, p_config in config.model.pipeline_configs.items():
-            pipeline = CustomModelPipeline(p_config)
-            # Pass None for n_iter and n_jobs to trigger auto-detection
-            pipeline.define_model(memory, n_splits=n_splits, gap=cv_gap, 
-                                 n_iter=None, n_jobs=None)
+            logger.info(f"Setting up pipeline: {pp_name}")
+            
+            # Check if this is a family-based config (new architecture)
+            if 'family' in p_config or 'families' in p_config:
+                # New family-based pipeline
+                family = p_config.get('family', None)
+                families = p_config.get('families', [family] if family else ['tree'])
+                
+                pipeline = FamilyModelPipeline(
+                    family=family,
+                    families=families,
+                    feature_config=dict(p_config)
+                )
+                
+                # Define model with family-aware settings
+                pipeline.define_model(
+                    n_splits=n_splits,
+                    gap=cv_gap,
+                    n_iter=p_config.get('n_iter', None),  # Use proportional calculation if None
+                    scoring=p_config.get('scoring', 'f1_weighted')
+                )
+                
+                logger.info(f"  Created FamilyModelPipeline: families={families}")
+                
+            else:
+                # Legacy CustomModelPipeline (backward compatible)
+                pipeline = CustomModelPipeline(p_config)
+                # Pass None for n_iter and n_jobs to trigger auto-detection
+                pipeline.define_model(memory, n_splits=n_splits, gap=cv_gap, 
+                                     n_iter=None, n_jobs=None)
+                
+                logger.info(f"  Created CustomModelPipeline: model={p_config.get('model', 'unknown')}")
+            
             self.pipelines.append(pipeline)
 
     # def setup(self) -> None:
@@ -754,8 +787,14 @@ class MLPipelineBase:
                 # If loading failed, proceed with training
                 logger.info(f"Could not load cached model, proceeding with training for {symbol}/{run_id}/{target}")
             
+            # Get params for logging (handle both CustomModelPipeline and FamilyModelPipeline)
+            pipeline_params = getattr(pipeline, 'params', {})
+            if not pipeline_params and hasattr(pipeline, 'search_cv') and pipeline.search_cv is not None:
+                # FamilyModelPipeline: get params from RandomizedSearchCV
+                pipeline_params = getattr(pipeline.search_cv, 'param_distributions', {})
+            
             logger.info(
-                f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline.params)}"
+                f"Training model for {symbol} {run_id} {target} with config: {pp.pformat(pipeline_params)}"
             )
             
             # Ensure MLflow tracking URI is set correctly (redundant but safe)

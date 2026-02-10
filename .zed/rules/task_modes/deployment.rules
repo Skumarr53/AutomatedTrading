@@ -1,0 +1,262 @@
+description: "Deploy like your job depends on it (it does)"
+globs: ["**/*deploy*", "**/*deployment*", "**/*docker*", "**/*kubernetes*", "**/*k8s*", "**/*production*", "**/*prod*", "**/*podman*", "**/*compose*", "**/*container*", "**/*orchestrat*", "**/*release*", "**/*rollout*", "**/*rollback*", "**/*infrastructure*", "**/*infra*", "**/*ops*", "**/*operation*", "**/*monitor*", "**/*monitoring*", "**/*alert*", "**/*observability*", "**/*ci*", "**/*cd*", "**/*pipeline*", "**/*terraform*", "**/*helm*", "**/*nomad*"]
+alwaysApply: false
+priority: 90
+---
+
+# DEPLOYMENT: ARCH LINUX PRODUCTION READY
+
+Activated when: File contains 'deploy', 'docker', 'kubernetes', 'production'
+
+## Deployment Philosophy
+
+- Cattle, not pets - everything is disposable
+- Immutable infrastructure - never modify in place
+- Infrastructure as code - version control everything
+- Zero-downtime deployments - users never notice
+- Rollback in minutes, not hours
+- Monitoring is part of deployment
+
+## Deployment Framework
+
+### Stage 1: Local Development
+- **Tools**: Podman/Docker, docker-compose, minikube
+- **Goal**: Identical to production (just smaller)
+
+### Stage 2: CI/CD Pipeline
+- **Tools**: GitHub Actions, GitLab CI, Jenkins
+- **Goal**: Automated testing and building
+
+### Stage 3: Staging Environment
+- **Tools**: Same as production but isolated
+- **Goal**: Final validation before production
+
+### Stage 4: Production Deployment
+- **Tools**: Kubernetes, Nomad, Docker Swarm
+- **Goal**: Safe, monitored, rollback-ready
+
+## Output Template
+
+### DEPLOYMENT PLAN: [Service Name]
+
+#### REQUIREMENTS
+
+**Service Level Objectives**:
+- Availability: [99.9%/99.99%/99.999%]
+- Latency: [P95 < Xms]
+- Throughput: [Y requests/second]
+
+**Infrastructure**:
+- CPU: [Cores]
+- Memory: [GB]
+- Storage: [GB, type]
+- Network: [Bandwidth, ports]
+
+#### ARCHITECTURE
+
+```mermaid
+graph TB
+  A[Load Balancer] --> B[Service Replica 1]
+  A --> C[Service Replica 2]
+  A --> D[Service Replica 3]
+  B --> E[(Database)]
+  C --> E
+  D --> E
+```
+
+#### CONTAINER DEFINITION
+
+**Dockerfile**: [Optimized for production]
+
+**Podman** (Arch Linux preference): [Rootless container setup]
+
+#### DEPLOYMENT STRATEGY
+
+- **Method**: [Blue-green, Canary, Rolling]
+- **Traffic Shift**: [How traffic is routed]
+- **Health Checks**: [What defines "healthy"]
+- **Rollback Trigger**: [When to abort deployment]
+
+#### SCALING CONFIGURATION
+
+**Horizontal Pod Autoscaler** (if Kubernetes):
+[HPA configuration]
+
+**Vertical Scaling Limits**:
+- Min replicas: [X]
+- Max replicas: [Y]
+- CPU threshold: [Z%]
+- Memory threshold: [W%]
+
+#### CONFIGURATION MANAGEMENT
+
+**Environment Variables**: [Required variables]
+
+**Config Files**: [Configuration structure]
+
+**Secrets**: [How secrets are managed]
+
+#### MONITORING & OBSERVABILITY
+
+**Metrics**:
+- [ ] Request rate
+- [ ] Error rate
+- [ ] Latency percentiles
+- [ ] Resource utilization
+
+**Logging**:
+- [ ] Structured logging (JSON)
+- [ ] Centralized log aggregation
+- [ ] Log retention policy
+
+**Tracing**:
+- [ ] Distributed tracing
+- [ ] Span collection
+- [ ] Trace sampling
+
+#### ALERTING
+
+**Critical Alerts** (Page someone):
+- [ ] Service down > 1 minute
+- [ ] Error rate > 5%
+- [ ] Latency P95 > 1s
+
+**Warning Alerts** (Notify only):
+- [ ] CPU > 80% for 5 minutes
+- [ ] Memory > 90%
+- [ ] Disk > 85%
+
+#### ARCH LINUX PRODUCTION
+
+**System Tuning**: [Kernel parameters, network tuning, filesystem optimization]
+
+**Package Management**: [How to install/update, rollback procedures]
+
+[TOKEN AUDIT: Deployment completeness: X/100]
+
+## Container Best Practices
+
+### Security
+- Run as non-root user
+- Use minimal base images (Alpine, Distroless)
+- Scan images for vulnerabilities
+- Sign images with cosign
+
+### Performance
+- Multi-stage builds
+- Layer caching optimization
+- `.dockerignore` to exclude unnecessary files
+- Build arguments for environment-specific builds
+
+### Podman Specific
+- Rootless containers by default
+- Use `podman-compose` for local development
+- Volume management with `podman volume`
+- Systemd integration for auto-restart
+
+## Kubernetes Patterns
+
+### Resource Management
+- Set CPU/memory requests and limits
+- Use Quality of Service classes
+- Horizontal Pod Autoscaling
+- Vertical Pod Autoscaling
+
+### Deployment Strategies
+- Blue-green (two complete environments)
+- Canary (gradual traffic shift)
+- Rolling update (pod-by-pod replacement)
+- Recreate (downtime acceptable)
+
+### Observability
+- Prometheus for metrics
+- Grafana for dashboards
+- Loki for logs
+- Tempo for traces
+- Alertmanager for alerts
+
+## CI/CD Pipelines
+
+### GitHub Actions
+- Matrix builds for multiple Python/Rust versions
+- Caching dependencies between runs
+- Security scanning in pipeline
+- Automated testing on PRs
+
+### GitLab CI
+- Multi-stage pipelines
+- Artifact management
+- Environment deployments
+- Review apps
+
+### Deployment Automation
+- Terraform for infrastructure
+- Helm for Kubernetes deployments
+- ArgoCD for GitOps
+- FluxCD for continuous delivery
+
+## Monitoring Stack
+
+### Metrics
+- Prometheus (collection)
+- VictoriaMetrics (long-term storage)
+- Thanos (global view)
+
+### Visualization
+- Grafana (dashboards)
+- Kibana (logs visualization)
+
+### Logging
+- Loki (log aggregation)
+- Fluentd/Fluent Bit (log collection)
+- Elasticsearch (alternative)
+
+### Tracing
+- Jaeger
+- Tempo
+- OpenTelemetry
+
+### Alerting
+- Alertmanager
+- OpsGenie/PagerDuty integration
+- Slack/Teams notifications
+
+## Disaster Recovery
+
+### Backup Strategies
+- 3-2-1 rule: 3 copies, 2 media types, 1 offsite
+- Database backups (logical + physical)
+- Configuration backups
+- Secret backups (encrypted)
+
+### Recovery Objectives
+- RTO (Recovery Time Objective): [X hours]
+- RPO (Recovery Point Objective): [Y minutes]
+
+### Testing
+- Regular disaster recovery drills
+- Chaos engineering (Chaos Monkey)
+- Failover testing
+
+## Cost Optimization
+
+### Compute
+- Spot instances for batch workloads
+- Reserved instances for steady-state
+- Auto-scaling to match demand
+- Right-sizing instances
+
+### Storage
+- Lifecycle policies (move to cheaper storage)
+- Compression and deduplication
+- Cleanup old/unused data
+
+### Network
+- CDN for static assets
+- Compression (gzip, brotli)
+- Caching at multiple levels
+
+### Monitoring
+- Cost allocation tags
+- Budget alerts
+- Regular cost reviews

@@ -1,0 +1,74 @@
+description: "Depth-first research with production pragmatism and strict learning enforcement"
+globs: ["**/research/**", "**/*research*", "**/*investigate*", "**/*investigation*", "**/*analysis*", "**/*analyze*", "**/*compare*", "**/*comparison*", "**/*evaluate*", "**/*evaluation*", "**/*explore*", "**/*exploration*", "**/*study*", "**/*examine*", "**/*examination*", "**/*review*", "**/*survey*", "**/*assess*", "**/*assessment*"]
+alwaysApply: false
+priority: 85
+---
+
+# TECHNICAL RESEARCH COGNITIVE ENGINE
+
+## Mandatory Learning Sections (Non-Negotiable)
+Every research response MUST include:
+- `[DESIGN RATIONALE]` - Why Option A over B (trade-off table)
+- `[CRITICAL THINKING]` - Pressure-test Q&A (production readiness, failure modes)
+- `[LEARNING]` - Key technical principle to internalize
+
+**REFUSAL**: Research missing ANY section = INCOMPLETE. Redo with learning sections.
+
+## Research Protocol
+
+### Step 1: Define the REAL Question
+- What are we actually trying to learn?
+- **Why this matters**: What decision depends on this?
+
+### Step 2: Arch Linux First Sources
+- Arch Wiki (always check first)
+- AUR package details and GitHub issues
+
+### Step 3: Production-Relevant Analysis
+- How does this perform at 10x, 100x, 1000x scale?
+- What's the failure mode?
+- **REFUSAL**: Research without scale/failure analysis = INCOMPLETE.
+
+### Step 4: Knowledge Compounding (NON-NEGOTIABLE)
+**Rule**: Connect new knowledge to 3 existing concepts.
+- **REFUSAL**: Isolated facts without connection = INCOMPLETE.
+
+## Refusal Protocol
+| Scenario | Action |
+|----------|--------|
+| Missing learning sections | **REFUSE** to proceed |
+| No trade-off analysis | **REDO** with comparison |
+| Isolated facts (no compounding) | **REQUIRE** connections to existing concepts |
+| Shallow production analysis | **REDO** with scale/failure depth |
+
+## Output Structure
+
+### Research Question
+[The actual decision we're trying to inform]
+
+### Options Analysis
+#### [DESIGN RATIONALE]
+[Table: Option vs Production Scale vs failure mode vs WHY Chosen]
+
+#### [CRITICAL THINKING]
+Q: [Pressure-test question challenging production readiness of recommendation]
+A: [Analysis of cascading failures, migration complexity, and scale limits]
+
+#### [LEARNING]
+[One crystallized truth connected to 3 existing concepts]
+
+### Actionable Insights
+**If choosing A**:
+```bash
+# Installation, Configuration, Integration
+```
+
+### Gotchas & Pitfalls
+[What surprises await in production]
+
+[TOKEN AUDIT: Research depth: X | Practical value: Y]
+
+## Knowledge Compounding
+- Connect new knowledge to 3 existing concepts
+- Extract reusable patterns, not just facts
+- **Identify interview questions this answers** (MANDATORY)

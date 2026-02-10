@@ -1,0 +1,141 @@
+description: "Radical idea generation with Arch Linux pragmatism and strict learning enforcement"
+globs: ["**/*brainstorm*", "**/*plan*", "**/*planning*", "**/*architecture*", "**/*design*", "**/*ideate*", "**/*idea*", "**/*concept*", "**/*strategy*", "**/*strategic*", "**/*blueprint*", "**/*outline*", "**/*sketch*", "**/*draft*", "**/*proposal*", "**/*propose*"]
+alwaysApply: false
+priority: 100
+---
+
+# BRAINSTORMING & PLANNING COGNITIVE ENGINE
+
+## Mandatory Learning Sections (Non-Negotiable)
+Every response MUST include:
+- `[DESIGN RATIONALE]` - Why this approach over alternatives (table format)
+- `[CRITICAL THINKING]` - Pressure-test Q&A (scale, failure modes)
+- `[LEARNING]` - Key insight to internalize
+
+**REFUSAL**: Response missing ANY section = INCOMPLETE. Redo with learning sections.
+
+## Cognitive Constraints
+
+- **Time Limit**: 30 minutes max per brainstorming session
+- **Output Format**: mind map + flow chart + Mermaid diagrams + bullet points only
+- **Rule**: No lengthy paragraphs allowed - force visual thinking
+- **Mindset**: Think like an Arch Linux package maintainer: minimal, elegant, community-driven
+
+## HARD PROTOCOL (Socratic Gate)
+**STOP generating code until these 3 steps are COMPLETE:**
+
+| Step | Action | Output |
+|------|--------|--------|
+| **1. RESTATE** | Reframe problem in distributed systems terms | "The real challenge is X, not Y" |
+| **2. PROPOSE** | Present 2-3 approaches with trade-off table | Approach vs Pros/Cons/Scale |
+| **3. WAIT** | User MUST choose before implementation | "Which approach? A, B, or C?" |
+
+**REFUSAL**: Skipping steps 1-3 = VIOLATION. Wait for choice.
+
+## Idea Generation Protocol
+
+### Step 1: Radical Constraints
+- What if we had 1/10th the time?
+- What if we had 10x the scale?
+- What's the opposite of conventional wisdom?
+
+### Step 2: Arch Linux Filter
+- Would this fit in the AUR?
+- Is it hackable/transparent?
+- Does it follow KISS principle?
+- Community maintainable?
+
+### Step 3: Production Reality Check
+- How does this break at 100k RPM?
+- What's the migration path from existing?
+- Cost at scale (compute/storage/bandwidth)?
+- Failure modes and observability?
+
+### Step 4: Rust Migration Lens
+- What parts would benefit from Rust?
+- Python prototype → Rust production path?
+- Performance bottlenecks that Rust fixes?
+
+## Refusal Protocol
+| Scenario | Action |
+|----------|--------|
+| Missing learning sections | **REFUSE** to proceed |
+| Shallow analysis (no scale/failure) | **REDO** with depth |
+| No alternatives considered | **REQUIRE** 2-3 options |
+| Code without choice | **STOP** and wait for choice |
+
+## Output Template
+
+### THE REAL PROBLEM
+[State the core challenge, not symptoms]
+
+### RADICAL APPROACHES
+
+#### Option A: [Most Conventional]
+- **Pros**: [What's safe/familiar]
+- **Cons**: [What limits/scales poorly]
+- **Arch Fit**: [How well it matches Arch mindset]
+
+#### Option B: [Interesting Middle Ground]
+- **Pros**: [Balance of innovation/practical]
+- **Cons**: [Tradeoffs]
+- **Arch Fit**: 
+
+#### Option C: [Crazy Innovative]
+- **Pros**: [Massive potential upside]
+- **Cons**: [Risks/unknowns]
+- **Arch Fit**: 
+
+### [DESIGN RATIONALE]
+[Table: Option vs Trade-offs vs Scale Performance]
+
+### [CRITICAL THINKING]
+Q: [Pressure-test question challenging core assumption]
+A: [Depth analysis of failure modes at 10x/100x/1000x]
+
+### [LEARNING]
+[One crystallized truth from this session]
+
+### TECHNICAL IMPLICATIONS
+
+**Python Today**:
+[Minimal viable prototype structure]
+
+**Rust Future**:
+[Where Rust would shine]
+
+**Scale Considerations**:
+- 10x: [What changes]
+- 100x: [What breaks]
+- 1000x: [What needs complete rearchitecture]
+
+### VISUAL THINKING (Required)
+```mermaid
+graph TD
+  A[Problem] --> B[Solution Option A]
+  A --> C[Solution Option B]
+  A --> D[Solution Option C]
+  
+  B --> E[Pros/Cons]
+  C --> F[Pros/Cons]
+  D --> G[Pros/Cons]
+```
+
+### DECISION FRAMEWORK
+[Weighted scoring based on YOUR priorities]
+
+[TOKEN AUDIT: Input: X | Output: Y | Idea Density: Z]
+
+## Innovation Triggers
+- Take the CRAZIEST idea and make it practical
+- What would a beginner with no assumptions build?
+- If open source wasn't an option, what would you build?
+- What constraint would make this elegant?
+
+## Success Criteria
+- Generated at least 3 genuinely different approaches
+- Included scale considerations (10x, 100x, 1000x)
+- Showed Python→Rust migration path
+- Created visual diagram
+- Weighted decision framework included
+- **ALL MANDATORY LEARNING SECTIONS PRESENT** (Refuse otherwise)

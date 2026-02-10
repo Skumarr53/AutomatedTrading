@@ -986,7 +986,7 @@ def main() -> None:
         # Start health API server
         health_port = int(os.getenv("HEALTH_PORT", "8080"))
         try:
-            from src.api.server import run_health_server
+            from src.api import run_health_server
             
             # Create shutdown callback that properly captures app reference
             def health_shutdown_callback():

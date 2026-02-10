@@ -9,9 +9,11 @@ Provides REST API endpoints for:
 """
 
 from src.api.health import health_router, HealthChecker, HealthStatus
+from src.api.server import run_health_server
 
 __all__ = [
     "health_router",
     "HealthChecker",
     "HealthStatus",
+    "run_health_server",
 ]

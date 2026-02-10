@@ -1,33 +1,68 @@
-pipeline_configs:
-  # Current default: GradientBoostingClassifier
-  Pipeline_1:
-    std_scale: false
-    cat_encode: false
-    imbalance_technique: random
-    model: LGBM
-    max_samples_per_class: 5000  # Maximum samples per class after resampling
+# Pipeline Configuration
+# =============================================================================
+# Defines pipeline configurations for model training.
+#
+# NEW ARCHITECTURE (Model Families):
+# Use 'family' or 'families' to leverage the new family-based pipeline system
+# where model type is a hyperparameter within a family.
+#
+# LEGACY MODE (Backward Compatible):
+# Use 'model' to specify a single model type (original behavior).
+# =============================================================================
 
-  # LightGBM: Recommended for production (faster, better regularization)
-  # Uncomment to use LGBM instead of/alongside GBC
-  # Pipeline_LGBM:
-  #   std_scale: false
-  #   cat_encode: false  # LGBM handles categoricals natively
+pipeline_configs:
+  # ===========================================================================
+  # PRODUCTION PIPELINE - Tree Family (Recommended)
+  # Uses tree-based models with model type as hyperparameter
+  # ===========================================================================
+  # Production:
+  #   family: tree                    # Uses tree family: LGBM, XGB, RFC, GBC
   #   imbalance_technique: random
-  #   model: LGBM
-  #   max_samples_per_class: 5000  # Can handle more data efficiently
-  
-  # XGBoost alternative
-  # Pipeline_XGB:
+  #   max_samples_per_class: 5000
+  #   scoring: f1_weighted
+    # n_iter is auto-calculated: n_iter_base * num_models
+
+  # ===========================================================================
+  # EXPLORATION PIPELINE - Compare Multiple Families
+  # Trains all families and selects the best performing one
+  # ===========================================================================
+  Exploration:
+    families: [baseline, tree, linear]  # Compare across families
+    imbalance_technique: random
+    max_samples_per_class: 3000
+    scoring: f1_weighted
+
+  # ===========================================================================
+  # BASELINE PIPELINE - Fast Reference Models
+  # Use to establish baseline performance before complex models
+  # ===========================================================================
+  # Baseline:
+  #   family: baseline              # Uses: LR, DT (fast, interpretable)
+  #   imbalance_technique: random
+  #   max_samples_per_class: 5000
+  #   scoring: accuracy
+
+  # ===========================================================================
+  # LINEAR PIPELINE - Linear Models
+  # Best when features have clear linear relationships with target
+  # ===========================================================================
+  # Linear:
+  #   family: linear                # Uses: LR, LSVC, Ridge, SGD
+  #   imbalance_technique: random
+  #   max_samples_per_class: 5000
+  #   scoring: f1_weighted
+
+  # ===========================================================================
+  # LEGACY PIPELINE - Single Model (Backward Compatible)
+  # Original configuration format - works as before
+  # ===========================================================================
+  # Legacy_LGBM:
+  #   model: LGBM                   # Single model, no model type tuning
   #   std_scale: false
   #   cat_encode: false
   #   imbalance_technique: random
-  #   model: XGB
   #   max_samples_per_class: 5000
-
-  # Neural Network (requires more data)
-  # Pipeline_MLP:
-  #   std_scale: true  # Important for neural networks
-  #   cat_encode: true
-  #   imbalance_technique: smote
-  #   model: MLP
-  #   max_samples_per_class: 10000
+  #   feature_selector: LGBM
+  #   feature_selection_params:
+  #     n_features: 50
+  #     importance_type: gain

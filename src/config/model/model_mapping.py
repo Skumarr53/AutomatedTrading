@@ -1,7 +1,12 @@
-from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.linear_model import LogisticRegression, RidgeClassifier, SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import (
+    GradientBoostingClassifier, 
+    RandomForestClassifier,
+    ExtraTreesClassifier
+)
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from loguru import logger
@@ -103,14 +108,27 @@ from src.preprocessing.custom_transformers import (
     DF_RFECV_FeatureSelection,
     DFRecursiveFeatureSelector,
     DFShapFeatureSelector,
+    CorrelationFilter,
+    LGBMImportanceSelector,
+    MultiStageFeatureSelector,
     ImbalanceHandler  # Assuming ImbalanceHandler is defined in custom transformers
 )
 
+# Feature Selection Mapping
+# Available methods:
+#   - 'RFE': Recursive Feature Elimination (sklearn-based, uses DecisionTree by default)
+#   - 'RFECV': RFE with Cross-Validation (auto-selects optimal feature count)
+#   - 'SHAP': SHAP-based selection (model-agnostic, uses LGBMClassifier by default)
+#   - 'LGBM': LightGBM gain-based importance (fast, model-consistent) [RECOMMENDED]
+#   - 'CORR': Correlation filter (removes redundant features, use as pre-filter)
+#   - 'MULTI': Multi-stage selection (Correlation + LGBM importance) [RECOMMENDED FOR PRODUCTION]
 FeatSelect_mapping = {
     'RFE': DFRecursiveFeatureSelector,
     'SHAP': DFShapFeatureSelector,
-    'RFECV': DF_RFECV_FeatureSelection
-    
+    'RFECV': DF_RFECV_FeatureSelection,
+    'LGBM': LGBMImportanceSelector,
+    'CORR': CorrelationFilter,
+    'MULTI': MultiStageFeatureSelector,
 }
 
 ImbalanceHandler_mapping = {
@@ -119,14 +137,39 @@ ImbalanceHandler_mapping = {
 }
 
 
-# Base model mapping with sklearn models
+# =============================================================================
+# MODEL TYPE MAPPING
+# =============================================================================
+# Maps model type strings to sklearn-compatible classifier classes/factories.
+# 
+# Families:
+#   - Baseline: LR, DT (fast reference models)
+#   - Tree: LGBM, XGB, RFC, GBC, ETC (no scaling needed)
+#   - Linear: LR, LSVC, Ridge, SGD (scaling required)
+#   - Distance: KNN, SVC (scaling required)
+#   - Neural: MLP (scaling required)
+
 ModelType_mapping = {
-    'SVC': SVC,
-    'KNN': KNeighborsClassifier,
+    # Baseline models (fast, interpretable)
+    'DT': DecisionTreeClassifier,
+    
+    # Tree-based models (sklearn native)
     'RFC': RandomForestClassifier,
     'GBC': GradientBoostingClassifier,
-    'MLP': MLPClassifier,
+    'ETC': ExtraTreesClassifier,
+    
+    # Linear models
     'LR': LogisticRegression,
+    'LSVC': LinearSVC,
+    'Ridge': RidgeClassifier,
+    'SGD': SGDClassifier,
+    
+    # Distance-based models
+    'SVC': SVC,
+    'KNN': KNeighborsClassifier,
+    
+    # Neural models
+    'MLP': MLPClassifier,
 }
 
 # Add LightGBM if available (recommended for production)
@@ -138,3 +181,20 @@ if _HAS_LGBM:
 # Uses GPU if available, otherwise CPU
 if _HAS_XGB:
     ModelType_mapping['XGB'] = _create_xgb_with_gpu
+
+
+def get_available_models() -> list:
+    """Get list of all available model type strings."""
+    return list(ModelType_mapping.keys())
+
+
+def is_tree_model(model_type: str) -> bool:
+    """Check if model type is a tree-based model (no scaling needed)."""
+    tree_models = {'LGBM', 'XGB', 'RFC', 'GBC', 'ETC', 'DT'}
+    return model_type in tree_models
+
+
+def is_linear_model(model_type: str) -> bool:
+    """Check if model type is a linear model (scaling recommended)."""
+    linear_models = {'LR', 'LSVC', 'Ridge', 'SGD'}
+    return model_type in linear_models

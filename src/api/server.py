@@ -24,9 +24,8 @@ from loguru import logger
 
 from src.api.health import (
     HealthChecker,
-    HealthResponse,
     HealthStatus,
-    get_health_checker,
+    SystemHealth,
 )
 
 
@@ -64,8 +63,8 @@ api = FastAPI(
 )
 
 
-@api.get("/health", response_model=HealthResponse, tags=["Health"])
-async def health_check() -> HealthResponse:
+@api.get("/health", tags=["Health"])
+async def health_check():
     """
     Full health check endpoint.
     
@@ -76,22 +75,15 @@ async def health_check() -> HealthResponse:
     - Fyers API
     - Scheduler
     """
-    checker = get_health_checker()
+    checker = HealthChecker()
     
-    fyers = getattr(_app_instance, 'fyers_instance', None) if _app_instance else None
-    scheduler = getattr(_app_instance, 'scheduler', None) if _app_instance else None
-    
-    health = await checker.get_health(
-        fyers_instance=fyers,
-        scheduler=scheduler,
-        check_all=True
-    )
+    health = await checker.get_system_health()
     
     # Set appropriate HTTP status
     status_code = 200 if health.status == HealthStatus.HEALTHY else 503
     
     return JSONResponse(
-        content=health.model_dump(mode="json"),
+        content=health.to_dict(),
         status_code=status_code
     )
 
@@ -104,8 +96,7 @@ async def liveness_probe():
     Returns 200 if the process is alive.
     Used by K8s to determine if the container needs to be restarted.
     """
-    checker = get_health_checker()
-    return checker.get_liveness()
+    return {"status": "alive"}
 
 
 @api.get("/ready", tags=["Health"])
@@ -116,14 +107,16 @@ async def readiness_probe():
     Returns 200 if the app is ready to serve traffic.
     Used by K8s to determine if traffic should be routed to this pod.
     """
-    checker = get_health_checker()
+    checker = HealthChecker()
+    health = await checker.get_system_health()
     
-    scheduler = getattr(_app_instance, 'scheduler', None) if _app_instance else None
-    
-    readiness = await checker.get_readiness(scheduler=scheduler)
-    
-    status_code = 200 if readiness["ready"] else 503
-    return JSONResponse(content=readiness, status_code=status_code)
+    # Ready if not unhealthy
+    ready = health.status != HealthStatus.UNHEALTHY
+    status_code = 200 if ready else 503
+    return JSONResponse(
+        content={"ready": ready, "status": health.status.value},
+        status_code=status_code
+    )
 
 
 @api.get("/metrics", tags=["Metrics"])
@@ -137,10 +130,11 @@ async def metrics():
     metrics_data = []
     
     # Add basic metrics
-    checker = get_health_checker()
-    metrics_data.append(f"# HELP trading_app_uptime_seconds Application uptime in seconds")
-    metrics_data.append(f"# TYPE trading_app_uptime_seconds gauge")
-    metrics_data.append(f"trading_app_uptime_seconds {checker.uptime_seconds:.2f}")
+    checker = HealthChecker()
+    health = await checker.get_system_health()
+    metrics_data.append("# HELP trading_app_uptime_seconds Application uptime in seconds")
+    metrics_data.append("# TYPE trading_app_uptime_seconds gauge")
+    metrics_data.append(f"trading_app_uptime_seconds {health.uptime_seconds:.2f}")
     
     # Add Ray metrics if available
     if _app_instance and hasattr(_app_instance, 'distributed_mode'):

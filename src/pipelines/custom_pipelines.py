@@ -1,11 +1,13 @@
 import warnings
 import pandas as pd
-from typing import Dict, List, Optional
+import numpy as np
+from typing import Any, Dict, List, Optional, Union
 from imblearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline as SklearnPipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
 from joblib import Memory
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig
 from loguru import logger
 
 # Suppress warnings in this module
@@ -28,6 +30,7 @@ from src.preprocessing.custom_transformers import (
 )
 from src.preprocessing.company_metadata_transformer import CompanyMetadataTransformer
 from src.utils.hardware_detector import get_hardware_detector
+from src.pipelines.family_pipeline import FamilyPipelineBuilder, get_family_for_model
 
 class CustomModelPipeline():
 
@@ -161,13 +164,95 @@ class CustomModelPipeline():
             )))
 
     def update_feature_selection_pipeline(self):
-        feature_selector = self.feature_config.get('feature_selector', None)
-        if feature_selector:
-            # Convert OmegaConf to native Python objects for sklearn compatibility
-            pipeline_params = OmegaConf.to_container(config.model.pipeline_params, resolve=True)
-            self.params = {**self.params, **pipeline_params}
-            feature_selector = FeatSelect_mapping.get(feature_selector, None)
-            self.steps.append(('feature_selection', feature_selector()))
+        """
+        Adds feature selection step to the pipeline.
+        
+        Supported selectors:
+            - 'RFE': Recursive Feature Elimination
+            - 'RFECV': RFE with Cross-Validation
+            - 'SHAP': SHAP-based selection (uses LGBMClassifier by default)
+            - 'LGBM': LightGBM gain-based importance [RECOMMENDED]
+            - 'CORR': Correlation filter (removes redundant features)
+            - 'MULTI': Multi-stage selection (Correlation + LGBM) [RECOMMENDED]
+        """
+        feature_selector_name = self.feature_config.get('feature_selector', None)
+        if not feature_selector_name:
+            return
+        
+        # Convert OmegaConf to native Python objects for sklearn compatibility
+        pipeline_params = OmegaConf.to_container(config.model.pipeline_params, resolve=True)
+        self.params = {**self.params, **pipeline_params}
+        
+        feature_selector_class = FeatSelect_mapping.get(feature_selector_name, None)
+        if feature_selector_class is None:
+            logger.warning(f"Unknown feature selector '{feature_selector_name}', skipping feature selection")
+            return
+        
+        # Get feature selection parameters from config
+        fs_params = self.feature_config.get('feature_selection_params', {})
+        if hasattr(fs_params, 'items'):  # OmegaConf/dict
+            fs_params = OmegaConf.to_container(fs_params, resolve=True) if hasattr(fs_params, '_iter_ex') else dict(fs_params)
+        else:
+            fs_params = {}
+        
+        # Create selector with appropriate parameters
+        if feature_selector_name == 'LGBM':
+            # LGBMImportanceSelector with configurable parameters
+            n_features = fs_params.get('n_features', 50)
+            importance_type = fs_params.get('importance_type', 'gain')
+            selector = feature_selector_class(
+                n_features=n_features,
+                importance_type=importance_type
+            )
+            logger.info(f"Feature selection: LGBM importance (n_features={n_features}, type={importance_type})")
+            
+        elif feature_selector_name == 'SHAP':
+            # DFShapFeatureSelector with configurable parameters
+            n_features = fs_params.get('n_features', 50)
+            sample_size = fs_params.get('sample_size', 1000)
+            selector = feature_selector_class(
+                n_features=n_features,
+                sample_size=sample_size
+            )
+            logger.info(f"Feature selection: SHAP (n_features={n_features}, sample_size={sample_size})")
+            
+        elif feature_selector_name == 'CORR':
+            # CorrelationFilter with configurable threshold
+            threshold = fs_params.get('threshold', 0.95)
+            method = fs_params.get('method', 'pearson')
+            selector = feature_selector_class(threshold=threshold, method=method)
+            logger.info(f"Feature selection: Correlation filter (threshold={threshold}, method={method})")
+            
+        elif feature_selector_name == 'MULTI':
+            # MultiStageFeatureSelector with configurable stages
+            from src.preprocessing.custom_transformers import CorrelationFilter, LGBMImportanceSelector
+            
+            corr_threshold = fs_params.get('corr_threshold', 0.95)
+            n_features = fs_params.get('n_features', 50)
+            importance_type = fs_params.get('importance_type', 'gain')
+            
+            stages = [
+                ('correlation', CorrelationFilter(threshold=corr_threshold)),
+                ('lgbm_importance', LGBMImportanceSelector(
+                    n_features=n_features,
+                    importance_type=importance_type
+                ))
+            ]
+            selector = feature_selector_class(stages=stages)
+            logger.info(f"Feature selection: Multi-stage (corr_threshold={corr_threshold}, n_features={n_features})")
+            
+        elif feature_selector_name in ('RFE', 'RFECV'):
+            # RFE/RFECV with configurable n_features
+            n_features = fs_params.get('n_features', 50)
+            selector = feature_selector_class(n_features=n_features)
+            logger.info(f"Feature selection: {feature_selector_name} (n_features={n_features})")
+            
+        else:
+            # Default instantiation
+            selector = feature_selector_class()
+            logger.info(f"Feature selection: {feature_selector_name} (default parameters)")
+        
+        self.steps.append(('feature_selection', selector))
 
     def update_model_pipeline(self):
         model_type = self.feature_config.get('model', None)
@@ -395,3 +480,408 @@ class CustomModelPipeline():
         # Predict and decode target
         y_pred_encoded = self.model.predict(X)
         return self.target_encoder.inverse_transform(y_pred_encoded)
+
+
+# =============================================================================
+# FAMILY-BASED MODEL PIPELINE (New Architecture)
+# =============================================================================
+
+class FamilyModelPipeline:
+    """
+    Family-based ML pipeline that uses model families with auto-determined preprocessing.
+    
+    This is the new architecture that allows model type to be a hyperparameter
+    within a model family. Each family has specific preprocessing requirements
+    that are automatically configured.
+    
+    Model Families:
+        - baseline: Fast reference models (LR, DT) - for comparison
+        - tree: LGBM, XGB, RFC, GBC, ETC - no scaling needed
+        - linear: LR, LSVC, Ridge, SGD - scaling required
+        - distance: KNN, SVC - scaling required
+        - neural: MLP - scaling + feature reduction
+    
+    Example:
+        # Create pipeline for tree family
+        pipeline = FamilyModelPipeline(family='tree')
+        pipeline.define_model()
+        pipeline.fit(X_train, y_train)
+        
+        # Compare multiple families
+        pipeline = FamilyModelPipeline(families=['tree', 'linear', 'baseline'])
+        results = pipeline.compare_families(X_train, y_train)
+    """
+    
+    def __init__(
+        self,
+        family: Optional[str] = None,
+        families: Optional[List[str]] = None,
+        feature_config: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Initialize FamilyModelPipeline.
+        
+        Args:
+            family: Single family name ('tree', 'linear', 'baseline', etc.)
+            families: List of families for comparison mode
+            feature_config: Additional configuration (imbalance_technique, max_samples_per_class, etc.)
+        """
+        self.family = family
+        self.families = families or ([family] if family else ['tree'])
+        self.feature_config = feature_config or {}
+        
+        # Get features from config
+        self.features: List[str] = config.columns.custom_cs_cols if getattr(config.model_settings, 'model_type', None) == 'COMB' else []
+        
+        # Add 'symbol' to features if using combined model training
+        if getattr(config.training, 'combine_all_symbols', False) and 'symbol' not in self.features:
+            self.features = ['symbol'] + self.features
+        
+        # Hardware-aware optimization
+        if hasattr(config, 'hardware_optimization') and config.hardware_optimization.auto_detect:
+            hw_detector = get_hardware_detector()
+            mode = config.hardware_optimization.mode or 'balanced'
+            optimal_max_samples = hw_detector.get_max_samples_per_class(mode=mode)
+            
+            current_max = self.feature_config.get('max_samples_per_class', None)
+            if current_max is None or (current_max > optimal_max_samples * 1.5):
+                self.feature_config['max_samples_per_class'] = optimal_max_samples
+                logger.info(f"Hardware-aware optimization: max_samples_per_class={optimal_max_samples}")
+        
+        # Initialize components
+        self.target_encoder = TargetLabelEncoder()
+        self.model = None
+        self.pipeline = None
+        self.search_cv = None
+        self.best_family = None
+        self.family_results = {}
+        
+        # Classify columns
+        self._classify_columns()
+        
+        # Initialize params (for compatibility with base_pipeline.py)
+        # Will be populated when define_model() is called
+        self.params = {}
+        
+        logger.info(f"FamilyModelPipeline initialized: families={self.families}")
+    
+    def _classify_columns(self):
+        """Classify columns into numeric and categorical."""
+        self.numeric_cols = [
+            col for col in self.features 
+            if col in config.columns.short_num_cols or col in config.columns.long_num_cols
+        ]
+        self.categorical_cols = [
+            col for col in self.features 
+            if col in config.columns.cat_cols
+        ]
+        
+        logger.debug(f"Columns: {len(self.numeric_cols)} numeric, {len(self.categorical_cols)} categorical")
+    
+    def _get_family_builder(self, family_name: str) -> FamilyPipelineBuilder:
+        """Create a FamilyPipelineBuilder for the specified family."""
+        return FamilyPipelineBuilder(
+            family_name=family_name,
+            config=config,
+            numeric_cols=self.numeric_cols,
+            categorical_cols=self.categorical_cols,
+            feature_cols=self.features
+        )
+    
+    def define_pipeline(self, family: Optional[str] = None) -> SklearnPipeline:
+        """
+        Define the sklearn Pipeline for a specific family.
+        
+        Args:
+            family: Family name. If None, uses self.family or first in self.families.
+            
+        Returns:
+            sklearn Pipeline with preprocessing and ModelSelector.
+        """
+        family = family or self.family or self.families[0]
+        
+        builder = self._get_family_builder(family)
+        
+        # Build pipeline with optional resampler
+        imbalance_technique = self.feature_config.get('imbalance_technique')
+        self.pipeline = builder.build_pipeline(
+            include_resampler=bool(imbalance_technique),
+            resampler_type=imbalance_technique
+        )
+        
+        return self.pipeline
+    
+    def define_model(
+        self,
+        family: Optional[str] = None,
+        n_iter: Optional[int] = None,
+        n_splits: int = 5,
+        gap: int = 0,
+        n_jobs: int = -1,
+        scoring: str = 'f1_weighted',
+        verbose: int = 1
+    ) -> RandomizedSearchCV:
+        """
+        Define RandomizedSearchCV model with family-based pipeline.
+        
+        Args:
+            family: Family name. If None, uses self.family or first in self.families.
+            n_iter: Number of iterations. If None, calculated proportionally.
+            n_splits: Number of CV splits.
+            gap: Embargo gap for TimeSeriesSplit.
+            n_jobs: Number of parallel jobs.
+            scoring: Scoring metric.
+            verbose: Verbosity level.
+            
+        Returns:
+            Configured RandomizedSearchCV.
+        """
+        family = family or self.family or self.families[0]
+        builder = self._get_family_builder(family)
+        
+        # Build pipeline
+        imbalance_technique = self.feature_config.get('imbalance_technique')
+        pipeline = builder.build_pipeline(
+            include_resampler=bool(imbalance_technique),
+            resampler_type=imbalance_technique
+        )
+        
+        # Get proportional n_iter
+        if n_iter is None:
+            n_iter = builder.get_n_iter()
+        
+        # Get param grid and store in self.params for compatibility
+        param_grid = builder.get_param_grid()
+        self.params = param_grid
+        
+        # Create TimeSeriesSplit CV
+        cv = TimeSeriesSplit(n_splits=n_splits, gap=gap)
+        
+        # Create RandomizedSearchCV
+        self.search_cv = RandomizedSearchCV(
+            estimator=pipeline,
+            param_distributions=param_grid,
+            n_iter=n_iter,
+            cv=cv,
+            scoring=scoring,
+            n_jobs=n_jobs,
+            verbose=verbose,
+            random_state=42,
+            return_train_score=True,
+            refit=True,
+            error_score='raise'
+        )
+        
+        self.model = self.search_cv
+        
+        logger.info(f"Defined model for '{family}' family: n_iter={n_iter}, "
+                   f"cv_splits={n_splits}, scoring={scoring}")
+        
+        return self.search_cv
+    
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> 'FamilyModelPipeline':
+        """
+        Fit the pipeline to the data.
+        
+        Args:
+            X: Input features.
+            y: Target variable.
+            
+        Returns:
+            self
+        """
+        # Encode target
+        y_encoded = self.target_encoder.fit_transform(y)
+        
+        # Validate data
+        self._validate_data(X)
+        
+        # Ensure model is defined
+        if self.model is None:
+            self.define_model()
+        
+        # Fit
+        logger.info(f"Fitting model: X shape={X.shape}, y shape={y_encoded.shape}")
+        self.model.fit(X, y_encoded)
+        
+        # Log results
+        if hasattr(self.model, 'best_params_'):
+            logger.info(f"Best params: {self.model.best_params_}")
+        if hasattr(self.model, 'best_score_'):
+            logger.info(f"Best CV score: {self.model.best_score_:.4f}")
+        
+        return self
+    
+    def _validate_data(self, X: pd.DataFrame) -> None:
+        """Validate input data before fitting."""
+        # Check for sequences
+        for col in X.columns:
+            sample = X[col].dropna().head(10)
+            for val in sample:
+                if isinstance(val, (list, tuple, np.ndarray)) and not isinstance(val, str):
+                    raise ValueError(f"Column '{col}' contains sequences instead of scalars")
+        
+        # Check for object dtypes
+        object_cols = X.select_dtypes(include=['object']).columns.tolist()
+        if object_cols:
+            logger.warning(f"Found {len(object_cols)} object dtype columns: {object_cols[:5]}...")
+    
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Predict using the fitted model.
+        
+        Args:
+            X: Input features.
+            
+        Returns:
+            Decoded predictions.
+        """
+        if self.model is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        
+        y_pred_encoded = self.model.predict(X)
+        return self.target_encoder.inverse_transform(y_pred_encoded)
+    
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Predict class probabilities.
+        
+        Args:
+            X: Input features.
+            
+        Returns:
+            Predicted probabilities.
+        """
+        if self.model is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        
+        return self.model.predict_proba(X)
+    
+    def compare_families(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        families: Optional[List[str]] = None,
+        n_iter: Optional[int] = None,
+        n_splits: int = 5,
+        scoring: str = 'f1_weighted'
+    ) -> Dict[str, Dict[str, Any]]:
+        """
+        Compare multiple model families and find the best one.
+        
+        Args:
+            X: Input features.
+            y: Target variable.
+            families: List of families to compare. If None, uses self.families.
+            n_iter: Iterations per family.
+            n_splits: CV splits.
+            scoring: Scoring metric.
+            
+        Returns:
+            Dict with results for each family, including best model and score.
+        """
+        families = families or self.families
+        y_encoded = self.target_encoder.fit_transform(y)
+        
+        results = {}
+        best_score = -np.inf
+        best_family = None
+        best_model = None
+        
+        for family_name in families:
+            logger.info(f"\n{'='*50}")
+            logger.info(f"Training family: {family_name}")
+            logger.info(f"{'='*50}")
+            
+            try:
+                # Create and fit model for this family
+                builder = self._get_family_builder(family_name)
+                
+                imbalance_technique = self.feature_config.get('imbalance_technique')
+                pipeline = builder.build_pipeline(
+                    include_resampler=bool(imbalance_technique),
+                    resampler_type=imbalance_technique
+                )
+                
+                # Get family-specific n_iter
+                family_n_iter = n_iter or builder.get_n_iter()
+                param_grid = builder.get_param_grid()
+                
+                cv = TimeSeriesSplit(n_splits=n_splits)
+                
+                search = RandomizedSearchCV(
+                    estimator=pipeline,
+                    param_distributions=param_grid,
+                    n_iter=family_n_iter,
+                    cv=cv,
+                    scoring=scoring,
+                    n_jobs=-1,
+                    verbose=1,
+                    random_state=42,
+                    return_train_score=True,
+                    refit=True
+                )
+                
+                # Validate data
+                self._validate_data(X)
+                
+                # Fit
+                search.fit(X, y_encoded)
+                
+                # Store results
+                results[family_name] = {
+                    'best_score': search.best_score_,
+                    'best_params': search.best_params_,
+                    'best_model_type': search.best_params_.get('model__model_type', 'unknown'),
+                    'cv_results': search.cv_results_,
+                    'fitted_model': search.best_estimator_,
+                    'n_iter': family_n_iter
+                }
+                
+                logger.info(f"Family '{family_name}': best_score={search.best_score_:.4f}, "
+                           f"best_model={results[family_name]['best_model_type']}")
+                
+                # Track overall best
+                if search.best_score_ > best_score:
+                    best_score = search.best_score_
+                    best_family = family_name
+                    best_model = search
+                    
+            except Exception as e:
+                logger.error(f"Failed to train family '{family_name}': {e}")
+                results[family_name] = {
+                    'error': str(e),
+                    'best_score': -np.inf
+                }
+        
+        # Set best model
+        self.best_family = best_family
+        self.model = best_model
+        self.family_results = results
+        
+        logger.info(f"\n{'='*50}")
+        logger.info(f"BEST FAMILY: {best_family} (score={best_score:.4f})")
+        logger.info(f"{'='*50}")
+        
+        return results
+    
+    @property
+    def best_params_(self) -> Dict[str, Any]:
+        """Get best parameters from fitted model."""
+        if self.model is None:
+            raise ValueError("Model not fitted.")
+        return self.model.best_params_
+    
+    @property
+    def best_score_(self) -> float:
+        """Get best CV score from fitted model."""
+        if self.model is None:
+            raise ValueError("Model not fitted.")
+        return self.model.best_score_
+    
+    @property
+    def best_estimator_(self):
+        """Get best estimator from fitted model."""
+        if self.model is None:
+            raise ValueError("Model not fitted.")
+        return self.model.best_estimator_

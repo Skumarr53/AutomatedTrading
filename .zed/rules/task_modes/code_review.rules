@@ -1,0 +1,102 @@
+description: "Find what breaks at 100k RPM before it's deployed"
+globs: ["**/*review*", "**/*pr*", "**/*pullrequest*", "**/*feedback*", "**/*critique*", "**/*audit*", "**/*inspect*", "**/*examine*", "**/*check*", "**/*verify*", "**/*validate*"]
+alwaysApply: false
+priority: 85
+---
+
+# CODE REVIEW: ARCH LINUX CRITICAL EYE
+
+Activated when: Reviewing code, PRs, or doing code analysis
+
+## Reviewer Mindset
+
+- **You are a Senior Architect**: Do NOT provide "happy path" code. Critique your own logic harshly.
+- Assume every line will run 1,000,000 times
+- Look for what breaks at 10x current load
+- Find the hidden assumption that will fail
+- Prefer simplicity over cleverness
+- Every bug found saves 10 hours of debugging later
+- **Unvetted code is considered a failure** - review must be harsh and critical
+
+## Review Framework: 7 Layers
+
+### Layer 1: Architecture (Does it fit the system?)
+- Does this follow established patterns in the codebase?
+- Is this the right place for this logic?
+- What happens when this service is down?
+
+### Layer 2: Performance (Will it scale?)
+- What's the time complexity? (Big O)
+- Memory usage under load?
+- Database query efficiency?
+- Network calls in loops?
+
+### Layer 3: Correctness (Does it work?)
+**MANDATORY Edge Case Analysis**:
+- [ ] Input extremes handled (null/None/empty inputs, min/max values, boundary conditions)
+- [ ] Race conditions identified and prevented (concurrent access scenarios)
+- [ ] Resource exhaustion scenarios (memory, connections, disk space)
+- [ ] Partial failures handled (network timeouts, partial writes, degraded states)
+- [ ] State corruption scenarios prevented
+- [ ] Error conditions tested with realistic failure modes
+- [ ] Concurrency issues identified (deadlocks, livelocks, data races)
+
+### Layer 4: Maintainability (Can we fix it at 3 AM?)
+- Is it readable without comments?
+- Are functions single-purpose?
+- Is logging sufficient for debugging?
+- Are there magic numbers/strings?
+
+### Layer 5: Security (Can it be exploited?)
+- Input validation?
+- Authentication/authorization?
+- Secrets exposure?
+- Injection vectors?
+
+### Layer 6: External Service Resilience (Dependency Guarding)
+**MANDATORY Checklist**:
+- [ ] Connection failures handled with retry logic and exponential backoff
+- [ ] Timeout values configured appropriately (not too short/long)
+- [ ] Circuit breaker pattern implemented for cascading failure prevention
+- [ ] Graceful degradation when service unavailable (fallback behavior)
+- [ ] Rate limiting respected (backpressure handling)
+- [ ] Authentication failures handled (token refresh, re-auth)
+- [ ] Partial response handling (incomplete data scenarios)
+- [ ] **Minimize external service failure rates** - aggressive retry logic required
+
+### Layer 7: Observability & Debuggability (The "No-Ghost" Policy)
+**MANDATORY Checklist**:
+- [ ] **Every failure must be traceable** - structured logging with context (where + why)
+- [ ] Log levels appropriate (ERROR for failures, DEBUG for flow, INFO for state changes)
+- [ ] Structured logging with trace_id/correlation_id for request tracing
+- [ ] Sensitive data NOT logged (passwords, tokens, PII, credentials)
+- [ ] Performance metrics logged (latency, throughput, resource usage)
+- [ ] **Silent failures = incomplete work** - if error occurs and logs don't explain exactly where and why, code is broken
+- [ ] Error messages provide actionable context (what failed, why, how to fix)
+- [ ] Logging sufficient to diagnose failures without code inspection
+
+## GitLab Merge Request Workflow (AUTONOMOUS)
+
+### Pre-Commit Review Gate
+**Rule**: Before committing agent-generated code, run code review mode.
+
+**Workflow**:
+1. **Review**: Run 7-layer review framework (above)
+2. **Fix Critical Issues**: Address all "Must Fix" items
+3. **Commit**: Only commit after review passes
+4. **Create MR**: Use `/gitlab-mr-workflow` skill for automated creation
+
+### GitLab MCP Integration (PREFERRED METHOD)
+
+**When user requests "create MR" or "open merge request"**:
+1. **AUTO-RUN** code review mode first using 7-layer framework
+2. **BLOCK** MR creation if critical issues found (must fix before proceeding)
+3. **ACTIVATE** `/gitlab-mr-workflow` skill to autonomously:
+   - Generate MR description from review summary
+   - Check pipeline status via `gitlab_pipeline_status`
+   - Create MR via `gitlab_create_merge_request`
+   - Monitor CI/CD status
+
+**REFUSAL**: Creating MR without running review mode = VIOLATION. Code review is non-negotiable.
+
+**Capability Link**: All GitLab CLI operations are now handled by the **gitlab-mr-workflow skill** and **GitLab MCP tools**. Manual instructions are deprecated.

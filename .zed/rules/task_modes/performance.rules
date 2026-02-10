@@ -1,0 +1,217 @@
+description: "Find the 10% that causes 90% of the slowdown"
+globs: ["**/*performance*", "**/*optimize*", "**/*optimization*", "**/*benchmark*", "**/*profile*", "**/*profiling*", "**/*speed*", "**/*fast*", "**/*slow*", "**/*latency*", "**/*throughput*", "**/*efficiency*", "**/*efficient*", "**/*bottleneck*", "**/*scalability*", "**/*scale*", "**/*memory*", "**/*cpu*", "**/*resource*", "**/*measure*", "**/*metric*"]
+alwaysApply: false
+priority: 90
+---
+
+# PERFORMANCE OPTIMIZATION: ARCH LINUX SCALE
+
+Activated when: File contains 'performance', 'optimize', 'benchmark', 'profile', 'slow'
+
+## Optimization Philosophy
+
+- Measure first, optimize second
+- Find the bottleneck, not just any improvement
+- 10x improvement > 10% improvement
+- Simple code is fast code
+- Cache everything, but invalidate correctly
+
+## Performance Investigation Framework
+
+### Step 1: Establish Baseline
+- What's the current performance?
+- What are the requirements?
+- Where are the users complaining?
+
+### Step 2: Measure Everything
+- CPU profiling (cProfile, py-spy, perf)
+- Memory profiling (memory_profiler, heaptrack)
+- I/O profiling (iotop, strace)
+- Database query analysis (EXPLAIN, slow logs)
+
+### Step 3: Find the Hot Path
+- 80/20 rule: 20% of code causes 80% of time
+- Look for nested loops
+- Look for network/database calls in loops
+- Look for unnecessary serialization
+
+### Step 4: Optimize Strategically
+- Algorithm improvement > micro-optimization
+- Caching > recomputation
+- Batch operations > individual calls
+- Async > blocking
+
+## Output Template
+
+### PERFORMANCE ANALYSIS: [Component Name]
+
+#### CURRENT STATE
+- **Metric**: [Requests/second, latency, memory usage]
+- **Baseline**: [Current measurement]
+- **Target**: [Required performance]
+- **Gap**: [How far we are]
+
+#### PROFILING RESULTS
+
+**CPU Hotspots**:
+[Function taking X% of time]
+
+**Memory Issues**:
+[Memory leak or high allocation]
+
+**I/O Bottlenecks**:
+[Slow network/database calls]
+
+#### OPTIMIZATION OPPORTUNITIES
+
+##### 1. [High Impact - Low Effort]
+- **Current**: [What's slow]
+- **Optimization**: [How to fix]
+- **Expected Improvement**: [X% faster, Y% less memory]
+- **Effort**: [Small/Medium/Large]
+
+##### 2. [Medium Impact - Medium Effort]
+
+##### 3. [Low Impact - High Effort] (Usually skip)
+
+#### IMPLEMENTATION PLAN
+
+**Phase 1 (Quick Wins)**:
+- [ ] [Optimization 1]
+- [ ] [Optimization 2]
+
+**Phase 2 (Architectural)**:
+- [ ] [Larger refactor]
+
+**Phase 3 (Infrastructure)**:
+- [ ] [Scaling changes]
+
+#### EXPECTED RESULTS
+
+| Scenario | Performance | Memory | Cost |
+|----------|-------------|--------|------|
+| Current | 100 RPM | 1GB | $X |
+| After Phase 1 | 500 RPM | 800MB | $X |
+| After Phase 2 | 2000 RPM | 500MB | $0.8X |
+
+#### TRADEOFFS
+
+- **Complexity Increase**: [How much harder to maintain]
+- **Technical Debt**: [What we're sacrificing]
+- **Risk**: [What could break]
+
+[TOKEN AUDIT: Analysis depth: X | Actionable insights: Y]
+
+## Python Optimization Patterns
+
+### Data Structures
+- Use `list` for sequential data
+- Use `dict` for lookups
+- Use `set` for membership tests
+- Use `collections.deque` for queues
+- Use `array.array` for numeric arrays
+
+### Libraries
+- `numpy` for numerical operations
+- `pandas` for tabular data (but beware memory)
+- `numba` for JIT compilation
+- `cython` for C extensions
+- `pypy` for JIT interpreter
+
+### Async
+- `asyncio.gather` for parallel async calls
+- `aiohttp` for async HTTP
+- `asyncpg` for async PostgreSQL
+- `aioredis` for async Redis
+
+### Caching
+- `functools.lru_cache` for function results
+- Redis for distributed cache
+- `joblib.Memory` for disk caching
+- CDN for static assets
+
+## Rust Optimization Patterns
+
+### Zero-Cost Abstractions
+- Iterators are zero-cost
+- `match` compiles to jump tables
+- Traits have no runtime overhead
+
+### Allocation Reduction
+- `&str` over `String` when possible
+- `Cow<'_, T>` for conditional cloning
+- `Vec::with_capacity` to avoid reallocation
+- Arena allocation for many small objects
+
+### Concurrency
+- `tokio` for async runtime
+- `rayon` for data parallelism
+- Channels for message passing
+- `Arc<Mutex<T>>` for shared mutable state
+
+### Profiling Tools
+- `perf` for CPU profiling
+- `flamegraph` for visualization
+- `cargo bench` for benchmarks
+- `cargo bloat` for binary size
+
+## ML Specific Optimizations
+
+### Model Inference
+- Batch inference > single inference
+- Model quantization (FP16, INT8)
+- Operator fusion
+- Kernel optimization
+
+### Training
+- Mixed precision training
+- Gradient accumulation
+- Data loading optimization
+- Distributed training
+
+### LLM Specific
+- KV cache optimization
+- Continuous batching
+- Paged attention
+- Speculative decoding
+- Quantization (GPTQ, AWQ, GGUF)
+
+## Scaling Patterns
+
+### Vertical
+- Better CPU (more cores)
+- More RAM
+- Faster disk (NVMe)
+- GPU acceleration
+
+### Horizontal
+- Load balancing
+- Database sharding
+- Caching layer
+- Message queues
+
+### Architectural
+- Microservices for independent scaling
+- Event-driven architecture
+- CQRS (Command Query Responsibility Segregation)
+- Read replicas for databases
+
+## Measurement Tools
+
+### Python
+- `cProfile` / `py-spy` for CPU
+- `memory_profiler` for memory
+- `line_profiler` for line-by-line
+- `scalene` for comprehensive profiling
+
+### Rust
+- `cargo flamegraph`
+- `perf` integration
+- `criterion` for benchmarks
+- `heaptrack` for memory
+
+### System
+- `htop` for CPU/memory
+- `iotop` for I/O
+- `nethogs` for network
+- Prometheus for metrics

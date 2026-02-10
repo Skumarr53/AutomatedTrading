@@ -1,0 +1,7 @@
+Imnporntant Fix:
+
+   ## added below to handle error at _get_metadata_for_step of sklearn.imblearn.pipeline.Pipeline
+   ## under hasattr(cloned_transformer, "transform") or hasattr(
+   ## cloned_transformer, "fit_transform") block
+   if isinstance(X, tuple):
+      X, y = X

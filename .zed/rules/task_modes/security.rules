@@ -1,0 +1,263 @@
+description: "Assume breach, design for least privilege, Arch Linux hardening"
+globs: ["**/*security*", "**/*secure*", "**/*auth*", "**/*authentication*", "**/*authorization*", "**/*authorize*", "**/*compliance*", "**/*comply*", "**/*permission*", "**/*access*", "**/*encrypt*", "**/*encryption*", "**/*vulnerability*", "**/*vulnerable*", "**/*threat*", "**/*attack*", "**/*defense*", "**/*protect*", "**/*protection*", "**/*privacy*", "**/*private*", "**/*secret*", "**/*credential*", "**/*password*", "**/*token*"]
+alwaysApply: false
+priority: 95
+---
+
+# SECURITY: PARANOID BY DEFAULT
+
+Activated when: File contains 'security', 'auth', 'compliance', 'secure'
+
+## Security Mindset
+
+- Assume external systems are compromised
+- Assume internal users are malicious
+- Least privilege: only what's necessary
+- Defense in depth: multiple layers
+- Fail secure: default to denial
+- Audit everything: logs are evidence
+
+## Threat Modeling Framework
+
+### Assets
+- User data (PII, financial)
+- System access (SSH, admin panels)
+- API keys and secrets
+- Infrastructure control
+
+### Threats
+- Data breach (exfiltration)
+- Unauthorized access (broken auth)
+- Code execution (RCE)
+- Denial of service (DoS)
+- Supply chain attacks
+
+### Mitigations
+- Encryption at rest and in transit
+- Strong authentication (MFA)
+- Input validation and sanitization
+- Rate limiting and WAF
+- Dependency scanning
+
+## Output Template
+
+### SECURITY ANALYSIS: [Component/System]
+
+#### THREAT MODEL
+
+**Assets at Risk**:
+- [ ] [Asset 1]
+- [ ] [Asset 2]
+
+**Potential Attackers**:
+- [ ] External hackers
+- [ ] Malicious insiders
+- [ ] Script kiddies
+- [ ] Nation states (if applicable)
+
+#### CRITICAL VULNERABILITIES
+
+##### 1. [Vulnerability Name] - CRITICAL
+- **Location**: [Where it is]
+- **Exploit**: [How to attack]
+- **Impact**: [What they get]
+- **Fix**: [Secure code]
+- **Verification**: [How to test it's fixed]
+
+##### 2. [Another vulnerability]
+
+#### MEDIUM RISKS
+[Same structure]
+
+#### DEFENSE IN DEPTH
+
+**Layer 1: Network**
+- [ ] Firewall rules
+- [ ] VPN for admin access
+- [ ] WAF for web apps
+
+**Layer 2: Application**
+- [ ] Input validation
+- [ ] Output encoding
+- [ ] Session management
+
+**Layer 3: Data**
+- [ ] Encryption at rest
+- [ ] Encryption in transit
+- [ ] Access controls
+
+**Layer 4: Monitoring**
+- [ ] Intrusion detection
+- [ ] Log analysis
+- [ ] Alerting
+
+#### ARCH LINUX HARDENING
+
+**System Level**:
+```bash
+# Security recommendations
+```
+
+**Application Level**:
+```python
+# Secure defaults
+```
+
+#### COMPLIANCE CHECKLIST
+
+- **GDPR**: [Requirements met?]
+- **HIPAA**: [If applicable]
+- **SOC2**: [If applicable]
+- **PCI DSS**: [If applicable]
+
+[TOKEN AUDIT: Risks identified: X | Mitigations provided: Y]
+
+## Common Vulnerabilities (OWASP Top 10)
+
+### 1. Broken Access Control
+- Authentication bypass possible?
+- Horizontal/vertical privilege escalation?
+- IDOR (Insecure Direct Object Reference)?
+
+### 2. Cryptographic Failures
+- Sensitive data encrypted?
+- Weak algorithms (MD5, SHA1)?
+- Hardcoded secrets?
+
+### 3. Injection
+- SQL injection possible?
+- Command injection?
+- LDAP injection?
+- NoSQL injection?
+
+### 4. Insecure Design
+- Missing threat modeling?
+- Security requirements defined?
+- Secure defaults?
+
+### 5. Security Misconfiguration
+- Default credentials?
+- Verbose error messages?
+- Unnecessary features enabled?
+
+### 6. Vulnerable Components
+- Dependencies up to date?
+- Known vulnerabilities in deps?
+- Unmaintained dependencies?
+
+### 7. Authentication Failures
+- Weak password policies?
+- Missing MFA?
+- Session fixation possible?
+
+### 8. Software Integrity Failures
+- CI/CD pipeline secure?
+- Code signing?
+- Supply chain verification?
+
+### 9. Security Logging Failures
+- Login attempts logged?
+- Sensitive operations logged?
+- Logs protected from tampering?
+
+### 10. Server-Side Request Forgery
+- User input used in URLs?
+- Internal services exposed?
+
+## Python Security Patterns
+
+### Input Validation
+- Use Pydantic for validation
+- Sanitize HTML with `bleach`
+- Validate file uploads
+- Use parameterized queries for SQL
+
+### Authentication
+- Use `passlib` for password hashing
+- Implement rate limiting
+- Use JWT with strong algorithms
+- Session timeout enforcement
+
+### Secrets
+- Never hardcode secrets
+- Use environment variables
+- Use HashiCorp Vault or AWS Secrets Manager
+- Rotate secrets regularly
+
+## Rust Security Patterns
+
+### Memory Safety
+- Use `unsafe` blocks sparingly
+- Bounds checking enabled
+- Integer overflow checks
+- Use `#[forbid(unsafe_code)]` when possible
+
+### Cryptography
+- Use `rustls` over OpenSSL
+- Use `ring` or `libsodium` for crypto
+- Avoid implementing crypto yourself
+
+### Dependencies
+- Audit dependencies with `cargo audit`
+- Pin dependencies to specific versions
+- Minimize dependency tree
+
+## Infrastructure Security
+
+### Containers
+- Run as non-root user
+- Use minimal base images
+- Scan images for vulnerabilities
+- Use Podman rootless mode
+
+### Kubernetes
+- Pod security policies
+- Network policies
+- Service mesh (Istio, Linkerd)
+- Secret management
+
+### Network
+- TLS everywhere (mTLS for internal)
+- VPN for admin access
+- Zero trust network architecture
+- DDoS protection
+
+## ML/AIOPS Security
+
+### Model Security
+- Model poisoning prevention
+- Adversarial attack detection
+- Model extraction prevention
+- Training data privacy
+
+### LLM Security
+- Prompt injection prevention
+- Output validation and filtering
+- Rate limiting per user
+- Content moderation
+
+### Data Security
+- PII detection and masking
+- Data encryption
+- Access logging
+- Data retention policies
+
+## Arch Linux Specific
+
+### System
+- Enable firewall (`ufw` or `firewalld`)
+- Disable unnecessary services
+- Use `sudo` instead of root login
+- Regular system updates
+
+### Packages
+- Verify PGP signatures
+- Check AUR package reviews
+- Build from source when uncertain
+- Use `chaotic-aur` cautiously
+
+### Filesystem
+- Use `btrfs` snapshots for rollback
+- Encrypt sensitive directories
+- Proper file permissions (755 for dirs, 644 for files)
+- Audit with `auditd`

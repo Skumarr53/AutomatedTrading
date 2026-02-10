@@ -779,20 +779,33 @@ class CategoricalPreprocessor(BaseEstimator, TransformerMixin):
 class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
     """
     Selects a subset of features based on SHAP (SHapley Additive exPlanations) feature importance.
+    
+    SHAP values provide model-agnostic feature importance that considers feature interactions.
+    More accurate than simple importance metrics but computationally expensive for large datasets.
 
     Attributes:
-        estimator (BaseEstimator): The estimator used to compute SHAP values.
+        estimator (BaseEstimator): The estimator used to compute SHAP values. Defaults to LGBMClassifier.
         n_features (int): Number of top features to select based on SHAP importance.
+        sample_size (int): Number of samples to use for SHAP calculation (for efficiency).
         feature_importances_ (pd.Series): The computed SHAP feature importances after fitting.
+        selected_features_ (list): Names of selected features.
     """
 
-    def __init__(self, estimator: BaseEstimator, n_features: int = 10) -> None:
+    def __init__(
+        self, 
+        estimator: Optional[BaseEstimator] = None, 
+        n_features: int = 50,
+        sample_size: Optional[int] = 1000
+    ) -> None:
         """
         Initializes the DFShapFeatureSelector.
 
         Args:
-            estimator (BaseEstimator): Estimator for SHAP analysis. Must support the `fit` method.
-            n_features (int, optional): Number of top features to select based on SHAP importance. Defaults to 10.
+            estimator (BaseEstimator, optional): Estimator for SHAP analysis. 
+                If None, uses LGBMClassifier with fast settings (recommended).
+            n_features (int, optional): Number of top features to select. Defaults to 50.
+            sample_size (int, optional): Max samples for SHAP calculation. None = use all.
+                Recommended: 1000-5000 for efficiency. Defaults to 1000.
         
         Raises:
             ValueError: If `n_features` is not a positive integer.
@@ -802,7 +815,33 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
         
         self.estimator = estimator
         self.n_features = n_features
+        self.sample_size = sample_size
         self.feature_importances_: Optional[pd.Series] = None
+        self.selected_features_: Optional[List[str]] = None
+        self._fitted_estimator: Optional[BaseEstimator] = None
+    
+    def _create_default_estimator(self) -> BaseEstimator:
+        """Create a default LGBMClassifier optimized for SHAP calculation."""
+        try:
+            from lightgbm import LGBMClassifier
+            return LGBMClassifier(
+                n_estimators=100,
+                max_depth=5,
+                learning_rate=0.1,
+                num_leaves=31,
+                verbosity=-1,
+                n_jobs=-1,
+                random_state=42
+            )
+        except ImportError:
+            # Fallback to sklearn if LightGBM not available
+            from sklearn.ensemble import GradientBoostingClassifier
+            logger.warning("LightGBM not available, using GradientBoostingClassifier for SHAP")
+            return GradientBoostingClassifier(
+                n_estimators=100,
+                max_depth=5,
+                random_state=42
+            )
 
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'DFShapFeatureSelector':
         """
@@ -810,7 +849,7 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
 
         Args:
             X (pd.DataFrame): Input DataFrame containing features.
-            y (Optional[pd.Series]): Target variable. Required if the estimator's `fit` method needs it.
+            y (Optional[pd.Series]): Target variable. Required for fitting.
 
         Returns:
             DFShapFeatureSelector: Fitted feature selector.
@@ -821,18 +860,41 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
         if not isinstance(X, pd.DataFrame):
             raise ValueError("Input `X` must be a pandas DataFrame.")
         
+        if y is None:
+            raise ValueError("Target variable y is required for DFShapFeatureSelector")
+        
+        self.feature_names_in_ = list(X.columns)
+        n_features_original = len(self.feature_names_in_)
+        
+        # Create estimator if not provided
+        self._fitted_estimator = self.estimator if self.estimator is not None else self._create_default_estimator()
+        
+        logger.debug(f"DFShapFeatureSelector: Fitting {type(self._fitted_estimator).__name__} on {X.shape}")
+        
         # Fit the estimator
-        self.estimator.fit(X, y)
+        self._fitted_estimator.fit(X, y)
+        
+        # Sample data for SHAP calculation if needed (for efficiency)
+        if self.sample_size is not None and len(X) > self.sample_size:
+            logger.debug(f"Sampling {self.sample_size} rows for SHAP calculation")
+            X_sample = X.sample(n=self.sample_size, random_state=42)
+        else:
+            X_sample = X
         
         # Initialize the SHAP explainer
         try:
-            explainer = shap.Explainer(self.estimator, X, feature_names=X.columns)
+            # Use TreeExplainer for tree-based models (faster)
+            if hasattr(self._fitted_estimator, 'booster_') or hasattr(self._fitted_estimator, 'estimators_'):
+                explainer = shap.TreeExplainer(self._fitted_estimator)
+            else:
+                explainer = shap.Explainer(self._fitted_estimator, X_sample, feature_names=X.columns)
         except Exception as e:
-            raise ValueError(f"Error initializing SHAP explainer: {e}")
+            logger.warning(f"TreeExplainer failed, using generic Explainer: {e}")
+            explainer = shap.Explainer(self._fitted_estimator, X_sample, feature_names=X.columns)
         
         # Compute SHAP values
         try:
-            shap_values = explainer(X)
+            shap_values = explainer(X_sample)
         except Exception as e:
             raise ValueError(f"Error computing SHAP values: {e}")
         
@@ -841,11 +903,31 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
             # For multi-output models
             shap_abs = [np.abs(shap_value.values).mean(axis=0) for shap_value in shap_values]
             shap_mean = np.mean(shap_abs, axis=0)
+        elif hasattr(shap_values, 'values'):
+            # For SHAP Explanation objects
+            if len(shap_values.values.shape) == 3:
+                # Multi-class: (samples, features, classes)
+                shap_mean = np.abs(shap_values.values).mean(axis=(0, 2))
+            else:
+                # Binary/regression: (samples, features)
+                shap_mean = np.abs(shap_values.values).mean(axis=0)
         else:
-            # For single-output models
-            shap_mean = np.abs(shap_values.values).mean(axis=0)
+            # Raw numpy array
+            shap_mean = np.abs(shap_values).mean(axis=0)
         
         self.feature_importances_ = pd.Series(shap_mean, index=X.columns).sort_values(ascending=False)
+        
+        # Normalize to 0-1 range
+        total = self.feature_importances_.sum()
+        if total > 0:
+            self.feature_importances_ = self.feature_importances_ / total
+        
+        # Select top features
+        n_select = min(self.n_features, n_features_original)
+        self.selected_features_ = list(self.feature_importances_.head(n_select).index)
+        
+        logger.info(f"DFShapFeatureSelector: Selected {len(self.selected_features_)}/{n_features_original} features")
+        logger.debug(f"Top 5 SHAP features: {dict(self.feature_importances_.head(5).round(4))}")
         
         return self
 
@@ -863,15 +945,33 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
             NotFittedError: If the selector has not been fitted yet.
             ValueError: If `X` is not a pandas DataFrame.
         """
-        if self.feature_importances_ is None:
+        if self.selected_features_ is None:
             raise NotFittedError("Feature selector has not been fitted. Call `fit` before `transform`.")
         
         if not isinstance(X, pd.DataFrame):
             raise ValueError("Input `X` must be a pandas DataFrame.")
         
-        # Select the top n_features
-        selected_features = self.feature_importances_.iloc[:self.n_features].index
-        return X[selected_features]
+        # Handle missing features
+        available = [f for f in self.selected_features_ if f in X.columns]
+        if len(available) < len(self.selected_features_):
+            missing = set(self.selected_features_) - set(available)
+            logger.warning(f"DFShapFeatureSelector: {len(missing)} features missing: {list(missing)[:5]}")
+        
+        return X[available]
+    
+    def get_support(self, indices: bool = False):
+        """Get a mask or indices of features selected."""
+        if self.selected_features_ is None:
+            raise NotFittedError("DFShapFeatureSelector has not been fitted.")
+        
+        mask = np.array([f in self.selected_features_ for f in self.feature_names_in_])
+        return np.where(mask)[0] if indices else mask
+    
+    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+        """Get output feature names."""
+        if self.selected_features_ is None:
+            raise NotFittedError("DFShapFeatureSelector has not been fitted.")
+        return np.array(self.selected_features_)
 
     def get_feature_importances(self) -> pd.Series:
         """
@@ -887,6 +987,475 @@ class DFShapFeatureSelector(BaseEstimator, TransformerMixin):
             raise NotFittedError("Feature selector has not been fitted yet.")
         return self.feature_importances_
 
+
+class CorrelationFilter(BaseEstimator, TransformerMixin):
+    """
+    Removes highly correlated features to reduce redundancy before model-based selection.
+    
+    This is a fast pre-filtering step that removes features with correlation above a threshold,
+    keeping the feature with higher variance (more information). Reduces dimensionality before
+    more expensive selection methods like RFE or SHAP.
+    
+    Attributes:
+        threshold (float): Correlation threshold above which to remove features (default: 0.95).
+        method (str): Correlation method ('pearson', 'spearman', 'kendall').
+        feature_names_in_ (list): Feature names from fitting.
+        features_to_keep_ (list): Features selected after filtering.
+        correlation_matrix_ (pd.DataFrame): Correlation matrix computed during fit.
+        dropped_features_ (dict): Mapping of dropped features to the feature they correlate with.
+    """
+    
+    def __init__(self, threshold: float = 0.95, method: str = 'pearson') -> None:
+        """
+        Initialize the CorrelationFilter.
+        
+        Args:
+            threshold: Correlation threshold (0-1). Features with abs(corr) > threshold are removed.
+            method: Correlation method ('pearson', 'spearman', 'kendall').
+        """
+        if not 0 < threshold <= 1:
+            raise ValueError(f"threshold must be between 0 and 1, got {threshold}")
+        if method not in ('pearson', 'spearman', 'kendall'):
+            raise ValueError(f"method must be 'pearson', 'spearman', or 'kendall', got {method}")
+        
+        self.threshold = threshold
+        self.method = method
+        self.feature_names_in_: Optional[List[str]] = None
+        self.features_to_keep_: Optional[List[str]] = None
+        self.correlation_matrix_: Optional[pd.DataFrame] = None
+        self.dropped_features_: Dict[str, str] = {}
+    
+    def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'CorrelationFilter':
+        """
+        Fit the filter by computing correlations and identifying features to drop.
+        
+        Args:
+            X: Input DataFrame with features.
+            y: Target variable (unused, for sklearn compatibility).
+            
+        Returns:
+            Self.
+        """
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input X must be a pandas DataFrame")
+        
+        self.feature_names_in_ = list(X.columns)
+        n_features_original = len(self.feature_names_in_)
+        
+        # Compute correlation matrix
+        self.correlation_matrix_ = X.corr(method=self.method).abs()
+        
+        # Find features to drop
+        upper_tri = self.correlation_matrix_.where(
+            np.triu(np.ones(self.correlation_matrix_.shape), k=1).astype(bool)
+        )
+        
+        # Track which features to drop and why
+        features_to_drop = set()
+        self.dropped_features_ = {}
+        
+        for col in upper_tri.columns:
+            # Find features highly correlated with this column
+            high_corr = upper_tri[col][upper_tri[col] > self.threshold]
+            
+            for correlated_feature in high_corr.index:
+                # Keep the feature with higher variance (more information)
+                if X[col].var() >= X[correlated_feature].var():
+                    features_to_drop.add(correlated_feature)
+                    self.dropped_features_[correlated_feature] = col
+                else:
+                    features_to_drop.add(col)
+                    self.dropped_features_[col] = correlated_feature
+        
+        self.features_to_keep_ = [f for f in self.feature_names_in_ if f not in features_to_drop]
+        
+        n_dropped = n_features_original - len(self.features_to_keep_)
+        logger.info(f"CorrelationFilter: Reduced {n_features_original} → {len(self.features_to_keep_)} features "
+                   f"(dropped {n_dropped} with corr > {self.threshold})")
+        
+        if n_dropped > 0 and n_dropped <= 20:
+            logger.debug(f"Dropped features: {list(self.dropped_features_.keys())}")
+        
+        return self
+    
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform by selecting only the uncorrelated features.
+        
+        Args:
+            X: Input DataFrame.
+            
+        Returns:
+            DataFrame with only the selected features.
+        """
+        if self.features_to_keep_ is None:
+            raise NotFittedError("CorrelationFilter has not been fitted. Call fit() first.")
+        
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input X must be a pandas DataFrame")
+        
+        # Handle case where some features might be missing (e.g., new data)
+        available_features = [f for f in self.features_to_keep_ if f in X.columns]
+        
+        if len(available_features) < len(self.features_to_keep_):
+            missing = set(self.features_to_keep_) - set(available_features)
+            logger.warning(f"CorrelationFilter: {len(missing)} features missing in transform: {list(missing)[:5]}")
+        
+        return X[available_features]
+    
+    def get_support(self, indices: bool = False):
+        """Get a mask or indices of features selected."""
+        if self.features_to_keep_ is None:
+            raise NotFittedError("CorrelationFilter has not been fitted.")
+        
+        mask = np.array([f in self.features_to_keep_ for f in self.feature_names_in_])
+        return np.where(mask)[0] if indices else mask
+    
+    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+        """Get output feature names."""
+        if self.features_to_keep_ is None:
+            raise NotFittedError("CorrelationFilter has not been fitted.")
+        return np.array(self.features_to_keep_)
+
+
+class LGBMImportanceSelector(BaseEstimator, TransformerMixin):
+    """
+    Selects features based on LightGBM's built-in feature importance.
+    
+    Uses LightGBM's gain-based or split-based importance for fast, model-consistent
+    feature selection. This is more efficient than SHAP for large datasets and
+    provides importance scores that are directly relevant to the model being used.
+    
+    Attributes:
+        n_features (int): Number of top features to select.
+        importance_type (str): Type of importance ('gain', 'split', 'both').
+        threshold (float): Minimum importance threshold (alternative to n_features).
+        lgbm_params (dict): Parameters passed to LGBMClassifier.
+        feature_importances_ (pd.Series): Computed importance scores.
+        selected_features_ (list): Names of selected features.
+    """
+    
+    def __init__(
+        self,
+        n_features: Optional[int] = 50,
+        importance_type: str = 'gain',
+        threshold: Optional[float] = None,
+        lgbm_params: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Initialize the LGBMImportanceSelector.
+        
+        Args:
+            n_features: Number of top features to select. If None, uses threshold.
+            importance_type: 'gain' (recommended), 'split', or 'both' (average of both).
+            threshold: Minimum importance threshold (0-1, relative). Alternative to n_features.
+            lgbm_params: Parameters for the internal LGBMClassifier. Defaults to fast settings.
+        """
+        if importance_type not in ('gain', 'split', 'both'):
+            raise ValueError(f"importance_type must be 'gain', 'split', or 'both', got {importance_type}")
+        
+        if n_features is None and threshold is None:
+            raise ValueError("Either n_features or threshold must be specified")
+        
+        # Store parameters EXACTLY as received (sklearn clone compatibility)
+        self.n_features = n_features
+        self.importance_type = importance_type
+        self.threshold = threshold
+        self.lgbm_params = lgbm_params  # Don't convert None to {} here!
+        
+        # Fitted attributes (not constructor params, so can initialize here)
+        self.feature_importances_: Optional[pd.Series] = None
+        self.selected_features_: Optional[List[str]] = None
+        self._estimator: Optional[Any] = None
+    
+    def _create_estimator(self):
+        """Create a fast LGBMClassifier for importance calculation."""
+        try:
+            from lightgbm import LGBMClassifier
+        except ImportError:
+            raise ImportError("LightGBM is required for LGBMImportanceSelector. Install with: uv add lightgbm")
+        
+        # Fast default parameters for importance calculation
+        default_params = {
+            'n_estimators': 100,  # Fewer trees for speed
+            'max_depth': 5,       # Shallow trees
+            'learning_rate': 0.1,
+            'num_leaves': 31,
+            'min_child_samples': 20,
+            'subsample': 0.8,
+            'colsample_bytree': 0.8,
+            'verbosity': -1,
+            'n_jobs': -1,
+            'random_state': 42,
+            'importance_type': self.importance_type if self.importance_type != 'both' else 'gain'
+        }
+        
+        # Override with user params (handle None)
+        if self.lgbm_params is not None:
+            default_params.update(self.lgbm_params)
+        
+        return LGBMClassifier(**default_params)
+    
+    def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'LGBMImportanceSelector':
+        """
+        Fit the selector by training a LightGBM model and extracting importance.
+        
+        Args:
+            X: Input DataFrame with features.
+            y: Target variable.
+            
+        Returns:
+            Self.
+        """
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input X must be a pandas DataFrame")
+        
+        if y is None:
+            raise ValueError("Target variable y is required for LGBMImportanceSelector")
+        
+        self.feature_names_in_ = list(X.columns)
+        n_features_original = len(self.feature_names_in_)
+        
+        # Create and fit the estimator
+        self._estimator = self._create_estimator()
+        
+        logger.debug(f"LGBMImportanceSelector: Fitting on {X.shape[0]} samples, {X.shape[1]} features")
+        self._estimator.fit(X, y)
+        
+        # Get importance scores
+        if self.importance_type == 'both':
+            # Average of gain and split importance
+            gain_importance = self._estimator.booster_.feature_importance(importance_type='gain')
+            split_importance = self._estimator.booster_.feature_importance(importance_type='split')
+            
+            # Normalize and average
+            gain_norm = gain_importance / (gain_importance.sum() + 1e-10)
+            split_norm = split_importance / (split_importance.sum() + 1e-10)
+            importance_values = (gain_norm + split_norm) / 2
+        else:
+            importance_values = self._estimator.feature_importances_
+        
+        # Create importance series
+        self.feature_importances_ = pd.Series(
+            importance_values,
+            index=self.feature_names_in_
+        ).sort_values(ascending=False)
+        
+        # Normalize to 0-1 range
+        total_importance = self.feature_importances_.sum()
+        if total_importance > 0:
+            self.feature_importances_ = self.feature_importances_ / total_importance
+        
+        # Select features
+        if self.n_features is not None:
+            # Select top N features
+            n_select = min(self.n_features, n_features_original)
+            self.selected_features_ = list(self.feature_importances_.head(n_select).index)
+        else:
+            # Select features above threshold
+            self.selected_features_ = list(
+                self.feature_importances_[self.feature_importances_ >= self.threshold].index
+            )
+            # Ensure at least some features are selected
+            if len(self.selected_features_) == 0:
+                self.selected_features_ = list(self.feature_importances_.head(10).index)
+                logger.warning(f"No features above threshold {self.threshold}, selecting top 10")
+        
+        n_selected = len(self.selected_features_)
+        logger.info(f"LGBMImportanceSelector: Selected {n_selected}/{n_features_original} features "
+                   f"(importance_type={self.importance_type})")
+        
+        # Log top features
+        top_5 = self.feature_importances_.head(5)
+        logger.debug(f"Top 5 features: {dict(top_5.round(4))}")
+        
+        return self
+    
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform by selecting only the important features.
+        
+        Args:
+            X: Input DataFrame.
+            
+        Returns:
+            DataFrame with only the selected features.
+        """
+        if self.selected_features_ is None:
+            raise NotFittedError("LGBMImportanceSelector has not been fitted. Call fit() first.")
+        
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input X must be a pandas DataFrame")
+        
+        # Handle missing features
+        available = [f for f in self.selected_features_ if f in X.columns]
+        if len(available) < len(self.selected_features_):
+            missing = set(self.selected_features_) - set(available)
+            logger.warning(f"LGBMImportanceSelector: {len(missing)} features missing: {list(missing)[:5]}")
+        
+        return X[available]
+    
+    def get_support(self, indices: bool = False):
+        """Get a mask or indices of features selected."""
+        if self.selected_features_ is None:
+            raise NotFittedError("LGBMImportanceSelector has not been fitted.")
+        
+        mask = np.array([f in self.selected_features_ for f in self.feature_names_in_])
+        return np.where(mask)[0] if indices else mask
+    
+    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+        """Get output feature names."""
+        if self.selected_features_ is None:
+            raise NotFittedError("LGBMImportanceSelector has not been fitted.")
+        return np.array(self.selected_features_)
+    
+    def get_feature_importances(self) -> pd.Series:
+        """Get the computed feature importances (sorted descending)."""
+        if self.feature_importances_ is None:
+            raise NotFittedError("LGBMImportanceSelector has not been fitted.")
+        return self.feature_importances_
+
+
+class MultiStageFeatureSelector(BaseEstimator, TransformerMixin):
+    """
+    Combines multiple feature selection stages for efficient dimensionality reduction.
+    
+    Typical usage: CorrelationFilter (fast) -> LGBMImportanceSelector (model-based)
+    
+    This is more efficient than applying expensive selection methods to all features.
+    
+    Attributes:
+        stages (list): List of (name, selector) tuples.
+        selected_features_ (list): Final selected features after all stages.
+    """
+    
+    def __init__(self, stages: Optional[List[Tuple[str, TransformerMixin]]] = None) -> None:
+        """
+        Initialize MultiStageFeatureSelector.
+        
+        Args:
+            stages: List of (name, selector) tuples. If None, uses default stages.
+        """
+        # Store parameter EXACTLY as received (sklearn clone compatibility)
+        self.stages = stages  # Don't convert None to default here!
+        
+        # Fitted attributes (not constructor params)
+        self.selected_features_: Optional[List[str]] = None
+        self.stage_results_: Dict[str, Dict] = {}
+        self._fitted_stages: Optional[List[Tuple[str, TransformerMixin]]] = None
+    
+    def _default_stages(self) -> List[Tuple[str, TransformerMixin]]:
+        """Create default selection stages."""
+        return [
+            ('correlation', CorrelationFilter(threshold=0.95)),
+            ('lgbm_importance', LGBMImportanceSelector(n_features=50, importance_type='gain'))
+        ]
+    
+    def _get_stages(self) -> List[Tuple[str, TransformerMixin]]:
+        """Get stages, using defaults if None."""
+        return self.stages if self.stages is not None else self._default_stages()
+    
+    def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'MultiStageFeatureSelector':
+        """
+        Fit all selection stages sequentially.
+        
+        Args:
+            X: Input DataFrame.
+            y: Target variable.
+            
+        Returns:
+            Self.
+        """
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input X must be a pandas DataFrame")
+        
+        self.feature_names_in_ = list(X.columns)
+        X_current = X.copy()
+        
+        # Get stages (use defaults if None)
+        self._fitted_stages = self._get_stages()
+        
+        logger.info(f"MultiStageFeatureSelector: Starting with {X_current.shape[1]} features")
+        
+        for stage_name, selector in self._fitted_stages:
+            n_before = X_current.shape[1]
+            
+            # Fit and transform
+            selector.fit(X_current, y)
+            X_current = selector.transform(X_current)
+            
+            n_after = X_current.shape[1]
+            
+            # Store stage results
+            self.stage_results_[stage_name] = {
+                'n_features_in': n_before,
+                'n_features_out': n_after,
+                'reduction_pct': 100 * (1 - n_after / n_before) if n_before > 0 else 0
+            }
+            
+            logger.info(f"  Stage '{stage_name}': {n_before} → {n_after} features "
+                       f"({self.stage_results_[stage_name]['reduction_pct']:.1f}% reduction)")
+        
+        self.selected_features_ = list(X_current.columns)
+        
+        total_reduction = 100 * (1 - len(self.selected_features_) / len(self.feature_names_in_))
+        logger.info(f"MultiStageFeatureSelector: Final {len(self.selected_features_)}/{len(self.feature_names_in_)} "
+                   f"features ({total_reduction:.1f}% total reduction)")
+        
+        return self
+    
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform by applying all selection stages.
+        
+        Args:
+            X: Input DataFrame.
+            
+        Returns:
+            DataFrame with selected features.
+        """
+        if self._fitted_stages is None or self.selected_features_ is None:
+            raise NotFittedError("MultiStageFeatureSelector has not been fitted.")
+        
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("Input X must be a pandas DataFrame")
+        
+        # Apply all fitted stages
+        X_current = X
+        for stage_name, selector in self._fitted_stages:
+            X_current = selector.transform(X_current)
+        
+        return X_current
+    
+    def get_support(self, indices: bool = False):
+        """Get a mask or indices of features selected."""
+        if self.selected_features_ is None:
+            raise NotFittedError("MultiStageFeatureSelector has not been fitted.")
+        
+        mask = np.array([f in self.selected_features_ for f in self.feature_names_in_])
+        return np.where(mask)[0] if indices else mask
+    
+    def get_feature_names_out(self, input_features=None) -> np.ndarray:
+        """Get output feature names."""
+        if self.selected_features_ is None:
+            raise NotFittedError("MultiStageFeatureSelector has not been fitted.")
+        return np.array(self.selected_features_)
+    
+    def get_stage_importances(self) -> Dict[str, pd.Series]:
+        """Get feature importances from each stage that supports it."""
+        if self._fitted_stages is None:
+            raise NotFittedError("MultiStageFeatureSelector has not been fitted.")
+        
+        importances = {}
+        for stage_name, selector in self._fitted_stages:
+            if hasattr(selector, 'get_feature_importances'):
+                try:
+                    importances[stage_name] = selector.get_feature_importances()
+                except NotFittedError:
+                    pass
+            elif hasattr(selector, 'feature_importances_') and selector.feature_importances_ is not None:
+                importances[stage_name] = selector.feature_importances_
+        return importances
 
 
 class ImbalanceHandler(BaseEstimator, TransformerMixin):

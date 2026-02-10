@@ -32,10 +32,10 @@ model_settings:
   shuffle: false
   temporal_split: false
   run_ids:
-    - 3h
-    - 1h
-    - 30min
-    - 15min
+    # - 3h
+    # - 1h
+    # - 30min
+    # - 15min
     - 5min
 
 target_encode_dict:

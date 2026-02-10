@@ -1,0 +1,147 @@
+description: "Design for 100k RPM from day one with Arch pragmatism and strict learning enforcement"
+globs: ["**/architecture/**", "**/*design*", "**/*architecture*", "**/*system*", "**/*infrastructure*", "**/*infra*", "**/*structure*", "**/*blueprint*", "**/*schema*", "**/*diagram*", "**/*.mmd", "**/*.mermaid", "**/*topology*", "**/*layout*"]
+alwaysApply: false
+priority: 95
+---
+
+# SYSTEM DESIGN: ARCH LINUX SCALE
+
+## Mandatory Learning Sections (Non-Negotiable)
+Every design response MUST include:
+- `[DESIGN RATIONALE]` - Why this architecture over alternatives (table format)
+- `[CRITICAL THINKING]` - Pressure-test Q&A (failure modes, scale implications)
+- `[LEARNING]` - Key architectural principle to internalize
+
+**REFUSAL**: Design missing ANY section = INCOMPLETE. Redo with learning sections.
+
+## Design Principles
+
+- Assume 100k requests per minute from day one
+- Design for observability first
+- Failure is normal - plan for it
+- Simple > Complex (but not simpler)
+- Open source stack preferred
+- Community maintainable architecture
+
+## Causality Mandate (Non-Negotiable)
+**Rule**: Architecture decisions must PROVE causality.
+- "Why does this design solve the problem?"
+- "What evidence (traces/benchmarks/research) supports this?"
+- **REFUSAL**: Proposals without justification vs alternatives = INVALID.
+
+## Refusal Protocol
+| Scenario | Action |
+|----------|--------|
+| No Mermaid diagram | **REFUSE** (Visual-First mandate) |
+| Missing failure modes | **REFUSE** (Optimism bias violation) |
+| No cost analysis | **REFUSE** (Fiscal irresponsibility) |
+| Missing learning sections | **STOP** and redo with rationale |
+
+## Design Framework
+
+### Step 1: Requirements as Constraints
+- List actual requirements, not wishes
+- **Why this requirement?** Justify the need.
+
+### Step 2: Data Flow First (VISUAL MANDATE)
+- Mermaid graph required for all data entry/exit/processing/storage points.
+- **REFUSE** if flow is described only in prose.
+
+### Step 3: Failure Mode Analysis
+- What happens when each component fails?
+- How do we know it failed?
+- How does it recover?
+
+### Step 4: Scale Considerations
+- What breaks at 10x, 100x, 1000x load?
+- Horizontal vs vertical scaling path justification.
+
+## Output Template
+
+### SYSTEM DESIGN: [System Name]
+
+#### REQUIREMENTS (as Constraints)
+[Justify each constraint]
+
+#### DATA FLOW (MANDATORY MERMAID)
+```mermaid
+graph LR
+  A[Client] --> B[API Gateway]
+  B --> C[Service A]
+  B --> D[Service B]
+  C --> E[(Database)]
+  D --> E
+```
+
+#### [DESIGN RATIONALE]
+[Table: Pattern/Tech vs Alternatives vs Why Chosen]
+
+#### [CRITICAL THINKING]
+Q: [Pressure-test question challenging architectural assumption]
+A: [Analysis of failure modes, cascading failures, and scale-out strategy]
+
+#### [LEARNING]
+[Crystallized architectural truth]
+
+#### COMPONENTS
+##### 1. [Component Name]
+- **Purpose**: [What it does]
+- **Tech Stack**: [Python/Rust/Other]
+- **Scale Considerations**: [How it scales]
+- **Failure Modes**: [How it fails and recovers]
+
+#### SCALING PATH
+| Load Level | Architecture Changes | Cost Estimate |
+|------------|---------------------|---------------|
+| 1k RPM | Single node | $X/month |
+| 10k RPM | Add load balancer | $Y/month |
+| 100k RPM | Sharding + caching | $Z/month |
+
+#### FAILURE SCENARIOS
+**Scenario 1**: [Database outage]
+- **Impact**: [What breaks]
+- **Detection**: [How we know]
+- **Recovery**: [How we fix]
+
+#### ARCH LINUX INTEGRATION
+- **Packaging**: [AUR package structure]
+- **Configuration**: [Arch-style config location]
+- **Logging**: [Journalctl integration]
+
+[TOKEN AUDIT: Design completeness: X/100]
+
+## Technology Selection
+
+### Python
+- FastAPI for APIs
+- Pydantic for validation
+- SQLAlchemy for ORM
+- Redis for caching
+- Kafka for event streaming
+
+### Rust
+- Actix-web or Axum for APIs
+- Serde for serialization
+- SQLx for database
+- Tokio for async runtime
+
+### Infrastructure
+- Podman for containers
+- Prometheus for metrics
+- Grafana for dashboards
+- Loki for logs
+- Tempo for traces
+
+## Migration Paths
+
+### Python to Rust
+- Identify performance bottlenecks first
+- Start with data processing pipelines
+- Use PyO3 for gradual migration
+- Benchmark before/after
+
+### Monolith to Microservices
+- Extract by bounded context
+- Define clear APIs first
+- Strangler pattern recommended
+- Observability before extraction

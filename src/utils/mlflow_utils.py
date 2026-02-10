@@ -402,6 +402,161 @@ def log_training_parameters(
     logger.info(f"Logged training parameters: {X_train.shape[0]} train, {X_test.shape[0]} test, {X_train.shape[1]} features")
 
 
+def _log_feature_importance(model) -> None:
+    """
+    Log feature importance from the trained model pipeline to MLflow.
+    
+    Handles multiple scenarios:
+    - Model with built-in feature_importances_ (LGBM, XGBoost, RandomForest)
+    - Pipeline with feature_selection step that has feature importance
+    - Multi-stage feature selectors
+    
+    Args:
+        model: Trained model or pipeline (can be RandomizedSearchCV, Pipeline, or estimator)
+    """
+    import tempfile
+    import shutil
+    
+    try:
+        # Extract the actual estimator from RandomizedSearchCV or GridSearchCV
+        if hasattr(model, 'best_estimator_'):
+            pipeline = model.best_estimator_
+        else:
+            pipeline = model
+        
+        importance_data = []
+        
+        # Check for feature selection step in pipeline
+        if hasattr(pipeline, 'named_steps'):
+            # Check for feature_selection step
+            if 'feature_selection' in pipeline.named_steps:
+                selector = pipeline.named_steps['feature_selection']
+                
+                # Get feature importances from selector
+                if hasattr(selector, 'get_feature_importances'):
+                    try:
+                        importances = selector.get_feature_importances()
+                        for feature, importance in importances.items():
+                            importance_data.append({
+                                'feature': feature,
+                                'importance': importance,
+                                'source': 'feature_selector'
+                            })
+                        logger.debug(f"Got {len(importance_data)} feature importances from feature selector")
+                    except Exception as e:
+                        logger.debug(f"Could not get importances from feature selector: {e}")
+                
+                # Get selected feature names
+                if hasattr(selector, 'get_feature_names_out'):
+                    try:
+                        selected_features = selector.get_feature_names_out()
+                        mlflow.log_param("n_features_selected", len(selected_features))
+                        logger.info(f"Feature selection: {len(selected_features)} features selected")
+                    except Exception as e:
+                        logger.debug(f"Could not get selected feature names: {e}")
+                
+                # For MultiStageFeatureSelector, log stage results
+                if hasattr(selector, 'stage_results_'):
+                    for stage_name, results in selector.stage_results_.items():
+                        mlflow.log_metric(f"fs_{stage_name}_features_in", results.get('n_features_in', 0))
+                        mlflow.log_metric(f"fs_{stage_name}_features_out", results.get('n_features_out', 0))
+                        mlflow.log_metric(f"fs_{stage_name}_reduction_pct", results.get('reduction_pct', 0))
+            
+            # Check for model_fit step with feature_importances_
+            if 'model_fit' in pipeline.named_steps:
+                model_fit = pipeline.named_steps['model_fit']
+                
+                if hasattr(model_fit, 'feature_importances_'):
+                    # Get feature names
+                    feature_names = None
+                    
+                    # Try to get feature names from feature_selection step
+                    if 'feature_selection' in pipeline.named_steps:
+                        selector = pipeline.named_steps['feature_selection']
+                        if hasattr(selector, 'get_feature_names_out'):
+                            try:
+                                feature_names = list(selector.get_feature_names_out())
+                            except Exception:
+                                pass
+                    
+                    # Fallback: try to get from features step
+                    if feature_names is None and 'features' in pipeline.named_steps:
+                        try:
+                            features_step = pipeline.named_steps['features']
+                            if hasattr(features_step, 'get_feature_names_out'):
+                                feature_names = list(features_step.get_feature_names_out())
+                        except Exception:
+                            pass
+                    
+                    # Get importances
+                    importances = model_fit.feature_importances_
+                    
+                    if feature_names is not None and len(feature_names) == len(importances):
+                        for feature, importance in zip(feature_names, importances):
+                            importance_data.append({
+                                'feature': feature,
+                                'importance': float(importance),
+                                'source': 'model'
+                            })
+                        logger.debug(f"Got {len(importances)} feature importances from model")
+                    else:
+                        # Use generic feature names if no names available
+                        for i, importance in enumerate(importances):
+                            importance_data.append({
+                                'feature': f'feature_{i}',
+                                'importance': float(importance),
+                                'source': 'model'
+                            })
+                        logger.debug(f"Got {len(importances)} feature importances with generic names")
+        
+        # Direct model with feature_importances_ (not in pipeline)
+        elif hasattr(pipeline, 'feature_importances_'):
+            importances = pipeline.feature_importances_
+            for i, importance in enumerate(importances):
+                importance_data.append({
+                    'feature': f'feature_{i}',
+                    'importance': float(importance),
+                    'source': 'model'
+                })
+        
+        # If we have importance data, log it
+        if importance_data:
+            importance_df = pd.DataFrame(importance_data)
+            
+            # Sort by importance descending
+            importance_df = importance_df.sort_values('importance', ascending=False)
+            
+            # Log top features as metrics for quick comparison in MLflow UI
+            top_features = importance_df.head(10)
+            for idx, row in top_features.iterrows():
+                # Sanitize feature name for metric name
+                feature_name = str(row['feature'])[:50].replace(' ', '_').replace('.', '_')
+                mlflow.log_metric(f"imp_{feature_name}", row['importance'])
+            
+            # Log total number of important features (importance > 0.01)
+            significant_features = len(importance_df[importance_df['importance'] > 0.01])
+            mlflow.log_metric("n_significant_features", significant_features)
+            
+            # Save as artifact
+            tmpdir = tempfile.mkdtemp()
+            try:
+                artifact_path = os.path.join(tmpdir, "feature_importance.csv")
+                importance_df.to_csv(artifact_path, index=False)
+                
+                mlflow.log_artifact(artifact_path)
+                logger.info(f"Logged feature importance artifact ({len(importance_df)} features)")
+                
+            finally:
+                shutil.rmtree(tmpdir, ignore_errors=True)
+        else:
+            logger.debug("No feature importance data available to log")
+            
+    except Exception as e:
+        logger.warning(f"Could not log feature importance: {e}")
+        import traceback
+        logger.debug(traceback.format_exc())
+
+
 def log_model_performance(y_true, y_pred, model, X_test=None):
     """
     Logs model performance metrics, confusion matrix, and financial trading metrics to MLflow.
@@ -569,14 +724,5 @@ def log_model_performance(y_true, y_pred, model, X_test=None):
         shutil.rmtree(tmpdir, ignore_errors=True)
         logger.debug(f"Temp directory cleaned: {not os.path.exists(tmpdir)}")
 
-    # Feature importance (commented out for now)
-    # if hasattr(model.named_steps['model_fit'], 'feature_importances_'):
-    #     feature_importances = model.named_steps['model_fit'].feature_importances_
-    #     feature_names = model.named_steps['feature_selection'].selector_.get_feature_names_out()
-    #     importance_df = pd.DataFrame({
-    #         'feature': feature_names,
-    #         'importance': feature_importances
-    #     })
-    #     importance_df.sort_values(by='importance', ascending=False, inplace=True)
-    #     importance_df.to_csv('WeeklyReports/mlflow_reports/feature_importance.csv', index=False)
-    #     mlflow.log_artifact('WeeklyReports/mlflow_reports/feature_importance.csv')
+    # Log feature importance if available
+    _log_feature_importance(model)

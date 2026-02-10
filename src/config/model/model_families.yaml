@@ -1,0 +1,120 @@
+# Model Families Configuration
+# ============================
+# Groups models by their preprocessing requirements.
+# Each family has auto-determined preprocessing, and model type within a family is tunable.
+#
+# To enable/disable models: comment/uncomment in the models list
+# To switch feature selection: change feature_selection field (LGBM, SHAP, CORR, or null)
+
+model_families:
+  # =============================================================================
+  # BASELINE FAMILY - Fast reference models
+  # Always run baseline to justify complexity of advanced models
+  # =============================================================================
+  baseline:
+    description: "Fast baseline models for comparison"
+    preprocessing:
+      scale_numeric: true
+      encode_categorical: true
+      feature_selection: null  # No selection for baseline
+    models:
+      - LR    # Logistic Regression (fast, interpretable)
+      - DT    # Decision Tree (simple, interpretable)
+
+  # =============================================================================
+  # TREE FAMILY - Gradient boosting and ensemble tree models
+  # No scaling needed, handles categoricals natively (LGBM/XGB)
+  # =============================================================================
+  tree:
+    description: "Tree-based models (no scaling needed)"
+    preprocessing:
+      scale_numeric: false
+      encode_categorical: false  # LGBM/XGB handle natively
+      feature_selection: LGBM    # Fast, model-consistent selection
+      feature_selection_params:
+        n_features: 50
+        importance_type: gain
+    models:
+      - LGBM  # LightGBM (recommended, fast, handles cats)
+      - XGB   # XGBoost (robust, good regularization)
+      - RFC   # Random Forest (stable, less overfitting)
+      - GBC   # Gradient Boosting (sklearn native)
+      # - ETC   # Extra Trees (more randomness, uncomment to include)
+
+  # =============================================================================
+  # LINEAR FAMILY - Linear and regularized linear models
+  # Requires scaling + encoding, sensitive to feature scales
+  # =============================================================================
+  linear:
+    description: "Linear models (scaling required)"
+    preprocessing:
+      scale_numeric: true
+      encode_categorical: true
+      feature_selection: LGBM    # Use LGBM importance for selection
+      feature_selection_params:
+        n_features: 50
+    models:
+      - LR     # Logistic Regression (L1/L2/ElasticNet regularization)
+      - LSVC   # Linear SVC (faster than kernel SVC)
+      - Ridge  # Ridge Classifier (L2 regularization)
+      # - SGD    # SGD Classifier (online learning, uncomment to include)
+
+  # =============================================================================
+  # DISTANCE FAMILY - Distance-based models
+  # Requires scaling, sensitive to feature magnitudes
+  # =============================================================================
+  distance:
+    description: "Distance-based models (scaling required)"
+    preprocessing:
+      scale_numeric: true
+      encode_categorical: true
+      feature_selection: null  # Let model see all features
+    models:
+      - KNN  # K-Nearest Neighbors
+      - SVC  # Support Vector Classifier (RBF kernel)
+
+  # =============================================================================
+  # NEURAL FAMILY - Neural network models
+  # Requires scaling + encoding, benefits from feature reduction
+  # =============================================================================
+  neural:
+    description: "Neural network models"
+    preprocessing:
+      scale_numeric: true
+      encode_categorical: true
+      feature_selection: LGBM
+      feature_selection_params:
+        n_features: 30  # Fewer features for neural nets
+    models:
+      - MLP  # Multi-Layer Perceptron
+
+# =============================================================================
+# RESOURCE BUDGETING CONFIGURATION
+# =============================================================================
+resource_config:
+  # Base iterations for RandomizedSearchCV (multiplied by number of models)
+  n_iter_base: 15
+  
+  # Cross-validation splits (time-series aware)
+  cv_splits: 5
+  
+  # Scoring metric for optimization
+  scoring: f1_weighted
+  
+  # Random state for reproducibility
+  random_state: 42
+  
+  # Number of parallel jobs (-1 = all cores)
+  n_jobs: -1
+
+# =============================================================================
+# FEATURE SELECTION OPTIONS
+# =============================================================================
+# Available selectors (from FeatSelect_mapping):
+#   - LGBM: LightGBM gain-based importance (fast, recommended)
+#   - SHAP: SHAP-based selection (accurate, slower)
+#   - CORR: Correlation filter (removes redundant features)
+#   - MULTI: Multi-stage (CORR + LGBM)
+#   - RFE: Recursive Feature Elimination
+#   - RFECV: RFE with Cross-Validation
+#   - null: No feature selection

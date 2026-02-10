@@ -1,35 +1,168 @@
 # src/config/model/params.yaml
+# =============================================================================
+# MODEL HYPERPARAMETERS
+# =============================================================================
 # 
+# Organized by model family for the new Multi-Model Pipeline Architecture.
+# Each model's params use 'model__' prefix for sklearn Pipeline compatibility.
+#
 # Hardware-Aware Optimization:
-# These hyperparameter ranges are optimized for "balanced" mode (medium hardware tier).
-# The hardware detector automatically adjusts:
-#   - n_iter: Number of hyperparameter combinations to try (10-50 based on hardware)
-#   - n_jobs: Parallel jobs for RandomizedSearchCV (based on CPU cores)
-#   - max_samples_per_class: Sample limits (based on RAM)
-#
-# Hardware Tiers:
-#   - Low: <8 cores, <16GB RAM → n_iter=15, narrower search
-#   - Medium: 8-16 cores, 16-32GB RAM → n_iter=20, current ranges
-#   - High: >16 cores, >32GB RAM → n_iter=30, wider exploration
-#
-pipeline_params:
-  feature_selection__n_features: [10, 25, 50, 75]
+# The hardware detector automatically adjusts n_iter and n_jobs based on:
+#   - Low: <8 cores, <16GB RAM → n_iter=15
+#   - Medium: 8-16 cores, 16-32GB RAM → n_iter=20
+#   - High: >16 cores, >32GB RAM → n_iter=30
 
+# =============================================================================
+# FEATURE SELECTION PARAMETERS (for pipeline grid search)
+# =============================================================================
+pipeline_params:
+  # Feature selection parameters (if tuning feature selection)
+  feature_selection__n_features: [25, 50, 75, 100]
+  # feature_selection__importance_type: ['gain', 'split']
+  # feature_selection__threshold: [0.90, 0.95, 0.98]
+
+# =============================================================================
+# MODEL HYPERPARAMETERS BY FAMILY
+# =============================================================================
+# Note: Use 'model__' prefix for ModelSelector-wrapped pipelines
+#       Use 'model_fit__' prefix for direct pipeline (backward compatible)
+
+model_hyperparams:
+  # ---------------------------------------------------------------------------
+  # BASELINE FAMILY - Fast reference models
+  # ---------------------------------------------------------------------------
+  DT:
+    model__max_depth: [3, 5, 7, 10, null]
+    model__min_samples_split: [2, 5, 10, 20]
+    model__min_samples_leaf: [1, 2, 5, 10]
+    model__criterion: ['gini', 'entropy']
+    model__max_features: ['sqrt', 'log2', null]
+
+  # ---------------------------------------------------------------------------
+  # TREE FAMILY - Gradient boosting and ensemble trees
+  # ---------------------------------------------------------------------------
+  LGBM:
+    model__n_estimators: [100, 300, 500]
+    model__max_depth: [3, 5, 7, 10, -1]
+    model__learning_rate: [0.01, 0.05, 0.1]
+    model__num_leaves: [15, 31, 63, 127]
+    model__reg_alpha: [0, 0.1, 1.0]
+    model__reg_lambda: [0, 0.1, 1.0]
+    model__min_child_samples: [10, 20, 50]
+    model__subsample: [0.8, 0.9, 1.0]
+    model__colsample_bytree: [0.8, 0.9, 1.0]
+    model__verbosity: [-1]
+
+  XGB:
+    model__n_estimators: [100, 300, 500]
+    model__max_depth: [3, 5, 7, 10]
+    model__learning_rate: [0.01, 0.05, 0.1]
+    model__reg_alpha: [0, 0.1, 1.0]
+    model__reg_lambda: [0, 0.1, 1.0]
+    model__subsample: [0.8, 0.9, 1.0]
+    model__colsample_bytree: [0.8, 0.9, 1.0]
+    model__min_child_weight: [1, 5, 10]
+
+  RFC:
+    model__n_estimators: [100, 200, 300]
+    model__max_depth: [5, 10, 15, null]
+    model__min_samples_split: [2, 5, 10]
+    model__min_samples_leaf: [1, 2, 4]
+    model__max_features: ['sqrt', 'log2']
+    model__bootstrap: [true]
+    model__n_jobs: [-1]
+
+  GBC:
+    model__n_estimators: [100, 200, 300]
+    model__max_depth: [3, 5, 7]
+    model__learning_rate: [0.05, 0.1, 0.2]
+    model__min_samples_split: [2, 5, 10]
+    model__min_samples_leaf: [1, 2, 5]
+    model__subsample: [0.8, 0.9, 1.0]
+
+  ETC:
+    model__n_estimators: [100, 200, 300]
+    model__max_depth: [5, 10, 15, null]
+    model__min_samples_split: [2, 5, 10]
+    model__min_samples_leaf: [1, 2, 4]
+    model__max_features: ['sqrt', 'log2']
+    model__n_jobs: [-1]
+
+  # ---------------------------------------------------------------------------
+  # LINEAR FAMILY - Linear and regularized models
+  # ---------------------------------------------------------------------------
+  LR:
+    model__C: [0.001, 0.01, 0.1, 1.0, 10.0]
+    model__penalty: ['l2', 'l1']
+    model__solver: ['saga']  # Supports both L1 and L2
+    model__max_iter: [500, 1000]
+    model__class_weight: ['balanced', null]
+
+  LSVC:
+    model__C: [0.001, 0.01, 0.1, 1.0, 10.0]
+    model__loss: ['hinge', 'squared_hinge']
+    model__max_iter: [1000, 2000]
+    model__class_weight: ['balanced', null]
+    model__dual: ['auto']
+
+  Ridge:
+    model__alpha: [0.1, 1.0, 10.0, 100.0]
+    model__class_weight: ['balanced', null]
+    model__solver: ['auto']
+
+  SGD:
+    model__loss: ['hinge', 'log_loss', 'modified_huber']
+    model__penalty: ['l2', 'l1', 'elasticnet']
+    model__alpha: [0.0001, 0.001, 0.01]
+    model__max_iter: [1000]
+    model__learning_rate: ['optimal', 'adaptive']
+    model__class_weight: ['balanced', null]
+
+  # ---------------------------------------------------------------------------
+  # DISTANCE FAMILY - Distance-based models
+  # ---------------------------------------------------------------------------
+  KNN:
+    model__n_neighbors: [3, 5, 7, 11, 15]
+    model__weights: ['uniform', 'distance']
+    model__metric: ['euclidean', 'manhattan', 'minkowski']
+    model__n_jobs: [-1]
+
+  SVC:
+    model__C: [0.1, 1.0, 10.0]
+    model__kernel: ['rbf', 'poly']
+    model__gamma: ['scale', 'auto']
+    model__class_weight: ['balanced', null]
+    model__probability: [true]  # Needed for predict_proba
+
+  # ---------------------------------------------------------------------------
+  # NEURAL FAMILY - Neural network models
+  # ---------------------------------------------------------------------------
+  MLP:
+    model__hidden_layer_sizes: [[64, 32], [128, 64], [256, 128], [100, 50]]
+    model__activation: ['relu', 'tanh']
+    model__solver: ['adam']
+    model__alpha: [0.0001, 0.001, 0.01]
+    model__learning_rate_init: [0.001, 0.01]
+    model__max_iter: [300, 500]
+    model__early_stopping: [true]
+    model__validation_fraction: [0.1]
+
+# =============================================================================
+# LEGACY MODEL PARAMS (for backward compatibility with old pipeline)
+# =============================================================================
 model_params:
-  # LightGBM - Recommended for production (fast, handles categoricals natively)
   LGBM:
     model_fit__n_estimators: [100, 300, 500]
     model_fit__max_depth: [3, 5, 7, 10]
     model_fit__learning_rate: [0.01, 0.05, 0.1]
     model_fit__num_leaves: [15, 31, 63]
-    model_fit__reg_alpha: [0, 0.1, 1.0]  # L1 regularization
-    model_fit__reg_lambda: [0, 0.1, 1.0]  # L2 regularization
+    model_fit__reg_alpha: [0, 0.1, 1.0]
+    model_fit__reg_lambda: [0, 0.1, 1.0]
     model_fit__min_child_samples: [10, 20, 50]
     model_fit__subsample: [0.8, 1.0]
     model_fit__colsample_bytree: [0.8, 1.0]
-    model_fit__verbosity: [-1]  # Suppress warnings
+    model_fit__verbosity: [-1]
   
-  # XGBoost - Alternative gradient boosting
   XGB:
     model_fit__n_estimators: [100, 300, 500]
     model_fit__max_depth: [3, 5, 7]
@@ -41,16 +174,18 @@ model_params:
     model_fit__min_child_weight: [1, 5, 10]
   
   GBC:
-    model_fit__n_estimators: [50, 100, 200]  # Increased range
+    model_fit__n_estimators: [50, 100, 200]
     model_fit__max_depth: [3, 5, 7]
     model_fit__min_samples_split: [20, 50]
     model_fit__min_samples_leaf: [10, 20, 50]
-    model_fit__learning_rate: [0.05, 0.1, 0.2]  # Added learning rate
+    model_fit__learning_rate: [0.05, 0.1, 0.2]
+    
   RFC:
     model_fit__n_estimators: [50, 100, 200]
-    model_fit__max_depth: [5, 10, 15]  # Increased depth
+    model_fit__max_depth: [5, 10, 15]
     model_fit__min_samples_split: [10, 20, 50]
     model_fit__min_samples_leaf: [5, 10, 20]
+    
   MLP:
     model_fit__hidden_layer_sizes: [[100], [100, 50], [50, 50]]
     model_fit__activation: ['relu']
@@ -58,17 +193,20 @@ model_params:
     model_fit__alpha: [0.0001, 0.001, 0.01]
     model_fit__learning_rate: ['adaptive']
     model_fit__early_stopping: [true]
+    
   KNN:
     model_fit__n_neighbors: [5, 10, 15]
     model_fit__weights: ['uniform', 'distance']
+    
   LR:
     model_fit__penalty: ['l2']
     model_fit__C: [0.1, 1.0, 10.0]
     model_fit__solver: ['lbfgs']
     model_fit__max_iter: [200, 500]
-  
 
-
+# =============================================================================
+# TECHNICAL INDICATORS PARAMETERS
+# =============================================================================
 technical_indicators_params:
   bollinger_bands__timeperiod: [10, 12, 15]
   rsi__timeperiod: [5, 7, 9]
@@ -86,6 +224,6 @@ technical_indicators_params:
   ichimoku_cloud__lagging_span2_periods: [22, 30, 44]
   ichimoku_cloud__displacement: [16, 19, 22]
   fibonacci_retracements__window: [78, 156, 234]
-# Custom model
-custom_model_windows: [5, 15, 30, 60, 180]
 
+# Custom model windows
+custom_model_windows: [5, 15, 30, 60, 180]
